@@ -1,36 +1,45 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
-@jakarta.persistence.Entity
-@jakarta.persistence.Table(name = "preguntas_por_clave")
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "preguntas_por_clave", schema = "public")
 public class PreguntasPorClave {
-@jakarta.persistence.EmbeddedId
-private sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClaveId id;
+    @EmbeddedId
+    private PreguntasPorClaveId id;
 
-@jakarta.persistence.MapsId("idClave")
-@jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = false)
-@jakarta.persistence.JoinColumn(name = "id_clave", nullable = false)
-private sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman idClave;
+    @MapsId("idClave")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_clave", nullable = false)
+    private ClavesExaman idClave;
 
-@jakarta.persistence.MapsId("idPregunta")
-@jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = false)
-@jakarta.persistence.JoinColumn(name = "id_pregunta", nullable = false)
-private sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta idPregunta;
+    @MapsId("idPregunta")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_pregunta", nullable = false)
+    private BancoPregunta idPregunta;
 
-public sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClaveId getId() {
-  return id;
-}public void setId(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClaveId id) {
-  this.id = id;
-}
+    public PreguntasPorClaveId getId() {
+        return id;
+    }
 
-public sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman getIdClave() {
-  return idClave;
-}public void setIdClave(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman idClave) {
-  this.idClave = idClave;
-}
+    public void setId(PreguntasPorClaveId id) {
+        this.id = id;
+    }
 
-public sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta getIdPregunta() {
-  return idPregunta;
-}public void setIdPregunta(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta idPregunta) {
-  this.idPregunta = idPregunta;
-}
+    public ClavesExaman getIdClave() {
+        return idClave;
+    }
+
+    public void setIdClave(ClavesExaman idClave) {
+        this.idClave = idClave;
+    }
+
+    public BancoPregunta getIdPregunta() {
+        return idPregunta;
+    }
+
+    public void setIdPregunta(BancoPregunta idPregunta) {
+        this.idPregunta = idPregunta;
+    }
 
 }

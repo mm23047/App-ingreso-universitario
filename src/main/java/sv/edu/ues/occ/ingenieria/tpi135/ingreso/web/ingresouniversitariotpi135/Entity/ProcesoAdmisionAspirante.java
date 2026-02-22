@@ -1,58 +1,73 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
-@jakarta.persistence.Entity
-@jakarta.persistence.Table(name = "proceso_admision_aspirante")
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+@Entity
+@Table(name = "proceso_admision_aspirante", schema = "public")
 public class ProcesoAdmisionAspirante {
-@jakarta.persistence.Id
-@jakarta.persistence.Column(name = "id_inscripcion", nullable = false)
-private java.lang.Integer id;
+    @Id
+    @Column(name = "id_inscripcion", nullable = false)
+    private Integer id;
 
-@jakarta.persistence.MapsId
-@jakarta.persistence.OneToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = false)
-@jakarta.persistence.JoinColumn(name = "id_inscripcion", nullable = false)
-private sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba inscripcionesPrueba;
+    @MapsId
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_inscripcion", nullable = false)
+    private InscripcionesPrueba inscripcionesPrueba;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = false)
-@jakarta.persistence.JoinColumn(name = "id_etapa_actual", nullable = false)
-private sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision idEtapaActual;
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_etapa_actual", nullable = false)
+    private EtapasAdmision idEtapaActual;
 
-@jakarta.validation.constraints.Size(max = 30)
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "estado", nullable = false, length = 30)
-private java.lang.String estado;
+    @Size(max = 30)
+    @NotNull
+    @Column(name = "estado", nullable = false, length = 30)
+    private String estado;
 
-@jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
-@jakarta.persistence.JoinColumn(name = "carrera_asignada")
-private sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera carreraAsignada;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "carrera_asignada")
+    private CatalogoCarrera carreraAsignada;
 
-public java.lang.Integer getId() {
-  return id;
-}public void setId(java.lang.Integer id) {
-  this.id = id;
-}
+    public Integer getId() {
+        return id;
+    }
 
-public sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba getInscripcionesPrueba() {
-  return inscripcionesPrueba;
-}public void setInscripcionesPrueba(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba inscripcionesPrueba) {
-  this.inscripcionesPrueba = inscripcionesPrueba;
-}
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-public sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision getIdEtapaActual() {
-  return idEtapaActual;
-}public void setIdEtapaActual(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision idEtapaActual) {
-  this.idEtapaActual = idEtapaActual;
-}
+    public InscripcionesPrueba getInscripcionesPrueba() {
+        return inscripcionesPrueba;
+    }
 
-public java.lang.String getEstado() {
-  return estado;
-}public void setEstado(java.lang.String estado) {
-  this.estado = estado;
-}
+    public void setInscripcionesPrueba(InscripcionesPrueba inscripcionesPrueba) {
+        this.inscripcionesPrueba = inscripcionesPrueba;
+    }
 
-public sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera getCarreraAsignada() {
-  return carreraAsignada;
-}public void setCarreraAsignada(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera carreraAsignada) {
-  this.carreraAsignada = carreraAsignada;
-}
+    public EtapasAdmision getIdEtapaActual() {
+        return idEtapaActual;
+    }
+
+    public void setIdEtapaActual(EtapasAdmision idEtapaActual) {
+        this.idEtapaActual = idEtapaActual;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public CatalogoCarrera getCarreraAsignada() {
+        return carreraAsignada;
+    }
+
+    public void setCarreraAsignada(CatalogoCarrera carreraAsignada) {
+        this.carreraAsignada = carreraAsignada;
+    }
 
 }

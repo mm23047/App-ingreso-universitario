@@ -1,68 +1,88 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
-@jakarta.persistence.Entity
-@jakarta.persistence.Table(name = "turnos_examen")
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+@Entity
+@Table(name = "turnos_examen", schema = "public")
 public class TurnosExaman {
-@jakarta.persistence.Id
-@jakarta.persistence.GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
-@jakarta.persistence.Column(name = "id_turno", nullable = false)
-private java.lang.Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_turno", nullable = false)
+    private Integer id;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = false)
-@jakarta.persistence.JoinColumn(name = "id_prueba", nullable = false)
-private sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision idPrueba;
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_prueba", nullable = false)
+    private PruebasAdmision idPrueba;
 
-@jakarta.validation.constraints.Size(max = 50)
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "nombre_turno", nullable = false, length = 50)
-private java.lang.String nombreTurno;
+    @Size(max = 50)
+    @NotNull
+    @Column(name = "nombre_turno", nullable = false, length = 50)
+    private String nombreTurno;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "fecha", nullable = false)
-private java.time.LocalDate fecha;
+    @NotNull
+    @Column(name = "fecha", nullable = false)
+    private LocalDate fecha;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "hora_inicio", nullable = false)
-private java.time.LocalTime horaInicio;
+    @NotNull
+    @Column(name = "hora_inicio", nullable = false)
+    private LocalTime horaInicio;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "hora_fin", nullable = false)
-private java.time.LocalTime horaFin;
+    @NotNull
+    @Column(name = "hora_fin", nullable = false)
+    private LocalTime horaFin;
 
-public java.lang.Integer getId() {
-  return id;
-}public void setId(java.lang.Integer id) {
-  this.id = id;
-}
+    public Integer getId() {
+        return id;
+    }
 
-public sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision getIdPrueba() {
-  return idPrueba;
-}public void setIdPrueba(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision idPrueba) {
-  this.idPrueba = idPrueba;
-}
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-public java.lang.String getNombreTurno() {
-  return nombreTurno;
-}public void setNombreTurno(java.lang.String nombreTurno) {
-  this.nombreTurno = nombreTurno;
-}
+    public PruebasAdmision getIdPrueba() {
+        return idPrueba;
+    }
 
-public java.time.LocalDate getFecha() {
-  return fecha;
-}public void setFecha(java.time.LocalDate fecha) {
-  this.fecha = fecha;
-}
+    public void setIdPrueba(PruebasAdmision idPrueba) {
+        this.idPrueba = idPrueba;
+    }
 
-public java.time.LocalTime getHoraInicio() {
-  return horaInicio;
-}public void setHoraInicio(java.time.LocalTime horaInicio) {
-  this.horaInicio = horaInicio;
-}
+    public String getNombreTurno() {
+        return nombreTurno;
+    }
 
-public java.time.LocalTime getHoraFin() {
-  return horaFin;
-}public void setHoraFin(java.time.LocalTime horaFin) {
-  this.horaFin = horaFin;
-}
+    public void setNombreTurno(String nombreTurno) {
+        this.nombreTurno = nombreTurno;
+    }
+
+    public LocalDate getFecha() {
+        return fecha;
+    }
+
+    public void setFecha(LocalDate fecha) {
+        this.fecha = fecha;
+    }
+
+    public LocalTime getHoraInicio() {
+        return horaInicio;
+    }
+
+    public void setHoraInicio(LocalTime horaInicio) {
+        this.horaInicio = horaInicio;
+    }
+
+    public LocalTime getHoraFin() {
+        return horaFin;
+    }
+
+    public void setHoraFin(LocalTime horaFin) {
+        this.horaFin = horaFin;
+    }
 
 }

@@ -1,48 +1,60 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
-@jakarta.persistence.Entity
-@jakarta.persistence.Table(name = "opciones_respuesta")
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+
+@Entity
+@Table(name = "opciones_respuesta", schema = "public")
 public class OpcionesRespuesta {
-@jakarta.persistence.Id
-@jakarta.persistence.GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
-@jakarta.persistence.Column(name = "id_opcion", nullable = false)
-private java.lang.Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_opcion", nullable = false)
+    private Integer id;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = false)
-@jakarta.persistence.JoinColumn(name = "id_pregunta", nullable = false)
-private sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta idPregunta;
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_pregunta", nullable = false)
+    private BancoPregunta idPregunta;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Lob
-@jakarta.persistence.Column(name = "texto_opcion", nullable = false)
-private java.lang.String textoOpcion;
+    @NotNull
+    @Lob
+    @Column(name = "texto_opcion", nullable = false)
+    private String textoOpcion;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "es_correcta", nullable = false)
-private java.lang.Boolean esCorrecta;
+    @NotNull
+    @Column(name = "es_correcta", nullable = false)
+    private Boolean esCorrecta;
 
-public java.lang.Integer getId() {
-  return id;
-}public void setId(java.lang.Integer id) {
-  this.id = id;
-}
+    public Integer getId() {
+        return id;
+    }
 
-public sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta getIdPregunta() {
-  return idPregunta;
-}public void setIdPregunta(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta idPregunta) {
-  this.idPregunta = idPregunta;
-}
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-public java.lang.String getTextoOpcion() {
-  return textoOpcion;
-}public void setTextoOpcion(java.lang.String textoOpcion) {
-  this.textoOpcion = textoOpcion;
-}
+    public BancoPregunta getIdPregunta() {
+        return idPregunta;
+    }
 
-public java.lang.Boolean getEsCorrecta() {
-  return esCorrecta;
-}public void setEsCorrecta(java.lang.Boolean esCorrecta) {
-  this.esCorrecta = esCorrecta;
-}
+    public void setIdPregunta(BancoPregunta idPregunta) {
+        this.idPregunta = idPregunta;
+    }
+
+    public String getTextoOpcion() {
+        return textoOpcion;
+    }
+
+    public void setTextoOpcion(String textoOpcion) {
+        this.textoOpcion = textoOpcion;
+    }
+
+    public Boolean getEsCorrecta() {
+        return esCorrecta;
+    }
+
+    public void setEsCorrecta(Boolean esCorrecta) {
+        this.esCorrecta = esCorrecta;
+    }
 
 }

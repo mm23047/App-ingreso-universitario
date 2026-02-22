@@ -1,36 +1,50 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
-@jakarta.persistence.Embeddable
-public class PreguntasPorClaveId {
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "id_clave", nullable = false)
-private java.lang.Integer idClave;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "id_pregunta", nullable = false)
-private java.lang.Integer idPregunta;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.validation.constraints.NotNull;
 
-public java.lang.Integer getIdClave() {
-  return idClave;
-}public void setIdClave(java.lang.Integer idClave) {
-  this.idClave = idClave;
-}
+import java.io.Serializable;
+import java.util.Objects;
 
-public java.lang.Integer getIdPregunta() {
-  return idPregunta;
-}public void setIdPregunta(java.lang.Integer idPregunta) {
-  this.idPregunta = idPregunta;
-}
+@Embeddable
+public class PreguntasPorClaveId implements Serializable {
+    private static final long serialVersionUID = -9086369621147257690L;
+    @NotNull
+    @Column(name = "id_clave", nullable = false)
+    private Integer idClave;
 
-@Override
+    @NotNull
+    @Column(name = "id_pregunta", nullable = false)
+    private Integer idPregunta;
+
+    public Integer getIdClave() {
+        return idClave;
+    }
+
+    public void setIdClave(Integer idClave) {
+        this.idClave = idClave;
+    }
+
+    public Integer getIdPregunta() {
+        return idPregunta;
+    }
+
+    public void setIdPregunta(Integer idPregunta) {
+        this.idPregunta = idPregunta;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PreguntasPorClaveId entity = (PreguntasPorClaveId) o;
-        return java.util.Objects.equals(this.idClave, entity.idClave) &&
-                java.util.Objects.equals(this.idPregunta, entity.idPregunta);
+        return Objects.equals(this.idClave, entity.idClave) &&
+                Objects.equals(this.idPregunta, entity.idPregunta);
     }
-@Override
+
+    @Override
     public int hashCode() {
-        return java.util.Objects.hash(idClave, idPregunta);
+        return Objects.hash(idClave, idPregunta);
     }
 }

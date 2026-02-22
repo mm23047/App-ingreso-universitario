@@ -1,67 +1,86 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
-@jakarta.persistence.Entity
-@jakarta.persistence.Table(name = "examenes_realizados")
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+
+@Entity
+@Table(name = "examenes_realizados", schema = "public")
 public class ExamenesRealizado {
-@jakarta.persistence.Id
-@jakarta.persistence.GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
-@jakarta.persistence.Column(name = "id_examen", nullable = false)
-private java.lang.Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_examen", nullable = false)
+    private Integer id;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.OneToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = false)
-@jakarta.persistence.JoinColumn(name = "id_asignacion", nullable = false)
-private sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AsignacionesAulaPupitre idAsignacion;
+    @NotNull
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_asignacion", nullable = false)
+    private AsignacionesAulaPupitre idAsignacion;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = false)
-@jakarta.persistence.JoinColumn(name = "id_clave", nullable = false)
-private sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman idClave;
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_clave", nullable = false)
+    private ClavesExaman idClave;
 
-@jakarta.persistence.Column(name = "puntaje_final", precision = 5, scale = 2)
-private java.math.BigDecimal puntajeFinal;
+    @Column(name = "puntaje_final", precision = 5, scale = 2)
+    private BigDecimal puntajeFinal;
 
-@jakarta.persistence.Column(name = "fecha_realizacion")
-private java.time.OffsetDateTime fechaRealizacion;
+    @Column(name = "fecha_realizacion")
+    private OffsetDateTime fechaRealizacion;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = false)
-@jakarta.persistence.JoinColumn(name = "id_etapa", nullable = false)
-private sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision idEtapa;
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_etapa", nullable = false)
+    private EtapasAdmision idEtapa;
 
-public java.lang.Integer getId() {
-  return id;
-}public void setId(java.lang.Integer id) {
-  this.id = id;
-}
+    public Integer getId() {
+        return id;
+    }
 
-public sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AsignacionesAulaPupitre getIdAsignacion() {
-  return idAsignacion;
-}public void setIdAsignacion(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AsignacionesAulaPupitre idAsignacion) {
-  this.idAsignacion = idAsignacion;
-}
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-public sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman getIdClave() {
-  return idClave;
-}public void setIdClave(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman idClave) {
-  this.idClave = idClave;
-}
+    public AsignacionesAulaPupitre getIdAsignacion() {
+        return idAsignacion;
+    }
 
-public java.math.BigDecimal getPuntajeFinal() {
-  return puntajeFinal;
-}public void setPuntajeFinal(java.math.BigDecimal puntajeFinal) {
-  this.puntajeFinal = puntajeFinal;
-}
+    public void setIdAsignacion(AsignacionesAulaPupitre idAsignacion) {
+        this.idAsignacion = idAsignacion;
+    }
 
-public java.time.OffsetDateTime getFechaRealizacion() {
-  return fechaRealizacion;
-}public void setFechaRealizacion(java.time.OffsetDateTime fechaRealizacion) {
-  this.fechaRealizacion = fechaRealizacion;
-}
+    public ClavesExaman getIdClave() {
+        return idClave;
+    }
 
-public sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision getIdEtapa() {
-  return idEtapa;
-}public void setIdEtapa(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision idEtapa) {
-  this.idEtapa = idEtapa;
-}
+    public void setIdClave(ClavesExaman idClave) {
+        this.idClave = idClave;
+    }
+
+    public BigDecimal getPuntajeFinal() {
+        return puntajeFinal;
+    }
+
+    public void setPuntajeFinal(BigDecimal puntajeFinal) {
+        this.puntajeFinal = puntajeFinal;
+    }
+
+    public OffsetDateTime getFechaRealizacion() {
+        return fechaRealizacion;
+    }
+
+    public void setFechaRealizacion(OffsetDateTime fechaRealizacion) {
+        this.fechaRealizacion = fechaRealizacion;
+    }
+
+    public EtapasAdmision getIdEtapa() {
+        return idEtapa;
+    }
+
+    public void setIdEtapa(EtapasAdmision idEtapa) {
+        this.idEtapa = idEtapa;
+    }
 
 }

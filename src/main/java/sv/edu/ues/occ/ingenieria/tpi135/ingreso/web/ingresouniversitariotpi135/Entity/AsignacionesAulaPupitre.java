@@ -1,49 +1,62 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
-@jakarta.persistence.Entity
-@jakarta.persistence.Table(name = "asignaciones_aula_pupitre")
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+@Entity
+@Table(name = "asignaciones_aula_pupitre", schema = "public")
 public class AsignacionesAulaPupitre {
-@jakarta.persistence.Id
-@jakarta.persistence.GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
-@jakarta.persistence.Column(name = "id_asignacion", nullable = false)
-private java.lang.Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_asignacion", nullable = false)
+    private Integer id;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.OneToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = false)
-@jakarta.persistence.JoinColumn(name = "id_inscripcion", nullable = false)
-private sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba idInscripcion;
+    @NotNull
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_inscripcion", nullable = false)
+    private InscripcionesPrueba idInscripcion;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = false)
-@jakarta.persistence.JoinColumn(name = "id_aula", nullable = false)
-private sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AulasExaman idAula;
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_aula", nullable = false)
+    private AulasExaman idAula;
 
-@jakarta.validation.constraints.Size(max = 20)
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "pupitre", nullable = false, length = 20)
-private java.lang.String pupitre;
+    @Size(max = 20)
+    @NotNull
+    @Column(name = "pupitre", nullable = false, length = 20)
+    private String pupitre;
 
-public java.lang.Integer getId() {
-  return id;
-}public void setId(java.lang.Integer id) {
-  this.id = id;
-}
+    public Integer getId() {
+        return id;
+    }
 
-public sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba getIdInscripcion() {
-  return idInscripcion;
-}public void setIdInscripcion(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba idInscripcion) {
-  this.idInscripcion = idInscripcion;
-}
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-public sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AulasExaman getIdAula() {
-  return idAula;
-}public void setIdAula(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AulasExaman idAula) {
-  this.idAula = idAula;
-}
+    public InscripcionesPrueba getIdInscripcion() {
+        return idInscripcion;
+    }
 
-public java.lang.String getPupitre() {
-  return pupitre;
-}public void setPupitre(java.lang.String pupitre) {
-  this.pupitre = pupitre;
-}
+    public void setIdInscripcion(InscripcionesPrueba idInscripcion) {
+        this.idInscripcion = idInscripcion;
+    }
+
+    public AulasExaman getIdAula() {
+        return idAula;
+    }
+
+    public void setIdAula(AulasExaman idAula) {
+        this.idAula = idAula;
+    }
+
+    public String getPupitre() {
+        return pupitre;
+    }
+
+    public void setPupitre(String pupitre) {
+        this.pupitre = pupitre;
+    }
 
 }

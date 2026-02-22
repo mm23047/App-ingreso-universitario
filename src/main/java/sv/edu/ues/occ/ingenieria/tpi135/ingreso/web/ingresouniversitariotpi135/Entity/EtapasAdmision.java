@@ -1,54 +1,71 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
-@jakarta.persistence.Entity
-@jakarta.persistence.Table(name = "etapas_admision")
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+import java.math.BigDecimal;
+
+@Entity
+@Table(name = "etapas_admision", schema = "public")
 public class EtapasAdmision {
-@jakarta.persistence.Id
-@jakarta.persistence.Column(name = "id_etapa", nullable = false)
-private java.lang.Short id;
+    @Id
+    @Column(name = "id_etapa", nullable = false)
+    private Short id;
 
-@jakarta.validation.constraints.Size(max = 50)
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "nombre", nullable = false, length = 50)
-private java.lang.String nombre;
+    @Size(max = 50)
+    @NotNull
+    @Column(name = "nombre", nullable = false, length = 50)
+    private String nombre;
 
-@jakarta.persistence.Column(name = "puntaje_minimo", precision = 5, scale = 2)
-private java.math.BigDecimal puntajeMinimo;
+    @Column(name = "puntaje_minimo", precision = 5, scale = 2)
+    private BigDecimal puntajeMinimo;
 
-@jakarta.persistence.Column(name = "puntaje_maximo", precision = 5, scale = 2)
-private java.math.BigDecimal puntajeMaximo;
+    @Column(name = "puntaje_maximo", precision = 5, scale = 2)
+    private BigDecimal puntajeMaximo;
 
-@jakarta.persistence.Lob
-@jakarta.persistence.Column(name = "descripcion")
-private java.lang.String descripcion;
+    @Lob
+    @Column(name = "descripcion")
+    private String descripcion;
 
-public java.lang.Short getId() {
-  return id;
-}public void setId(java.lang.Short id) {
-  this.id = id;
-}
+    public Short getId() {
+        return id;
+    }
 
-public java.lang.String getNombre() {
-  return nombre;
-}public void setNombre(java.lang.String nombre) {
-  this.nombre = nombre;
-}
+    public void setId(Short id) {
+        this.id = id;
+    }
 
-public java.math.BigDecimal getPuntajeMinimo() {
-  return puntajeMinimo;
-}public void setPuntajeMinimo(java.math.BigDecimal puntajeMinimo) {
-  this.puntajeMinimo = puntajeMinimo;
-}
+    public String getNombre() {
+        return nombre;
+    }
 
-public java.math.BigDecimal getPuntajeMaximo() {
-  return puntajeMaximo;
-}public void setPuntajeMaximo(java.math.BigDecimal puntajeMaximo) {
-  this.puntajeMaximo = puntajeMaximo;
-}
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
 
-public java.lang.String getDescripcion() {
-  return descripcion;
-}public void setDescripcion(java.lang.String descripcion) {
-  this.descripcion = descripcion;
-}
+    public BigDecimal getPuntajeMinimo() {
+        return puntajeMinimo;
+    }
+
+    public void setPuntajeMinimo(BigDecimal puntajeMinimo) {
+        this.puntajeMinimo = puntajeMinimo;
+    }
+
+    public BigDecimal getPuntajeMaximo() {
+        return puntajeMaximo;
+    }
+
+    public void setPuntajeMaximo(BigDecimal puntajeMaximo) {
+        this.puntajeMaximo = puntajeMaximo;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
 
 }

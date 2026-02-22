@@ -1,67 +1,84 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
-@jakarta.persistence.Entity
-@jakarta.persistence.Table(name = "aulas_examen")
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+@Entity
+@Table(name = "aulas_examen",schema = "public")
 public class AulasExaman {
-@jakarta.persistence.Id
-@jakarta.persistence.GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
-@jakarta.persistence.Column(name = "id_aula", nullable = false)
-private java.lang.Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_aula", nullable = false)
+    private Integer id;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = false)
-@jakarta.persistence.JoinColumn(name = "id_turno", nullable = false)
-private sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExaman idTurno;
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_turno", nullable = false)
+    private TurnosExaman idTurno;
 
-@jakarta.validation.constraints.Size(max = 50)
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "id_aula_api", nullable = false, length = 50)
-private java.lang.String idAulaApi;
+    @Size(max = 50)
+    @NotNull
+    @Column(name = "id_aula_api", nullable = false, length = 50)
+    private String idAulaApi;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "capacidad", nullable = false)
-private java.lang.Integer capacidad;
+    @NotNull
+    @Column(name = "capacidad", nullable = false)
+    private Integer capacidad;
 
-@jakarta.persistence.Column(name = "cupos_ocupados")
-private java.lang.Integer cuposOcupados;
+    @Column(name = "cupos_ocupados")
+    private Integer cuposOcupados;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "accesible_silla_ruedas", nullable = false)
-private java.lang.Boolean accesibleSillaRuedas;
+    @NotNull
+    @Column(name = "accesible_silla_ruedas", nullable = false)
+    private Boolean accesibleSillaRuedas;
 
-public java.lang.Integer getId() {
-  return id;
-}public void setId(java.lang.Integer id) {
-  this.id = id;
-}
+    public Integer getId() {
+        return id;
+    }
 
-public sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExaman getIdTurno() {
-  return idTurno;
-}public void setIdTurno(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExaman idTurno) {
-  this.idTurno = idTurno;
-}
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-public java.lang.String getIdAulaApi() {
-  return idAulaApi;
-}public void setIdAulaApi(java.lang.String idAulaApi) {
-  this.idAulaApi = idAulaApi;
-}
+    public TurnosExaman getIdTurno() {
+        return idTurno;
+    }
 
-public java.lang.Integer getCapacidad() {
-  return capacidad;
-}public void setCapacidad(java.lang.Integer capacidad) {
-  this.capacidad = capacidad;
-}
+    public void setIdTurno(TurnosExaman idTurno) {
+        this.idTurno = idTurno;
+    }
 
-public java.lang.Integer getCuposOcupados() {
-  return cuposOcupados;
-}public void setCuposOcupados(java.lang.Integer cuposOcupados) {
-  this.cuposOcupados = cuposOcupados;
-}
+    public String getIdAulaApi() {
+        return idAulaApi;
+    }
 
-public java.lang.Boolean getAccesibleSillaRuedas() {
-  return accesibleSillaRuedas;
-}public void setAccesibleSillaRuedas(java.lang.Boolean accesibleSillaRuedas) {
-  this.accesibleSillaRuedas = accesibleSillaRuedas;
-}
+    public void setIdAulaApi(String idAulaApi) {
+        this.idAulaApi = idAulaApi;
+    }
+
+    public Integer getCapacidad() {
+        return capacidad;
+    }
+
+    public void setCapacidad(Integer capacidad) {
+        this.capacidad = capacidad;
+    }
+
+    public Integer getCuposOcupados() {
+        return cuposOcupados;
+    }
+
+    public void setCuposOcupados(Integer cuposOcupados) {
+        this.cuposOcupados = cuposOcupados;
+    }
+
+    public Boolean getAccesibleSillaRuedas() {
+        return accesibleSillaRuedas;
+    }
+
+    public void setAccesibleSillaRuedas(Boolean accesibleSillaRuedas) {
+        this.accesibleSillaRuedas = accesibleSillaRuedas;
+    }
 
 }

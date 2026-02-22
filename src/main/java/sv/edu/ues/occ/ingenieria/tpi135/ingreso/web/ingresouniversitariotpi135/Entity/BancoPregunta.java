@@ -1,38 +1,48 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
-@jakarta.persistence.Entity
-@jakarta.persistence.Table(name = "banco_preguntas")
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+
+@Entity
+@Table(name = "banco_preguntas", schema = "public")
 public class BancoPregunta {
-@jakarta.persistence.Id
-@jakarta.persistence.GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
-@jakarta.persistence.Column(name = "id_pregunta", nullable = false)
-private java.lang.Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_pregunta", nullable = false)
+    private Integer id;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = false)
-@jakarta.persistence.JoinColumn(name = "id_area", nullable = false)
-private sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AreasConocimiento idArea;
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_area", nullable = false)
+    private AreasConocimiento idArea;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Lob
-@jakarta.persistence.Column(name = "enunciado", nullable = false)
-private java.lang.String enunciado;
+    @NotNull
+    @Lob
+    @Column(name = "enunciado", nullable = false)
+    private String enunciado;
 
-public java.lang.Integer getId() {
-  return id;
-}public void setId(java.lang.Integer id) {
-  this.id = id;
-}
+    public Integer getId() {
+        return id;
+    }
 
-public sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AreasConocimiento getIdArea() {
-  return idArea;
-}public void setIdArea(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AreasConocimiento idArea) {
-  this.idArea = idArea;
-}
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-public java.lang.String getEnunciado() {
-  return enunciado;
-}public void setEnunciado(java.lang.String enunciado) {
-  this.enunciado = enunciado;
-}
+    public AreasConocimiento getIdArea() {
+        return idArea;
+    }
+
+    public void setIdArea(AreasConocimiento idArea) {
+        this.idArea = idArea;
+    }
+
+    public String getEnunciado() {
+        return enunciado;
+    }
+
+    public void setEnunciado(String enunciado) {
+        this.enunciado = enunciado;
+    }
 
 }

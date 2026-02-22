@@ -1,46 +1,59 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
-@jakarta.persistence.Entity
-@jakarta.persistence.Table(name = "pruebas_admision")
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+@Entity
+@Table(name = "pruebas_admision", schema = "public")
 public class PruebasAdmision {
-@jakarta.persistence.Id
-@jakarta.persistence.GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
-@jakarta.persistence.Column(name = "id_prueba", nullable = false)
-private java.lang.Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_prueba", nullable = false)
+    private Integer id;
 
-@jakarta.validation.constraints.Size(max = 100)
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "nombre_prueba", nullable = false, length = 100)
-private java.lang.String nombrePrueba;
+    @Size(max = 100)
+    @NotNull
+    @Column(name = "nombre_prueba", nullable = false, length = 100)
+    private String nombrePrueba;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "anio", nullable = false)
-private java.lang.Integer anio;
+    @NotNull
+    @Column(name = "anio", nullable = false)
+    private Integer anio;
 
-@jakarta.persistence.Column(name = "activa")
-private java.lang.Boolean activa;
+    @Column(name = "activa")
+    private Boolean activa;
 
-public java.lang.Integer getId() {
-  return id;
-}public void setId(java.lang.Integer id) {
-  this.id = id;
-}
+    public Integer getId() {
+        return id;
+    }
 
-public java.lang.String getNombrePrueba() {
-  return nombrePrueba;
-}public void setNombrePrueba(java.lang.String nombrePrueba) {
-  this.nombrePrueba = nombrePrueba;
-}
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-public java.lang.Integer getAnio() {
-  return anio;
-}public void setAnio(java.lang.Integer anio) {
-  this.anio = anio;
-}
+    public String getNombrePrueba() {
+        return nombrePrueba;
+    }
 
-public java.lang.Boolean getActiva() {
-  return activa;
-}public void setActiva(java.lang.Boolean activa) {
-  this.activa = activa;
-}
+    public void setNombrePrueba(String nombrePrueba) {
+        this.nombrePrueba = nombrePrueba;
+    }
+
+    public Integer getAnio() {
+        return anio;
+    }
+
+    public void setAnio(Integer anio) {
+        this.anio = anio;
+    }
+
+    public Boolean getActiva() {
+        return activa;
+    }
+
+    public void setActiva(Boolean activa) {
+        this.activa = activa;
+    }
 
 }

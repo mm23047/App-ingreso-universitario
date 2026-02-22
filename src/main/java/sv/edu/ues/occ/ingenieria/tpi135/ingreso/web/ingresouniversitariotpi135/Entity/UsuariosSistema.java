@@ -1,60 +1,75 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
-@jakarta.persistence.Entity
-@jakarta.persistence.Table(name = "usuarios_sistema")
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+@Entity
+@Table(name = "usuarios_sistema", schema = "public")
 public class UsuariosSistema {
-@jakarta.persistence.Id
-@jakarta.persistence.GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
-@jakarta.persistence.Column(name = "id_usuario", nullable = false)
-private java.lang.Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_usuario", nullable = false)
+    private Integer id;
 
-@jakarta.validation.constraints.Size(max = 50)
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "nombre_usuario", nullable = false, length = 50)
-private java.lang.String nombreUsuario;
+    @Size(max = 50)
+    @NotNull
+    @Column(name = "nombre_usuario", nullable = false, length = 50)
+    private String nombreUsuario;
 
-@jakarta.validation.constraints.Size(max = 100)
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "correo", nullable = false, length = 100)
-private java.lang.String correo;
+    @Size(max = 100)
+    @NotNull
+    @Column(name = "correo", nullable = false, length = 100)
+    private String correo;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Lob
-@jakarta.persistence.Column(name = "contrasena_hash", nullable = false)
-private java.lang.String contrasenaHash;
+    @NotNull
+    @Lob
+    @Column(name = "contrasena_hash", nullable = false)
+    private String contrasenaHash;
 
-@jakarta.validation.constraints.Size(max = 20)
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "rol", nullable = false, length = 20)
-private java.lang.String rol;
+    @Size(max = 20)
+    @NotNull
+    @Column(name = "rol", nullable = false, length = 20)
+    private String rol;
 
-public java.lang.Integer getId() {
-  return id;
-}public void setId(java.lang.Integer id) {
-  this.id = id;
-}
+    public Integer getId() {
+        return id;
+    }
 
-public java.lang.String getNombreUsuario() {
-  return nombreUsuario;
-}public void setNombreUsuario(java.lang.String nombreUsuario) {
-  this.nombreUsuario = nombreUsuario;
-}
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-public java.lang.String getCorreo() {
-  return correo;
-}public void setCorreo(java.lang.String correo) {
-  this.correo = correo;
-}
+    public String getNombreUsuario() {
+        return nombreUsuario;
+    }
 
-public java.lang.String getContrasenaHash() {
-  return contrasenaHash;
-}public void setContrasenaHash(java.lang.String contrasenaHash) {
-  this.contrasenaHash = contrasenaHash;
-}
+    public void setNombreUsuario(String nombreUsuario) {
+        this.nombreUsuario = nombreUsuario;
+    }
 
-public java.lang.String getRol() {
-  return rol;
-}public void setRol(java.lang.String rol) {
-  this.rol = rol;
-}
+    public String getCorreo() {
+        return correo;
+    }
+
+    public void setCorreo(String correo) {
+        this.correo = correo;
+    }
+
+    public String getContrasenaHash() {
+        return contrasenaHash;
+    }
+
+    public void setContrasenaHash(String contrasenaHash) {
+        this.contrasenaHash = contrasenaHash;
+    }
+
+    public String getRol() {
+        return rol;
+    }
+
+    public void setRol(String rol) {
+        this.rol = rol;
+    }
 
 }

@@ -1,27 +1,36 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
-@jakarta.persistence.Entity
-@jakarta.persistence.Table(name = "areas_conocimiento")
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+@Entity
+@Table(name = "areas_conocimiento", schema = "public")
 public class AreasConocimiento {
-@jakarta.persistence.Id
-@jakarta.persistence.GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
-@jakarta.persistence.Column(name = "id_area", nullable = false)
-private java.lang.Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_area", nullable = false)
+    private Integer id;
 
-@jakarta.validation.constraints.Size(max = 100)
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "nombre_area", nullable = false, length = 100)
-private java.lang.String nombreArea;
+    @Size(max = 100)
+    @NotNull
+    @Column(name = "nombre_area", nullable = false, length = 100)
+    private String nombreArea;
 
-public java.lang.Integer getId() {
-  return id;
-}public void setId(java.lang.Integer id) {
-  this.id = id;
-}
+    public Integer getId() {
+        return id;
+    }
 
-public java.lang.String getNombreArea() {
-  return nombreArea;
-}public void setNombreArea(java.lang.String nombreArea) {
-  this.nombreArea = nombreArea;
-}
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getNombreArea() {
+        return nombreArea;
+    }
+
+    public void setNombreArea(String nombreArea) {
+        this.nombreArea = nombreArea;
+    }
 
 }

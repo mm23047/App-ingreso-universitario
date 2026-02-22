@@ -1,46 +1,58 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
-@jakarta.persistence.Entity
-@jakarta.persistence.Table(name = "carreras_elegidas")
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+
+@Entity
+@Table(name = "carreras_elegidas", schema = "public")
 public class CarrerasElegida {
-@jakarta.persistence.EmbeddedId
-private sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegidaId id;
+    @EmbeddedId
+    private CarrerasElegidaId id;
 
-@jakarta.persistence.MapsId("idInscripcion")
-@jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = false)
-@jakarta.persistence.JoinColumn(name = "id_inscripcion", nullable = false)
-private sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba idInscripcion;
+    @MapsId("idInscripcion")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_inscripcion", nullable = false)
+    private InscripcionesPrueba idInscripcion;
 
-@jakarta.persistence.MapsId("idCarrera")
-@jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = false)
-@jakarta.persistence.JoinColumn(name = "id_carrera", nullable = false)
-private sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera idCarrera;
+    @MapsId("idCarrera")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_carrera", nullable = false)
+    private CatalogoCarrera idCarrera;
 
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "prioridad", nullable = false)
-private java.lang.Short prioridad;
+    @NotNull
+    @Column(name = "prioridad", nullable = false)
+    private Short prioridad;
 
-public sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegidaId getId() {
-  return id;
-}public void setId(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegidaId id) {
-  this.id = id;
-}
+    public CarrerasElegidaId getId() {
+        return id;
+    }
 
-public sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba getIdInscripcion() {
-  return idInscripcion;
-}public void setIdInscripcion(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba idInscripcion) {
-  this.idInscripcion = idInscripcion;
-}
+    public void setId(CarrerasElegidaId id) {
+        this.id = id;
+    }
 
-public sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera getIdCarrera() {
-  return idCarrera;
-}public void setIdCarrera(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera idCarrera) {
-  this.idCarrera = idCarrera;
-}
+    public InscripcionesPrueba getIdInscripcion() {
+        return idInscripcion;
+    }
 
-public java.lang.Short getPrioridad() {
-  return prioridad;
-}public void setPrioridad(java.lang.Short prioridad) {
-  this.prioridad = prioridad;
-}
+    public void setIdInscripcion(InscripcionesPrueba idInscripcion) {
+        this.idInscripcion = idInscripcion;
+    }
+
+    public CatalogoCarrera getIdCarrera() {
+        return idCarrera;
+    }
+
+    public void setIdCarrera(CatalogoCarrera idCarrera) {
+        this.idCarrera = idCarrera;
+    }
+
+    public Short getPrioridad() {
+        return prioridad;
+    }
+
+    public void setPrioridad(Short prioridad) {
+        this.prioridad = prioridad;
+    }
 
 }
