@@ -1,14 +1,11 @@
+### Maven ###
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-.kotlin
 
 ### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -35,5 +32,15 @@ build/
 ### VS Code ###
 .vscode/
 
-### Mac OS ###
+### Logs ###
+*.log
+logs/
+
+### Variables de entorno ###
+.env
+.env.*
+
+### Sistema Operativo ###
 .DS_Store
+Thumbs.db
+Desktop.ini
