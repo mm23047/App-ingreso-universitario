@@ -140,8 +140,7 @@ public abstract class DefaultFrm<T> implements Serializable {
                 enviarMensajeExito(getFacesContext().getApplication()
                         .getResourceBundle(getFacesContext(), "crud")
                         .getString("frm.botones.creado"));
-                this.estado = ESTADO_CRUD.NADA;
-                this.registro = null;
+                limpiarFormulario();
                 this.inicializarRegistros();
                 return;
             }
@@ -228,26 +227,28 @@ public abstract class DefaultFrm<T> implements Serializable {
         // Implementación por defecto vacía - puede ser sobrescrita
     }
 
+    protected void enviarMensaje(String mensaje, FacesMessage.Severity severity) {
+        String summary;
+        if (FacesMessage.SEVERITY_ERROR.equals(severity)) {
+            summary = "Error";
+        } else if (FacesMessage.SEVERITY_WARN.equals(severity)) {
+            summary = "Advertencia";
+        } else {
+            summary = "Éxito";
+        }
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, mensaje));
+    }
+
     protected void enviarMensajeExito(String mensaje) {
-        FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_INFO, "Éxito", mensaje));
+        enviarMensaje(mensaje, FacesMessage.SEVERITY_INFO);
     }
 
     protected void enviarMensajeError(String mensaje) {
-        FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", mensaje));
+        enviarMensaje(mensaje, FacesMessage.SEVERITY_ERROR);
     }
 
     protected void enviarMensajeAdvertencia(String mensaje) {
-        FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_WARN, "Advertencia", mensaje));
-    }
-
-    protected void enviarMensaje(String mensaje, FacesMessage.Severity severity) {
-        FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(severity,
-                        severity == FacesMessage.SEVERITY_ERROR ? "Error" : "Información",
-                        mensaje));
+        enviarMensaje(mensaje, FacesMessage.SEVERITY_WARN);
     }
 
     // Getters y Setters
@@ -287,7 +288,4 @@ public abstract class DefaultFrm<T> implements Serializable {
         this.pageSize = pageSize;
     }
 
-    public int getRegistrosPorPagina() {
-        return this.pageSize;
-    }
 }
