@@ -4,16 +4,16 @@ import java.util.List;
 
 public interface IngresoDAOInterface<T> {
 
-    public void crear(T registro) throws IllegalArgumentException, IllegalAccessException;
+    void crear(T registro) throws IllegalArgumentException, IllegalStateException;
 
-    public void eliminar(T registro) throws IllegalArgumentException, IllegalAccessException;
+    void eliminar(T registro) throws IllegalArgumentException, IllegalStateException;
 
-    public T actualizar(T registro) throws IllegalStateException;
+    T actualizar(T registro) throws IllegalArgumentException, IllegalStateException;
 
-    public T leer(Object id) throws IllegalStateException;
+    T leer(Object id) throws IllegalArgumentException, IllegalStateException;
 
-    public List<T> findRange(int first, int max) throws IllegalArgumentException;
+    List<T> findRange(int first, int max) throws IllegalArgumentException, IllegalStateException;
 
-    public int count() throws IllegalArgumentException;
+    int count() throws IllegalStateException;
 
 }

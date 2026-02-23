@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 
 import java.util.List;
 
@@ -100,7 +101,8 @@ public abstract class IngresoDefaultDataAccess<T> implements IngresoDAOInterface
             EntityManager em = resolverEntityManager();
             CriteriaBuilder cb = em.getCriteriaBuilder();
             CriteriaQuery<T> cq = cb.createQuery(tipoDato);
-            cq.select(cq.from(tipoDato));
+            Root<T> root = cq.from(tipoDato);
+            cq.select(root);
             TypedQuery<T> allQuery = em.createQuery(cq);
             allQuery.setFirstResult(first);
             allQuery.setMaxResults(max);
@@ -118,7 +120,8 @@ public abstract class IngresoDefaultDataAccess<T> implements IngresoDAOInterface
             EntityManager em = resolverEntityManager();
             CriteriaBuilder cb = em.getCriteriaBuilder();
             CriteriaQuery<Long> cq = cb.createQuery(Long.class);
-            cq.select(cb.count(cq.from(tipoDato)));
+            Root<T> root = cq.from(tipoDato);
+            cq.select(cb.count(root));
             return em.createQuery(cq).getSingleResult().intValue();
         } catch (IllegalStateException ex) {
             throw ex;
