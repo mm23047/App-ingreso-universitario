@@ -6,16 +6,11 @@ import jakarta.faces.context.FacesContext;
 import jakarta.faces.event.ActionEvent;
 import jakarta.faces.component.UIComponent;
 import jakarta.faces.validator.ValidatorException;
-import org.primefaces.event.SelectEvent;
-import org.primefaces.model.FilterMeta;
-import org.primefaces.model.LazyDataModel;
-import org.primefaces.model.SortMeta;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDAOInterface;
 
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,9 +18,10 @@ public abstract class DefaultFrm<T> implements Serializable {
 
     protected ESTADO_CRUD estado = ESTADO_CRUD.NADA;
     protected String nombreBean;
-    protected LazyDataModel<T> modelo;
+    protected List<T> registros;
     protected T registro;
     protected int pageSize = 5;
+    protected int paginaActual = 0;
 
     // Métodos abstractos que cada bean debe implementar
     protected abstract FacesContext getFacesContext();
@@ -58,61 +54,17 @@ public abstract class DefaultFrm<T> implements Serializable {
 
     public void inicializarRegistros() {
         try {
-            this.modelo = new LazyDataModel<T>() {
-
-                @Override
-                public String getRowKey(T object) {
-                    if (object != null) {
-                        try {
-                            return getIdAsText(object);
-                        } catch (Exception ex) {
-                            Logger.getLogger(DefaultFrm.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                    return null;
-                }
-
-                @Override
-                public T getRowData(String rowKey) {
-                    if (rowKey != null) {
-                        try {
-                            return getIdByText(rowKey);
-                        } catch (Exception ex) {
-                            Logger.getLogger(DefaultFrm.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                    return null;
-                }
-
-                @Override
-                public int count(Map<String, FilterMeta> map) {
-                    try {
-                        return getDao().count();
-                    } catch (Exception e) {
-                        Logger.getLogger(DefaultFrm.class.getName()).log(Level.SEVERE, "Error al contar registros", e);
-                        return 0;
-                    }
-                }
-
-                @Override
-                public List<T> load(int first, int max, Map<String, SortMeta> map, Map<String, FilterMeta> map1) {
-                    try {
-                        return getDao().findRange(first, max);
-                    } catch (Exception e) {
-                        Logger.getLogger(DefaultFrm.class.getName()).log(Level.SEVERE, "Error al cargar registros", e);
-                        return Collections.emptyList();
-                    }
-                }
-            };
+            this.registros = getDao().findRange(paginaActual * pageSize, pageSize);
         } catch (Exception e) {
+            this.registros = Collections.emptyList();
             enviarMensajeError("Error al inicializar registros: " + e.getMessage());
             Logger.getLogger(DefaultFrm.class.getName()).log(Level.SEVERE, "Error en inicializarRegistros", e);
         }
     }
 
-    public void seleccionarRegistro(SelectEvent<T> event) {
-        if (event != null && event.getObject() != null) {
-            this.registro = event.getObject();
+    public void seleccionarRegistro(T registroSeleccionado) {
+        if (registroSeleccionado != null) {
+            this.registro = registroSeleccionado;
             this.estado = ESTADO_CRUD.MODIFICAR;
         }
     }
@@ -272,12 +224,20 @@ public abstract class DefaultFrm<T> implements Serializable {
         this.estado = estado;
     }
 
-    public LazyDataModel<T> getModelo() {
-        return modelo;
+    public List<T> getRegistros() {
+        return registros;
     }
 
-    public void setModelo(LazyDataModel<T> modelo) {
-        this.modelo = modelo;
+    public void setRegistros(List<T> registros) {
+        this.registros = registros;
+    }
+
+    public int getPaginaActual() {
+        return paginaActual;
+    }
+
+    public void setPaginaActual(int paginaActual) {
+        this.paginaActual = paginaActual;
     }
 
     public int getPageSize() {

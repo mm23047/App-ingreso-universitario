@@ -7,7 +7,6 @@ import jakarta.inject.Named;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.EtapasAdmisionDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDAOInterface;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
-import org.primefaces.event.SelectEvent;
 
 import java.io.Serializable;
 import java.util.logging.Level;
@@ -77,9 +76,9 @@ public class EtapasAdmisionFrm extends DefaultFrm<EtapasAdmision> implements Ser
     }
 
     @Override
-    public void seleccionarRegistro(SelectEvent<EtapasAdmision> event) {
-        if (event != null && event.getObject() != null) {
-            this.registro = event.getObject();
+    public void seleccionarRegistro(EtapasAdmision registroSeleccionado) {
+        if (registroSeleccionado != null) {
+            this.registro = registroSeleccionado;
             this.estado = ESTADO_CRUD.MODIFICAR;
         }
     }
