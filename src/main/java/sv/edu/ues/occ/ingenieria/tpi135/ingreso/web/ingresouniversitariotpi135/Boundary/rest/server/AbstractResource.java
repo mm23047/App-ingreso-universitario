@@ -1,5 +1,7 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.rest.server;
 
+import static sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.rest.server.RestHeaders.*;
+
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
@@ -36,16 +38,16 @@ public abstract class AbstractResource<T> {
                 int total = dao.count();
                 List<T> entities = dao.findRange(first, max);
                 return Response.ok(entities)
-                        .header("Total-records", total)
+                        .header(TOTAL_RECORDS, total)
                         .build();
             } catch (Exception e) {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .header("Server-exception", "Cannot access db")
+                        .header(SERVER_EXCEPTION, "Cannot access db")
                         .build();
             }
         }
         return Response.status(422)
-                .header("Missing-parameter", "first:" + first + ", max:" + max)
+                .header(MISSING_PARAMETER, "first:" + first + ", max:" + max)
                 .build();
     }
 }

@@ -8,33 +8,33 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.EtapasAdmisionDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.TurnosExamanDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExaman;
 
 /**
- * Recurso REST para la gestión de Etapas de Admisión.
+ * Recurso REST para la gestión de Turnos de Examen.
  * Hereda el endpoint GET paginado de AbstractResource.
- * Expone operaciones CRUD completas bajo /resources/v1/etapas_admision
+ * Expone operaciones CRUD completas bajo /resources/v1/turnos_examen
  */
-@Path("etapas_admision")
-public class EtapasAdmisionResource extends AbstractResource<EtapasAdmision> {
+@Path("turnos_examen")
+public class TurnosExamanResource extends AbstractResource<TurnosExaman> {
 
     @Inject
-    EtapasAdmisionDAO etapasAdmisionDAO;
+    TurnosExamanDAO turnosExamanDAO;
 
     @Override
-    protected IngresoDefaultDataAccess<EtapasAdmision> getDAO() {
-        return etapasAdmisionDAO;
+    protected IngresoDefaultDataAccess<TurnosExaman> getDAO() {
+        return turnosExamanDAO;
     }
 
     @GET
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response findById(@PathParam("id") Short id) {
+    public Response findById(@PathParam("id") Integer id) {
         if (id != null) {
             try {
-                EtapasAdmision resp = etapasAdmisionDAO.buscarRegistroPorId(id);
+                TurnosExaman resp = turnosExamanDAO.leer(id);
                 if (resp != null) {
                     return Response.ok(resp).build();
                 }
@@ -55,10 +55,10 @@ public class EtapasAdmisionResource extends AbstractResource<EtapasAdmision> {
     @POST
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response create(EtapasAdmision entity, @Context UriInfo uriInfo) {
+    public Response create(TurnosExaman entity, @Context UriInfo uriInfo) {
         if (entity != null && entity.getId() == null) {
             try {
-                etapasAdmisionDAO.crear(entity);
+                turnosExamanDAO.crear(entity);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()
                                 .path(String.valueOf(entity.getId()))
@@ -79,13 +79,13 @@ public class EtapasAdmisionResource extends AbstractResource<EtapasAdmision> {
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response update(@PathParam("id") Short id, EtapasAdmision entity) {
+    public Response update(@PathParam("id") Integer id, TurnosExaman entity) {
         if (id != null && entity != null) {
             try {
-                EtapasAdmision existing = etapasAdmisionDAO.buscarRegistroPorId(id);
+                TurnosExaman existing = turnosExamanDAO.leer(id);
                 if (existing != null) {
                     entity.setId(id);
-                    etapasAdmisionDAO.actualizar(entity);
+                    turnosExamanDAO.actualizar(entity);
                     return Response.ok(entity).build();
                 }
                 return Response.status(Response.Status.NOT_FOUND)
@@ -104,12 +104,12 @@ public class EtapasAdmisionResource extends AbstractResource<EtapasAdmision> {
 
     @DELETE
     @Path("{id}")
-    public Response delete(@PathParam("id") Short id) {
+    public Response delete(@PathParam("id") Integer id) {
         if (id != null) {
             try {
-                EtapasAdmision resp = etapasAdmisionDAO.buscarRegistroPorId(id);
+                TurnosExaman resp = turnosExamanDAO.leer(id);
                 if (resp != null) {
-                    etapasAdmisionDAO.eliminar(resp);
+                    turnosExamanDAO.eliminar(resp);
                     return Response.noContent().build();
                 }
                 return Response.status(Response.Status.NOT_FOUND)
