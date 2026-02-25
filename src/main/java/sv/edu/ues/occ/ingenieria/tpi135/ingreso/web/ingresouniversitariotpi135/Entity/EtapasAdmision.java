@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 @Table(name = "etapas_admision", schema = "public")
 public class EtapasAdmision {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_etapa", nullable = false)
     private Short id;
 

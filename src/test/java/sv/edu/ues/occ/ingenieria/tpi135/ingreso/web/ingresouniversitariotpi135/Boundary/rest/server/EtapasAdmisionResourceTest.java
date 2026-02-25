@@ -139,7 +139,7 @@ class EtapasAdmisionResourceTest {
     @Test
     void findById_ConIdExistente_DebeRetornar200ConEntidad() {
         // Arrange
-        when(etapasAdmisionDAO.buscarRegistroPorId((short) 1)).thenReturn(entidadPrueba);
+        when(etapasAdmisionDAO.leer((short) 1)).thenReturn(entidadPrueba);
 
         // Act
         Response response = resource.findById((short) 1);
@@ -149,13 +149,13 @@ class EtapasAdmisionResourceTest {
         EtapasAdmision resultado = (EtapasAdmision) response.getEntity();
         assertEquals(entidadPrueba.getId(), resultado.getId());
         assertEquals(entidadPrueba.getNombre(), resultado.getNombre());
-        verify(etapasAdmisionDAO, times(1)).buscarRegistroPorId((short) 1);
+        verify(etapasAdmisionDAO, times(1)).leer((short) 1);
     }
 
     @Test
     void findById_ConIdInexistente_DebeRetornar404() {
         // Arrange
-        when(etapasAdmisionDAO.buscarRegistroPorId((short) 999)).thenReturn(null);
+        when(etapasAdmisionDAO.leer((short) 999)).thenReturn(null);
 
         // Act
         Response response = resource.findById((short) 999);
@@ -179,7 +179,7 @@ class EtapasAdmisionResourceTest {
     @Test
     void findById_ConExcepcionEnDAO_DebeRetornar500() {
         // Arrange
-        when(etapasAdmisionDAO.buscarRegistroPorId(any())).thenThrow(new RuntimeException("Error de BD"));
+        when(etapasAdmisionDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
         // Act
         Response response = resource.findById((short) 1);
@@ -196,7 +196,7 @@ class EtapasAdmisionResourceTest {
         // Arrange
         EtapasAdmision nueva = new EtapasAdmision();
         nueva.setNombre("Nueva Etapa");
-        // id null → nueva entidad
+        // id null → la BD genera el id automáticamente
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
         when(uriBuilder.build()).thenReturn(URI.create("http://localhost/etapas/1"));
@@ -222,7 +222,7 @@ class EtapasAdmisionResourceTest {
 
     @Test
     void create_ConEntidadConIdYaAsignado_DebeRetornar422() throws Exception {
-        // Arrange - entidad con id ya existente no debe ser creada via POST
+        // Arrange - el cliente no debe proveer id en POST (la BD lo genera)
         EtapasAdmision conId = new EtapasAdmision();
         conId.setId((short) 5);
         conId.setNombre("Etapa con ID");
@@ -256,7 +256,7 @@ class EtapasAdmisionResourceTest {
     @Test
     void update_ConIdYEntidadValidos_DebeRetornar200() throws Exception {
         // Arrange
-        when(etapasAdmisionDAO.buscarRegistroPorId((short) 1)).thenReturn(entidadPrueba);
+        when(etapasAdmisionDAO.leer((short) 1)).thenReturn(entidadPrueba);
         when(etapasAdmisionDAO.actualizar(any())).thenReturn(entidadPrueba);
 
         EtapasAdmision actualizada = new EtapasAdmision();
@@ -295,7 +295,7 @@ class EtapasAdmisionResourceTest {
     @Test
     void update_ConIdInexistente_DebeRetornar404() throws Exception {
         // Arrange
-        when(etapasAdmisionDAO.buscarRegistroPorId((short) 999)).thenReturn(null);
+        when(etapasAdmisionDAO.leer((short) 999)).thenReturn(null);
 
         // Act
         Response response = resource.update((short) 999, entidadPrueba);
@@ -308,7 +308,7 @@ class EtapasAdmisionResourceTest {
     @Test
     void update_ConExcepcionEnDAO_DebeRetornar500() throws Exception {
         // Arrange
-        when(etapasAdmisionDAO.buscarRegistroPorId((short) 1)).thenThrow(new RuntimeException("Error de BD"));
+        when(etapasAdmisionDAO.leer((short) 1)).thenThrow(new RuntimeException("Error de BD"));
 
         // Act
         Response response = resource.update((short) 1, entidadPrueba);
@@ -323,7 +323,7 @@ class EtapasAdmisionResourceTest {
     @Test
     void delete_ConIdExistente_DebeRetornar204() throws Exception {
         // Arrange
-        when(etapasAdmisionDAO.buscarRegistroPorId((short) 1)).thenReturn(entidadPrueba);
+        when(etapasAdmisionDAO.leer((short) 1)).thenReturn(entidadPrueba);
 
         // Act
         Response response = resource.delete((short) 1);
@@ -347,7 +347,7 @@ class EtapasAdmisionResourceTest {
     @Test
     void delete_ConIdInexistente_DebeRetornar404() throws Exception {
         // Arrange
-        when(etapasAdmisionDAO.buscarRegistroPorId((short) 999)).thenReturn(null);
+        when(etapasAdmisionDAO.leer((short) 999)).thenReturn(null);
 
         // Act
         Response response = resource.delete((short) 999);
@@ -360,7 +360,7 @@ class EtapasAdmisionResourceTest {
     @Test
     void delete_ConExcepcionEnDAO_DebeRetornar500() throws Exception {
         // Arrange
-        when(etapasAdmisionDAO.buscarRegistroPorId(any())).thenThrow(new RuntimeException("Error de BD"));
+        when(etapasAdmisionDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
         // Act
         Response response = resource.delete((short) 1);

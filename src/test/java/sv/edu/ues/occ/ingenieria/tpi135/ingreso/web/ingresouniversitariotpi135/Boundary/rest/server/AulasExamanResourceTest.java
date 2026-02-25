@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.AulasExamanDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AulasExaman;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExaman;
 
 import java.net.URI;
 import java.util.Collections;
@@ -160,6 +161,9 @@ class AulasExamanResourceTest {
         nueva.setCapacidad(25);
         nueva.setCuposOcupados(0);
         nueva.setAccesibleSillaRuedas(true);
+        TurnosExaman turno = new TurnosExaman();
+        turno.setId(1);
+        nueva.setIdTurno(turno);
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
         when(uriBuilder.build()).thenReturn(URI.create("http://localhost/aulas/1"));
@@ -188,11 +192,29 @@ class AulasExamanResourceTest {
     }
 
     @Test
+    void create_ConIdTurnoNulo_DebeRetornar422() {
+        AulasExaman sinTurno = new AulasExaman();
+        sinTurno.setIdAulaApi("AULA-03");
+        sinTurno.setCapacidad(20);
+        sinTurno.setAccesibleSillaRuedas(false);
+        // idTurno es null → FK NOT NULL en BD
+
+        Response response = resource.create(sinTurno, uriInfo);
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+        verifyNoInteractions(aulasExamanDAO);
+    }
+
+    @Test
     void create_ConExcepcionEnDAO_DebeRetornar500() {
         AulasExaman nueva = new AulasExaman();
         nueva.setIdAulaApi("AULA-02");
         nueva.setCapacidad(25);
         nueva.setAccesibleSillaRuedas(false);
+        TurnosExaman turno = new TurnosExaman();
+        turno.setId(1);
+        nueva.setIdTurno(turno);
         doThrow(new RuntimeException("Error de BD")).when(aulasExamanDAO).crear(any());
 
         Response response = resource.create(nueva, uriInfo);

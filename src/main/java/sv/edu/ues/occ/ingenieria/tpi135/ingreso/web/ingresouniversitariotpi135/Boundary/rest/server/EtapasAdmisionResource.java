@@ -34,7 +34,7 @@ public class EtapasAdmisionResource extends AbstractResource<EtapasAdmision> {
     public Response findById(@PathParam("id") Short id) {
         if (id != null) {
             try {
-                EtapasAdmision resp = etapasAdmisionDAO.buscarRegistroPorId(id);
+                EtapasAdmision resp = etapasAdmisionDAO.leer(id);
                 if (resp != null) {
                     return Response.ok(resp).build();
                 }
@@ -82,7 +82,7 @@ public class EtapasAdmisionResource extends AbstractResource<EtapasAdmision> {
     public Response update(@PathParam("id") Short id, EtapasAdmision entity) {
         if (id != null && entity != null) {
             try {
-                EtapasAdmision existing = etapasAdmisionDAO.buscarRegistroPorId(id);
+                EtapasAdmision existing = etapasAdmisionDAO.leer(id);
                 if (existing != null) {
                     entity.setId(id);
                     etapasAdmisionDAO.actualizar(entity);
@@ -107,7 +107,7 @@ public class EtapasAdmisionResource extends AbstractResource<EtapasAdmision> {
     public Response delete(@PathParam("id") Short id) {
         if (id != null) {
             try {
-                EtapasAdmision resp = etapasAdmisionDAO.buscarRegistroPorId(id);
+                EtapasAdmision resp = etapasAdmisionDAO.leer(id);
                 if (resp != null) {
                     etapasAdmisionDAO.eliminar(resp);
                     return Response.noContent().build();

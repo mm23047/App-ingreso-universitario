@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.BancoPreguntaDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AreasConocimiento;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
 
 import java.net.URI;
@@ -154,6 +155,9 @@ class BancoPreguntaResourceTest {
     void create_ConEntidadValida_DebeRetornar201() {
         BancoPregunta nueva = new BancoPregunta();
         nueva.setEnunciado("¿Cuál es la capital de El Salvador?");
+        AreasConocimiento area = new AreasConocimiento();
+        area.setId(1);
+        nueva.setIdArea(area);
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
         when(uriBuilder.build()).thenReturn(URI.create("http://localhost/banco_preguntas/1"));
@@ -182,9 +186,25 @@ class BancoPreguntaResourceTest {
     }
 
     @Test
+    void create_ConIdAreaNulo_DebeRetornar422() {
+        BancoPregunta sinArea = new BancoPregunta();
+        sinArea.setEnunciado("¿Pregunta sin área?");
+        // idArea es null → FK NOT NULL en BD
+
+        Response response = resource.create(sinArea, uriInfo);
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+        verifyNoInteractions(bancoPreguntaDAO);
+    }
+
+    @Test
     void create_ConExcepcionEnDAO_DebeRetornar500() {
         BancoPregunta nueva = new BancoPregunta();
         nueva.setEnunciado("¿Cuál es la capital de El Salvador?");
+        AreasConocimiento area = new AreasConocimiento();
+        area.setId(1);
+        nueva.setIdArea(area);
         doThrow(new RuntimeException("Error de BD")).when(bancoPreguntaDAO).crear(any());
 
         Response response = resource.create(nueva, uriInfo);

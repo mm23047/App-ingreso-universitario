@@ -7,8 +7,7 @@ import jakarta.persistence.PersistenceContext;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
 
 import java.io.Serializable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 @Stateless
 @LocalBean
@@ -26,15 +25,5 @@ public class EtapasAdmisionDAO extends IngresoDefaultDataAccess<EtapasAdmision> 
         return em;
     }
 
-    public EtapasAdmision buscarRegistroPorId(Short id) {
-        try {
-            if (id != null) {
-                return em.find(EtapasAdmision.class, id);
-            }
-        } catch (Exception ex) {
-            Logger.getLogger(EtapasAdmisionDAO.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
-        }
-        return null;
-    }
-
 }
+
