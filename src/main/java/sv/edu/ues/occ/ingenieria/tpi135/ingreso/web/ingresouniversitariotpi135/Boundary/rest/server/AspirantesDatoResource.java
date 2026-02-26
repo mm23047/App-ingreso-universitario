@@ -8,24 +8,24 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.AspirantesDatoDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.ProcesoAdmisionAspiranteDAO;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ProcesoAdmisionAspirante;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
 
 /**
- * Recurso REST para la gestión del Proceso de Admisión del Aspirante.
+ * Recurso REST para la gestión de Datos del Aspirante.
  * Hereda el endpoint GET paginado de AbstractResource.
- * Expone operaciones CRUD completas bajo /resources/v1/proceso_admision_aspirante
+ * Expone operaciones CRUD completas bajo /resources/v1/aspirantes_datos
  */
-@Path("proceso_admision_aspirante")
-public class ProcesoAdmisionAspiranteResource extends AbstractResource<ProcesoAdmisionAspirante> {
+@Path("aspirantes_datos")
+public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
 
     @Inject
-    ProcesoAdmisionAspiranteDAO procesoAdmisionAspiranteDAO;
+    AspirantesDatoDAO aspirantesDatoDAO;
 
     @Override
-    protected IngresoDefaultDataAccess<ProcesoAdmisionAspirante> getDAO() {
-        return procesoAdmisionAspiranteDAO;
+    protected IngresoDefaultDataAccess<AspirantesDato> getDAO() {
+        return aspirantesDatoDAO;
     }
 
     @GET
@@ -34,7 +34,7 @@ public class ProcesoAdmisionAspiranteResource extends AbstractResource<ProcesoAd
     public Response findById(@PathParam("id") Integer id) {
         if (id != null) {
             try {
-                ProcesoAdmisionAspirante resp = procesoAdmisionAspiranteDAO.leer(id);
+                AspirantesDato resp = aspirantesDatoDAO.leer(id);
                 if (resp != null) {
                     return Response.ok(resp).build();
                 }
@@ -55,10 +55,14 @@ public class ProcesoAdmisionAspiranteResource extends AbstractResource<ProcesoAd
     @POST
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response create(ProcesoAdmisionAspirante entity, @Context UriInfo uriInfo) {
-        if (entity != null && entity.getId() == null) {
+    public Response create(AspirantesDato entity, @Context UriInfo uriInfo) {
+        if (entity != null && entity.getId() == null
+                && entity.getIdUsuario() != null
+                && entity.getNombres() != null
+                && entity.getApellidos() != null
+                && entity.getDui() != null) {
             try {
-                procesoAdmisionAspiranteDAO.crear(entity);
+                aspirantesDatoDAO.crear(entity);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()
                                 .path(String.valueOf(entity.getId()))
@@ -71,7 +75,7 @@ public class ProcesoAdmisionAspiranteResource extends AbstractResource<ProcesoAd
             }
         }
         return Response.status(422)
-                .header(MISSING_PARAMETER, "entity must not be null and entity.id must be null")
+                .header(MISSING_PARAMETER, "entity must not be null; id must be null; idUsuario, nombres, apellidos, dui must not be null")
                 .build();
     }
 
@@ -79,13 +83,13 @@ public class ProcesoAdmisionAspiranteResource extends AbstractResource<ProcesoAd
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response update(@PathParam("id") Integer id, ProcesoAdmisionAspirante entity) {
+    public Response update(@PathParam("id") Integer id, AspirantesDato entity) {
         if (id != null && entity != null) {
             try {
-                ProcesoAdmisionAspirante existing = procesoAdmisionAspiranteDAO.leer(id);
+                AspirantesDato existing = aspirantesDatoDAO.leer(id);
                 if (existing != null) {
                     entity.setId(id);
-                    procesoAdmisionAspiranteDAO.actualizar(entity);
+                    aspirantesDatoDAO.actualizar(entity);
                     return Response.ok(entity).build();
                 }
                 return Response.status(Response.Status.NOT_FOUND)
@@ -104,12 +108,13 @@ public class ProcesoAdmisionAspiranteResource extends AbstractResource<ProcesoAd
 
     @DELETE
     @Path("{id}")
+    @Produces({MediaType.APPLICATION_JSON})
     public Response delete(@PathParam("id") Integer id) {
         if (id != null) {
             try {
-                ProcesoAdmisionAspirante resp = procesoAdmisionAspiranteDAO.leer(id);
-                if (resp != null) {
-                    procesoAdmisionAspiranteDAO.eliminar(resp);
+                AspirantesDato existing = aspirantesDatoDAO.leer(id);
+                if (existing != null) {
+                    aspirantesDatoDAO.eliminar(existing);
                     return Response.noContent().build();
                 }
                 return Response.status(Response.Status.NOT_FOUND)
@@ -126,4 +131,3 @@ public class ProcesoAdmisionAspiranteResource extends AbstractResource<ProcesoAd
                 .build();
     }
 }
-
