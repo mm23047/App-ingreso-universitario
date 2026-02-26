@@ -12,6 +12,8 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AsignacionesAulaPupitre;
 
+import java.util.UUID;
+
 /**
  * Recurso REST para la gestión de Asignaciones de Aula y Pupitre.
  * Hereda el endpoint GET paginado de AbstractResource.
@@ -31,7 +33,7 @@ public class AsignacionesAulaPupitreResource extends AbstractResource<Asignacion
     @GET
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response findById(@PathParam("id") Integer id) {
+    public Response findById(@PathParam("id") UUID id) {
         if (id != null) {
             try {
                 AsignacionesAulaPupitre resp = asignacionesAulaPupitreDAO.leer(id);
@@ -82,7 +84,7 @@ public class AsignacionesAulaPupitreResource extends AbstractResource<Asignacion
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response update(@PathParam("id") Integer id, AsignacionesAulaPupitre entity) {
+    public Response update(@PathParam("id") UUID id, AsignacionesAulaPupitre entity) {
         if (id != null && entity != null) {
             try {
                 AsignacionesAulaPupitre existing = asignacionesAulaPupitreDAO.leer(id);

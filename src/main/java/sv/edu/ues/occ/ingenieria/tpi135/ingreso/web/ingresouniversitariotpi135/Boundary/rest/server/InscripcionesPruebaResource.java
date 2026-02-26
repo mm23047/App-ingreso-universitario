@@ -12,6 +12,8 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.InscripcionesPruebaDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 
+import java.util.UUID;
+
 /**
  * Recurso REST para la gestión de Inscripciones a Prueba.
  * Hereda el endpoint GET paginado de AbstractResource.
@@ -31,7 +33,7 @@ public class InscripcionesPruebaResource extends AbstractResource<InscripcionesP
     @GET
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response findById(@PathParam("id") Integer id) {
+    public Response findById(@PathParam("id") UUID id) {
         if (id != null) {
             try {
                 InscripcionesPrueba resp = inscripcionesPruebaDAO.leer(id);
@@ -81,7 +83,7 @@ public class InscripcionesPruebaResource extends AbstractResource<InscripcionesP
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response update(@PathParam("id") Integer id, InscripcionesPrueba entity) {
+    public Response update(@PathParam("id") UUID id, InscripcionesPrueba entity) {
         if (id != null && entity != null) {
             try {
                 InscripcionesPrueba existing = inscripcionesPruebaDAO.leer(id);

@@ -12,6 +12,8 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
 
+import java.util.UUID;
+
 /**
  * Recurso REST para la gestión de Datos del Aspirante.
  * Hereda el endpoint GET paginado de AbstractResource.
@@ -31,7 +33,7 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
     @GET
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response findById(@PathParam("id") Integer id) {
+    public Response findById(@PathParam("id") UUID id) {
         if (id != null) {
             try {
                 AspirantesDato resp = aspirantesDatoDAO.leer(id);
@@ -83,7 +85,7 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response update(@PathParam("id") Integer id, AspirantesDato entity) {
+    public Response update(@PathParam("id") UUID id, AspirantesDato entity) {
         if (id != null && entity != null) {
             try {
                 AspirantesDato existing = aspirantesDatoDAO.leer(id);

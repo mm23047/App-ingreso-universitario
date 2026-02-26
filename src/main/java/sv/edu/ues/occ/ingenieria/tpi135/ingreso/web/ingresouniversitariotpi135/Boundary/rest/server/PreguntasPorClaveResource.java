@@ -13,6 +13,8 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClave;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClaveId;
 
+import java.util.UUID;
+
 /**
  * Recurso REST para la gestión de Preguntas asignadas por Clave de Examen.
  * Hereda el endpoint GET paginado de AbstractResource.
@@ -35,8 +37,8 @@ public class PreguntasPorClaveResource extends AbstractResource<PreguntasPorClav
     @GET
     @Path("{idClave}/{idPregunta}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response findById(@PathParam("idClave") Integer idClave,
-                             @PathParam("idPregunta") Integer idPregunta) {
+    public Response findById(@PathParam("idClave") UUID idClave,
+                             @PathParam("idPregunta") UUID idPregunta) {
         if (idClave != null && idPregunta != null) {
             try {
                 PreguntasPorClaveId pk = new PreguntasPorClaveId();
@@ -92,8 +94,8 @@ public class PreguntasPorClaveResource extends AbstractResource<PreguntasPorClav
     @Path("{idClave}/{idPregunta}")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response update(@PathParam("idClave") Integer idClave,
-                           @PathParam("idPregunta") Integer idPregunta,
+    public Response update(@PathParam("idClave") UUID idClave,
+                           @PathParam("idPregunta") UUID idPregunta,
                            PreguntasPorClave entity) {
         if (idClave != null && idPregunta != null && entity != null) {
             try {
@@ -123,8 +125,8 @@ public class PreguntasPorClaveResource extends AbstractResource<PreguntasPorClav
     @DELETE
     @Path("{idClave}/{idPregunta}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response delete(@PathParam("idClave") Integer idClave,
-                           @PathParam("idPregunta") Integer idPregunta) {
+    public Response delete(@PathParam("idClave") UUID idClave,
+                           @PathParam("idPregunta") UUID idPregunta) {
         if (idClave != null && idPregunta != null) {
             try {
                 PreguntasPorClaveId pk = new PreguntasPorClaveId();

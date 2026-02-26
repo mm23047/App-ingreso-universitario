@@ -10,6 +10,8 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExamenesRealizado;
 
+import java.util.UUID;
+
 /**
  * Recurso REST de SOLO LECTURA para Exámenes Realizados.
  * Hereda el endpoint GET paginado de AbstractResource.
@@ -33,7 +35,7 @@ public class ExamenesRealizadoResource extends AbstractResource<ExamenesRealizad
     @GET
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response findById(@PathParam("id") Integer id) {
+    public Response findById(@PathParam("id") UUID id) {
         if (id != null) {
             try {
                 ExamenesRealizado resp = examenesRealizadoDAO.leer(id);

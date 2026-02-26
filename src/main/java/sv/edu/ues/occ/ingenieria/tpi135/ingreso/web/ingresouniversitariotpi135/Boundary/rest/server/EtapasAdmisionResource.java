@@ -12,6 +12,8 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
 
+import java.util.UUID;
+
 /**
  * Recurso REST para la gestión de Etapas de Admisión.
  * Hereda el endpoint GET paginado de AbstractResource.
@@ -31,7 +33,7 @@ public class EtapasAdmisionResource extends AbstractResource<EtapasAdmision> {
     @GET
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response findById(@PathParam("id") Short id) {
+    public Response findById(@PathParam("id") UUID id) {
         if (id != null) {
             try {
                 EtapasAdmision resp = etapasAdmisionDAO.leer(id);
@@ -79,7 +81,7 @@ public class EtapasAdmisionResource extends AbstractResource<EtapasAdmision> {
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response update(@PathParam("id") Short id, EtapasAdmision entity) {
+    public Response update(@PathParam("id") UUID id, EtapasAdmision entity) {
         if (id != null && entity != null) {
             try {
                 EtapasAdmision existing = etapasAdmisionDAO.leer(id);
@@ -104,7 +106,7 @@ public class EtapasAdmisionResource extends AbstractResource<EtapasAdmision> {
 
     @DELETE
     @Path("{id}")
-    public Response delete(@PathParam("id") Short id) {
+    public Response delete(@PathParam("id") UUID id) {
         if (id != null) {
             try {
                 EtapasAdmision resp = etapasAdmisionDAO.leer(id);

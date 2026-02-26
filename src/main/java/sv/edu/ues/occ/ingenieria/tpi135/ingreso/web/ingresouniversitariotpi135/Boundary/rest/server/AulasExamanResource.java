@@ -12,6 +12,8 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AulasExaman;
 
+import java.util.UUID;
+
 /**
  * Recurso REST para la gestión de Aulas de Examen.
  * Hereda el endpoint GET paginado de AbstractResource.
@@ -31,7 +33,7 @@ public class AulasExamanResource extends AbstractResource<AulasExaman> {
     @GET
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response findById(@PathParam("id") Integer id) {
+    public Response findById(@PathParam("id") UUID id) {
         if (id != null) {
             try {
                 AulasExaman resp = aulasExamanDAO.leer(id);
@@ -79,7 +81,7 @@ public class AulasExamanResource extends AbstractResource<AulasExaman> {
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response update(@PathParam("id") Integer id, AulasExaman entity) {
+    public Response update(@PathParam("id") UUID id, AulasExaman entity) {
         if (id != null && entity != null) {
             try {
                 AulasExaman existing = aulasExamanDAO.leer(id);
@@ -104,7 +106,7 @@ public class AulasExamanResource extends AbstractResource<AulasExaman> {
 
     @DELETE
     @Path("{id}")
-    public Response delete(@PathParam("id") Integer id) {
+    public Response delete(@PathParam("id") UUID id) {
         if (id != null) {
             try {
                 AulasExaman resp = aulasExamanDAO.leer(id);

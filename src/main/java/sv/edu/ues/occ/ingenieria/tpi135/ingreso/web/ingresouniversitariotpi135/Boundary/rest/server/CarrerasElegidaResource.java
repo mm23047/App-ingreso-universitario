@@ -13,6 +13,8 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegida;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegidaId;
 
+import java.util.UUID;
+
 /**
  * Recurso REST para la gestión de Carreras Elegidas por el Aspirante.
  * Hereda el endpoint GET paginado de AbstractResource.
@@ -35,7 +37,7 @@ public class CarrerasElegidaResource extends AbstractResource<CarrerasElegida> {
     @GET
     @Path("{idInscripcion}/{idCarrera}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response findById(@PathParam("idInscripcion") Integer idInscripcion,
+    public Response findById(@PathParam("idInscripcion") UUID idInscripcion,
                              @PathParam("idCarrera") String idCarrera) {
         if (idInscripcion != null && idCarrera != null) {
             try {
@@ -93,7 +95,7 @@ public class CarrerasElegidaResource extends AbstractResource<CarrerasElegida> {
     @Path("{idInscripcion}/{idCarrera}")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response update(@PathParam("idInscripcion") Integer idInscripcion,
+    public Response update(@PathParam("idInscripcion") UUID idInscripcion,
                            @PathParam("idCarrera") String idCarrera,
                            CarrerasElegida entity) {
         if (idInscripcion != null && idCarrera != null && entity != null) {
@@ -124,7 +126,7 @@ public class CarrerasElegidaResource extends AbstractResource<CarrerasElegida> {
     @DELETE
     @Path("{idInscripcion}/{idCarrera}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response delete(@PathParam("idInscripcion") Integer idInscripcion,
+    public Response delete(@PathParam("idInscripcion") UUID idInscripcion,
                            @PathParam("idCarrera") String idCarrera) {
         if (idInscripcion != null && idCarrera != null) {
             try {

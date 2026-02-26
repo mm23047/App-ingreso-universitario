@@ -13,6 +13,8 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CuposCarrera;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CuposCarreraId;
 
+import java.util.UUID;
+
 /**
  * Recurso REST para la gestión de Cupos por Carrera.
  * Hereda el endpoint GET paginado de AbstractResource.
@@ -35,9 +37,9 @@ public class CuposCarreraResource extends AbstractResource<CuposCarrera> {
     @GET
     @Path("{idPrueba}/{idCarrera}/{idEtapa}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response findById(@PathParam("idPrueba") Integer idPrueba,
+    public Response findById(@PathParam("idPrueba") UUID idPrueba,
                              @PathParam("idCarrera") String idCarrera,
-                             @PathParam("idEtapa") Short idEtapa) {
+                             @PathParam("idEtapa") UUID idEtapa) {
         if (idPrueba != null && idCarrera != null && idEtapa != null) {
             try {
                 CuposCarreraId pk = new CuposCarreraId();
@@ -98,9 +100,9 @@ public class CuposCarreraResource extends AbstractResource<CuposCarrera> {
     @Path("{idPrueba}/{idCarrera}/{idEtapa}")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response update(@PathParam("idPrueba") Integer idPrueba,
+    public Response update(@PathParam("idPrueba") UUID idPrueba,
                            @PathParam("idCarrera") String idCarrera,
-                           @PathParam("idEtapa") Short idEtapa,
+                           @PathParam("idEtapa") UUID idEtapa,
                            CuposCarrera entity) {
         if (idPrueba != null && idCarrera != null && idEtapa != null && entity != null) {
             try {
@@ -131,9 +133,9 @@ public class CuposCarreraResource extends AbstractResource<CuposCarrera> {
     @DELETE
     @Path("{idPrueba}/{idCarrera}/{idEtapa}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response delete(@PathParam("idPrueba") Integer idPrueba,
+    public Response delete(@PathParam("idPrueba") UUID idPrueba,
                            @PathParam("idCarrera") String idCarrera,
-                           @PathParam("idEtapa") Short idEtapa) {
+                           @PathParam("idEtapa") UUID idEtapa) {
         if (idPrueba != null && idCarrera != null && idEtapa != null) {
             try {
                 CuposCarreraId pk = new CuposCarreraId();

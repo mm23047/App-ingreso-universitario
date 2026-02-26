@@ -12,6 +12,8 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman;
 
+import java.util.UUID;
+
 /**
  * Recurso REST para la gestión de Claves de Examen.
  * Hereda el endpoint GET paginado de AbstractResource.
@@ -32,7 +34,7 @@ public class ClavesExamanResource extends AbstractResource<ClavesExaman> {
     @GET
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response findById(@PathParam("id") Integer id) {
+    public Response findById(@PathParam("id") UUID id) {
         if (id != null) {
             try {
                 ClavesExaman resp = clavesExamanDAO.leer(id);
@@ -83,7 +85,7 @@ public class ClavesExamanResource extends AbstractResource<ClavesExaman> {
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response update(@PathParam("id") Integer id, ClavesExaman entity) {
+    public Response update(@PathParam("id") UUID id, ClavesExaman entity) {
         if (id != null && entity != null) {
             try {
                 ClavesExaman existing = clavesExamanDAO.leer(id);

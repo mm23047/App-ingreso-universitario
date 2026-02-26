@@ -12,6 +12,8 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.OpcionesRespuestaDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.OpcionesRespuesta;
 
+import java.util.UUID;
+
 /**
  * Recurso REST para la gestión de Opciones de Respuesta del Banco de Preguntas.
  * Hereda el endpoint GET paginado de AbstractResource.
@@ -31,7 +33,7 @@ public class OpcionesRespuestaResource extends AbstractResource<OpcionesRespuest
     @GET
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response findById(@PathParam("id") Integer id) {
+    public Response findById(@PathParam("id") UUID id) {
         if (id != null) {
             try {
                 OpcionesRespuesta resp = opcionesRespuestaDAO.leer(id);
@@ -81,7 +83,7 @@ public class OpcionesRespuestaResource extends AbstractResource<OpcionesRespuest
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response update(@PathParam("id") Integer id, OpcionesRespuesta entity) {
+    public Response update(@PathParam("id") UUID id, OpcionesRespuesta entity) {
         if (id != null && entity != null) {
             try {
                 OpcionesRespuesta existing = opcionesRespuestaDAO.leer(id);

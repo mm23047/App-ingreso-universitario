@@ -12,6 +12,8 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.PruebasAdmisionDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
+import java.util.UUID;
+
 /**
  * Recurso REST para la gestión de Pruebas de Admisión.
  * Hereda el endpoint GET paginado de AbstractResource.
@@ -31,7 +33,7 @@ public class PruebasAdmisionResource extends AbstractResource<PruebasAdmision> {
     @GET
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response findById(@PathParam("id") Integer id) {
+    public Response findById(@PathParam("id") UUID id) {
         if (id != null) {
             try {
                 PruebasAdmision resp = pruebasAdmisionDAO.leer(id);
@@ -79,7 +81,7 @@ public class PruebasAdmisionResource extends AbstractResource<PruebasAdmision> {
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response update(@PathParam("id") Integer id, PruebasAdmision entity) {
+    public Response update(@PathParam("id") UUID id, PruebasAdmision entity) {
         if (id != null && entity != null) {
             try {
                 PruebasAdmision existing = pruebasAdmisionDAO.leer(id);
@@ -104,7 +106,7 @@ public class PruebasAdmisionResource extends AbstractResource<PruebasAdmision> {
 
     @DELETE
     @Path("{id}")
-    public Response delete(@PathParam("id") Integer id) {
+    public Response delete(@PathParam("id") UUID id) {
         if (id != null) {
             try {
                 PruebasAdmision resp = pruebasAdmisionDAO.leer(id);

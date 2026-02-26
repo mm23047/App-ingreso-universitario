@@ -12,6 +12,8 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.TurnosExamanDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExaman;
 
+import java.util.UUID;
+
 /**
  * Recurso REST para la gestión de Turnos de Examen.
  * Hereda el endpoint GET paginado de AbstractResource.
@@ -31,7 +33,7 @@ public class TurnosExamanResource extends AbstractResource<TurnosExaman> {
     @GET
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response findById(@PathParam("id") Integer id) {
+    public Response findById(@PathParam("id") UUID id) {
         if (id != null) {
             try {
                 TurnosExaman resp = turnosExamanDAO.leer(id);
@@ -79,7 +81,7 @@ public class TurnosExamanResource extends AbstractResource<TurnosExaman> {
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response update(@PathParam("id") Integer id, TurnosExaman entity) {
+    public Response update(@PathParam("id") UUID id, TurnosExaman entity) {
         if (id != null && entity != null) {
             try {
                 TurnosExaman existing = turnosExamanDAO.leer(id);
@@ -104,7 +106,7 @@ public class TurnosExamanResource extends AbstractResource<TurnosExaman> {
 
     @DELETE
     @Path("{id}")
-    public Response delete(@PathParam("id") Integer id) {
+    public Response delete(@PathParam("id") UUID id) {
         if (id != null) {
             try {
                 TurnosExaman resp = turnosExamanDAO.leer(id);
