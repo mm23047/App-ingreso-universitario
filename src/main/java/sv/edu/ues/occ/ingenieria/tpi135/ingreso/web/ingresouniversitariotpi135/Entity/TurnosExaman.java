@@ -7,13 +7,15 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "turnos_examen", schema = "public")
 public class TurnosExaman {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id_turno", nullable = false)
-    private Integer id;
+    private UUID id;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -37,11 +39,11 @@ public class TurnosExaman {
     @Column(name = "hora_fin", nullable = false)
     private LocalTime horaFin;
 
-    public Integer getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

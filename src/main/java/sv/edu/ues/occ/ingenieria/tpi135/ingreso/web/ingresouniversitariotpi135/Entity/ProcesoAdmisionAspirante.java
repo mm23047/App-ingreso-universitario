@@ -4,12 +4,14 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "proceso_admision_aspirante", schema = "public")
 public class ProcesoAdmisionAspirante {
     @Id
     @Column(name = "id_inscripcion", nullable = false)
-    private Integer id;
+    private UUID id;
 
     @MapsId
     @OneToOne(fetch = FetchType.LAZY, optional = false)
@@ -30,11 +32,11 @@ public class ProcesoAdmisionAspirante {
     @JoinColumn(name = "carrera_asignada")
     private CatalogoCarrera carreraAsignada;
 
-    public Integer getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

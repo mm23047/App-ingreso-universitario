@@ -7,13 +7,14 @@ import jakarta.validation.constraints.Size;
 
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.UUID;
 
 @Embeddable
 public class CuposCarreraId implements Serializable {
     private static final long serialVersionUID = 2241823185805802734L;
     @NotNull
     @Column(name = "id_prueba", nullable = false)
-    private Integer idPrueba;
+    private UUID idPrueba;
 
     @Size(max = 10)
     @NotNull
@@ -22,13 +23,13 @@ public class CuposCarreraId implements Serializable {
 
     @NotNull
     @Column(name = "id_etapa", nullable = false)
-    private Short idEtapa;
+    private UUID idEtapa;
 
-    public Integer getIdPrueba() {
+    public UUID getIdPrueba() {
         return idPrueba;
     }
 
-    public void setIdPrueba(Integer idPrueba) {
+    public void setIdPrueba(UUID idPrueba) {
         this.idPrueba = idPrueba;
     }
 
@@ -40,11 +41,11 @@ public class CuposCarreraId implements Serializable {
         this.idCarrera = idCarrera;
     }
 
-    public Short getIdEtapa() {
+    public UUID getIdEtapa() {
         return idEtapa;
     }
 
-    public void setIdEtapa(Short idEtapa) {
+    public void setIdEtapa(UUID idEtapa) {
         this.idEtapa = idEtapa;
     }
 

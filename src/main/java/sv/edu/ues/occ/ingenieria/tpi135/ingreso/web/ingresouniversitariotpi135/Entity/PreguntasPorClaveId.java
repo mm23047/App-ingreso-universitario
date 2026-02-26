@@ -6,31 +6,32 @@ import jakarta.validation.constraints.NotNull;
 
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.UUID;
 
 @Embeddable
 public class PreguntasPorClaveId implements Serializable {
     private static final long serialVersionUID = -9086369621147257690L;
     @NotNull
     @Column(name = "id_clave", nullable = false)
-    private Integer idClave;
+    private UUID idClave;
 
     @NotNull
     @Column(name = "id_pregunta", nullable = false)
-    private Integer idPregunta;
+    private UUID idPregunta;
 
-    public Integer getIdClave() {
+    public UUID getIdClave() {
         return idClave;
     }
 
-    public void setIdClave(Integer idClave) {
+    public void setIdClave(UUID idClave) {
         this.idClave = idClave;
     }
 
-    public Integer getIdPregunta() {
+    public UUID getIdPregunta() {
         return idPregunta;
     }
 
-    public void setIdPregunta(Integer idPregunta) {
+    public void setIdPregunta(UUID idPregunta) {
         this.idPregunta = idPregunta;
     }
 
