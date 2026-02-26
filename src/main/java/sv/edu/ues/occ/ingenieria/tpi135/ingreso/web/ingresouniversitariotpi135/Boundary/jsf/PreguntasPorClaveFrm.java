@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.util.UUID;
+
 @Named
 @ViewScoped
 public class PreguntasPorClaveFrm extends DefaultFrm<PreguntasPorClave> {
@@ -86,8 +88,8 @@ public class PreguntasPorClaveFrm extends DefaultFrm<PreguntasPorClave> {
                 String[] partes = id.split("\\|", 2);
                 if (partes.length == 2) {
                     PreguntasPorClaveId clave = new PreguntasPorClaveId();
-                    clave.setIdClave(Integer.parseInt(partes[0]));
-                    clave.setIdPregunta(Integer.parseInt(partes[1]));
+                    clave.setIdClave(UUID.fromString(partes[0]));
+                    clave.setIdPregunta(UUID.fromString(partes[1]));
                     return preguntasPorClaveDAO.leer(clave);
                 }
             } catch (Exception e) {

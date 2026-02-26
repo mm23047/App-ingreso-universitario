@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.util.UUID;
+
 @Named
 @ViewScoped
 public class AspirantesDatoFrm extends DefaultFrm<AspirantesDato> {
@@ -58,7 +60,7 @@ public class AspirantesDatoFrm extends DefaultFrm<AspirantesDato> {
     protected AspirantesDato getIdByText(String id) {
         if (id != null) {
             try {
-                Integer buscado = Integer.parseInt(id);
+                UUID buscado = UUID.fromString(id);
                 return aspirantesDatoDAO.leer(buscado);
             } catch (Exception e) {
                 Logger.getLogger(AspirantesDatoFrm.class.getName()).log(Level.SEVERE, null, e);

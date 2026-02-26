@@ -11,6 +11,8 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.util.UUID;
+
 @Named
 @ViewScoped
 public class UsuariosSistemaFrm extends DefaultFrm<UsuariosSistema> {
@@ -34,7 +36,7 @@ public class UsuariosSistemaFrm extends DefaultFrm<UsuariosSistema> {
     protected UsuariosSistema getIdByText(String id) {
         if (id != null) {
             try {
-                Integer buscado = Integer.parseInt(id);
+                UUID buscado = UUID.fromString(id);
                 return usuariosSistemaDAO.leer(buscado);
             } catch (Exception e) {
                 Logger.getLogger(UsuariosSistemaFrm.class.getName()).log(Level.SEVERE, null, e);

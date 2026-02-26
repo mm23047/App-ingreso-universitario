@@ -11,6 +11,8 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.util.UUID;
+
 @Named
 @ViewScoped
 public class EtapasAdmisionFrm extends DefaultFrm<EtapasAdmision> {
@@ -34,7 +36,7 @@ public class EtapasAdmisionFrm extends DefaultFrm<EtapasAdmision> {
     protected EtapasAdmision getIdByText(String id) {
         if (id != null) {
             try {
-                Short buscado = Short.parseShort(id);
+                UUID buscado = UUID.fromString(id);
                 return etapasAdmisionDAO.leer(buscado);
             } catch (Exception e) {
                 Logger.getLogger(EtapasAdmisionFrm.class.getName()).log(Level.SEVERE, null, e);

@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.util.UUID;
+
 @Named
 @ViewScoped
 public class CarrerasElegidaFrm extends DefaultFrm<CarrerasElegida> {
@@ -86,7 +88,7 @@ public class CarrerasElegidaFrm extends DefaultFrm<CarrerasElegida> {
                 String[] partes = id.split("\\|", 2);
                 if (partes.length == 2) {
                     CarrerasElegidaId clave = new CarrerasElegidaId();
-                    clave.setIdInscripcion(Integer.parseInt(partes[0]));
+                    clave.setIdInscripcion(UUID.fromString(partes[0]));
                     clave.setIdCarrera(partes[1]);
                     return carrerasElegidaDAO.leer(clave);
                 }

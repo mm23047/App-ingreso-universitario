@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.util.UUID;
+
 @Named
 @ViewScoped
 public class TurnosExamanFrm extends DefaultFrm<TurnosExaman> {
@@ -60,7 +62,7 @@ public class TurnosExamanFrm extends DefaultFrm<TurnosExaman> {
     protected TurnosExaman getIdByText(String id) {
         if (id != null) {
             try {
-                Integer buscado = Integer.parseInt(id);
+                UUID buscado = UUID.fromString(id);
                 return turnosExamanDAO.leer(buscado);
             } catch (Exception e) {
                 Logger.getLogger(TurnosExamanFrm.class.getName()).log(Level.SEVERE, null, e);

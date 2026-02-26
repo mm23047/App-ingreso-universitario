@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.util.UUID;
+
 @Named
 @ViewScoped
 public class RespuestasExamanFrm extends DefaultFrm<RespuestasExaman> {
@@ -85,7 +87,7 @@ public class RespuestasExamanFrm extends DefaultFrm<RespuestasExaman> {
     protected RespuestasExaman getIdByText(String id) {
         if (id != null) {
             try {
-                Integer buscado = Integer.parseInt(id);
+                UUID buscado = UUID.fromString(id);
                 return respuestasExamanDAO.leer(buscado);
             } catch (Exception e) {
                 Logger.getLogger(RespuestasExamanFrm.class.getName()).log(Level.SEVERE, null, e);
