@@ -14,7 +14,6 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.OpcionesRespuesta;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.RespuestasExaman;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
@@ -22,7 +21,7 @@ import java.util.logging.Logger;
 
 @Named
 @ViewScoped
-public class RespuestasExamanFrm extends DefaultFrm<RespuestasExaman> implements Serializable {
+public class RespuestasExamanFrm extends DefaultFrm<RespuestasExaman> {
 
     @Inject
     RespuestasExamanDAO respuestasExamanDAO;

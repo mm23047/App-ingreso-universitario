@@ -10,7 +10,6 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExaman;
 
-import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Collections;
@@ -20,7 +19,7 @@ import java.util.logging.Logger;
 
 @Named
 @ViewScoped
-public class TurnosExamanFrm extends DefaultFrm<TurnosExaman> implements Serializable {
+public class TurnosExamanFrm extends DefaultFrm<TurnosExaman> {
 
     @Inject
     TurnosExamanDAO turnosExamanDAO;

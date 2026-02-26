@@ -13,7 +13,6 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClave;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClaveId;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
@@ -21,7 +20,7 @@ import java.util.logging.Logger;
 
 @Named
 @ViewScoped
-public class PreguntasPorClaveFrm extends DefaultFrm<PreguntasPorClave> implements Serializable {
+public class PreguntasPorClaveFrm extends DefaultFrm<PreguntasPorClave> {
 
     @Inject
     PreguntasPorClaveDAO preguntasPorClaveDAO;

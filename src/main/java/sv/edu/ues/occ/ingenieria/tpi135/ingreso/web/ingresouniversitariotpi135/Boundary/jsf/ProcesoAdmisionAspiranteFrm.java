@@ -1,4 +1,4 @@
-﻿package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.jsf;
+package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.jsf;
 
 import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
@@ -14,7 +14,6 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ProcesoAdmisionAspirante;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
@@ -22,7 +21,7 @@ import java.util.logging.Logger;
 
 @Named
 @ViewScoped
-public class ProcesoAdmisionAspiranteFrm extends DefaultFrm<ProcesoAdmisionAspirante> implements Serializable {
+public class ProcesoAdmisionAspiranteFrm extends DefaultFrm<ProcesoAdmisionAspirante> {
 
     @Inject
     ProcesoAdmisionAspiranteDAO procesoAdmisionAspiranteDAO;

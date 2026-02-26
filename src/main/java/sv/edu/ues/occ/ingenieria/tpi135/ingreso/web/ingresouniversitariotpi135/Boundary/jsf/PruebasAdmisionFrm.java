@@ -8,14 +8,13 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.PruebasAdmisionDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
-import java.io.Serializable;
 import java.time.Year;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Named
 @ViewScoped
-public class PruebasAdmisionFrm extends DefaultFrm<PruebasAdmision> implements Serializable {
+public class PruebasAdmisionFrm extends DefaultFrm<PruebasAdmision> {
 
     @Inject
     PruebasAdmisionDAO pruebasAdmisionDAO;

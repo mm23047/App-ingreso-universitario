@@ -13,7 +13,6 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
@@ -21,7 +20,7 @@ import java.util.logging.Logger;
 
 @Named
 @ViewScoped
-public class CarrerasElegidaFrm extends DefaultFrm<CarrerasElegida> implements Serializable {
+public class CarrerasElegidaFrm extends DefaultFrm<CarrerasElegida> {
 
     @Inject
     CarrerasElegidaDAO carrerasElegidaDAO;

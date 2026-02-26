@@ -8,13 +8,12 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.UsuariosSistemaDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.UsuariosSistema;
 
-import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Named
 @ViewScoped
-public class UsuariosSistemaFrm extends DefaultFrm<UsuariosSistema> implements Serializable {
+public class UsuariosSistemaFrm extends DefaultFrm<UsuariosSistema> {
 
     @Inject
     UsuariosSistemaDAO usuariosSistemaDAO;
