@@ -18,6 +18,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.UsuariosSistema;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.ResourceBundle;
 import java.util.stream.Stream;
 
@@ -39,14 +40,16 @@ class UsuariosSistemaFrmTest {
     private UsuariosSistema entidad;
 
     // ==================== SETUP ====================
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
         facesContextStatic = mockStatic(FacesContext.class);
         facesContextStatic.when(FacesContext::getCurrentInstance).thenReturn(facesContextMock);
 
         entidad = new UsuariosSistema();
-        entidad.setId(5);
+        entidad.setId(testId);
         entidad.setNombreUsuario("admin");
         entidad.setCorreo("admin@ues.edu.sv");
         entidad.setContrasenaHash("$2a$10$hash");
@@ -87,7 +90,7 @@ class UsuariosSistemaFrmTest {
 
     @Test
     void getIdAsText_EntidadConId_RetornaStringDelId() {
-        assertEquals("5", frm.getIdAsText(entidad));
+        assertEquals(testId.toString(), frm.getIdAsText(entidad));
     }
 
     @Test
@@ -104,10 +107,10 @@ class UsuariosSistemaFrmTest {
 
     @Test
     void getIdByText_IdValido_RetornaEntidadDesdeDAO() {
-        when(usuariosSistemaDAO.leer(5)).thenReturn(entidad);
-        UsuariosSistema resultado = frm.getIdByText("5");
+        when(usuariosSistemaDAO.leer(testId)).thenReturn(entidad);
+        UsuariosSistema resultado = frm.getIdByText(testId.toString());
         assertSame(entidad, resultado);
-        verify(usuariosSistemaDAO).leer(5);
+        verify(usuariosSistemaDAO).leer(testId);
     }
 
     @Test
@@ -124,8 +127,8 @@ class UsuariosSistemaFrmTest {
 
     @Test
     void getIdByText_DAORetornaNull_RetornaNull() {
-        when(usuariosSistemaDAO.leer(99)).thenReturn(null);
-        assertNull(frm.getIdByText("99"));
+        when(usuariosSistemaDAO.leer(testId)).thenReturn(null);
+        assertNull(frm.getIdByText(testId.toString()));
     }
 
     // ==================== createNewEntity ====================
@@ -244,7 +247,7 @@ class UsuariosSistemaFrmTest {
 
     @Test
     void btnModificarHandler_Valido_ActualizaRefrescaYLimpia() {
-        when(usuariosSistemaDAO.leer(5)).thenReturn(entidad);
+        when(usuariosSistemaDAO.leer(testId)).thenReturn(entidad);
         when(usuariosSistemaDAO.findRange(anyInt(), anyInt())).thenReturn(List.of());
         configurarBundle("frm.botones.opModificar", "Modificado");
         frm.setRegistro(entidad);
@@ -269,7 +272,7 @@ class UsuariosSistemaFrmTest {
 
     @Test
     void btnModificarHandler_NoEncontradoEnBD_Error() {
-        when(usuariosSistemaDAO.leer(5)).thenReturn(null);
+        when(usuariosSistemaDAO.leer(testId)).thenReturn(null);
         frm.setRegistro(entidad);
         frm.btnModificarHandler(null);
         verify(usuariosSistemaDAO, never()).actualizar(any());

@@ -22,6 +22,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.ResourceBundle;
 import java.util.stream.Stream;
 
@@ -48,20 +49,22 @@ class AsignacionesAulaPupitreFrmTest {
     private AulasExaman aula;
 
     // ==================== SETUP ====================
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
         facesContextStatic = mockStatic(FacesContext.class);
         facesContextStatic.when(FacesContext::getCurrentInstance).thenReturn(facesContextMock);
 
         inscripcion = new InscripcionesPrueba();
-        inscripcion.setId(1);
+        inscripcion.setId(testId);
 
         aula = new AulasExaman();
-        aula.setId(2);
+        aula.setId(testId);
 
         entidad = new AsignacionesAulaPupitre();
-        entidad.setId(5);
+        entidad.setId(testId);
         entidad.setPupitre("A-12");
         entidad.setIdInscripcion(inscripcion);
         entidad.setIdAula(aula);
@@ -101,7 +104,7 @@ class AsignacionesAulaPupitreFrmTest {
 
     @Test
     void getIdAsText_EntidadConId_RetornaStringDelId() {
-        assertEquals("5", frm.getIdAsText(entidad));
+        assertEquals(testId.toString(), frm.getIdAsText(entidad));
     }
 
     @Test
@@ -118,10 +121,10 @@ class AsignacionesAulaPupitreFrmTest {
 
     @Test
     void getIdByText_IdValido_RetornaEntidadDesdeDAO() {
-        when(asignacionesAulaPupitreDAO.leer(5)).thenReturn(entidad);
-        AsignacionesAulaPupitre resultado = frm.getIdByText("5");
+        when(asignacionesAulaPupitreDAO.leer(testId)).thenReturn(entidad);
+        AsignacionesAulaPupitre resultado = frm.getIdByText(testId.toString());
         assertSame(entidad, resultado);
-        verify(asignacionesAulaPupitreDAO).leer(5);
+        verify(asignacionesAulaPupitreDAO).leer(testId);
     }
 
     @Test
@@ -141,8 +144,8 @@ class AsignacionesAulaPupitreFrmTest {
 
     @Test
     void getIdByText_DAORetornaNull_RetornaNull() {
-        when(asignacionesAulaPupitreDAO.leer(99)).thenReturn(null);
-        assertNull(frm.getIdByText("99"));
+        when(asignacionesAulaPupitreDAO.leer(testId)).thenReturn(null);
+        assertNull(frm.getIdByText(testId.toString()));
     }
 
     // ==================== createNewEntity ====================
@@ -169,7 +172,7 @@ class AsignacionesAulaPupitreFrmTest {
 
     @Test
     void getEntityId_EntidadConId_PermiteModificar() {
-        when(asignacionesAulaPupitreDAO.leer(5)).thenReturn(entidad);
+        when(asignacionesAulaPupitreDAO.leer(testId)).thenReturn(entidad);
         when(asignacionesAulaPupitreDAO.findRange(anyInt(), anyInt())).thenReturn(List.of());
         configurarBundle("frm.botones.opModificar", "Modificado");
         frm.setRegistro(entidad);
@@ -339,7 +342,7 @@ class AsignacionesAulaPupitreFrmTest {
 
     @Test
     void btnModificarHandler_Valido_ActualizaRefrescaYLimpia() {
-        when(asignacionesAulaPupitreDAO.leer(5)).thenReturn(entidad);
+        when(asignacionesAulaPupitreDAO.leer(testId)).thenReturn(entidad);
         when(asignacionesAulaPupitreDAO.findRange(anyInt(), anyInt())).thenReturn(List.of());
         configurarBundle("frm.botones.opModificar", "Modificado");
         frm.setRegistro(entidad);
@@ -364,7 +367,7 @@ class AsignacionesAulaPupitreFrmTest {
 
     @Test
     void btnModificarHandler_NoEncontradoEnBD_Error() {
-        when(asignacionesAulaPupitreDAO.leer(5)).thenReturn(null);
+        when(asignacionesAulaPupitreDAO.leer(testId)).thenReturn(null);
         frm.setRegistro(entidad);
         frm.btnModificarHandler(null);
         verify(asignacionesAulaPupitreDAO, never()).actualizar(any());

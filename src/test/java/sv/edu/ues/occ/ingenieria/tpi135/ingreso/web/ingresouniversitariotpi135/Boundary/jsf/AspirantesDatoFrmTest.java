@@ -20,6 +20,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.UsuariosSistema;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.ResourceBundle;
 import java.util.stream.Stream;
 
@@ -43,18 +44,20 @@ class AspirantesDatoFrmTest {
     private UsuariosSistema usuario;
 
     // ==================== SETUP ====================
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
         facesContextStatic = mockStatic(FacesContext.class);
         facesContextStatic.when(FacesContext::getCurrentInstance).thenReturn(facesContextMock);
 
         usuario = new UsuariosSistema();
-        usuario.setId(3);
+        usuario.setId(testId);
         usuario.setNombreUsuario("jperez");
 
         entidad = new AspirantesDato();
-        entidad.setId(7);
+        entidad.setId(testId);
         entidad.setNombres("Juan");
         entidad.setApellidos("Pérez");
         entidad.setDui("0123-456789-01-0");
@@ -96,7 +99,7 @@ class AspirantesDatoFrmTest {
 
     @Test
     void getIdAsText_EntidadConId_RetornaStringDelId() {
-        assertEquals("7", frm.getIdAsText(entidad));
+        assertEquals(testId.toString(), frm.getIdAsText(entidad));
     }
 
     @Test
@@ -113,10 +116,10 @@ class AspirantesDatoFrmTest {
 
     @Test
     void getIdByText_IdValido_RetornaEntidadDesdeDAO() {
-        when(aspirantesDatoDAO.leer(7)).thenReturn(entidad);
-        AspirantesDato resultado = frm.getIdByText("7");
+        when(aspirantesDatoDAO.leer(testId)).thenReturn(entidad);
+        AspirantesDato resultado = frm.getIdByText(testId.toString());
         assertSame(entidad, resultado);
-        verify(aspirantesDatoDAO).leer(7);
+        verify(aspirantesDatoDAO).leer(testId);
     }
 
     @Test
@@ -133,8 +136,8 @@ class AspirantesDatoFrmTest {
 
     @Test
     void getIdByText_DAORetornaNull_RetornaNull() {
-        when(aspirantesDatoDAO.leer(99)).thenReturn(null);
-        assertNull(frm.getIdByText("99"));
+        when(aspirantesDatoDAO.leer(testId)).thenReturn(null);
+        assertNull(frm.getIdByText(testId.toString()));
     }
 
     // ==================== createNewEntity ====================
@@ -290,7 +293,7 @@ class AspirantesDatoFrmTest {
 
     @Test
     void btnModificarHandler_Valido_ActualizaRefrescaYLimpia() {
-        when(aspirantesDatoDAO.leer(7)).thenReturn(entidad);
+        when(aspirantesDatoDAO.leer(testId)).thenReturn(entidad);
         when(aspirantesDatoDAO.findRange(anyInt(), anyInt())).thenReturn(List.of());
         configurarBundle("frm.botones.opModificar", "Modificado");
         frm.setRegistro(entidad);
@@ -315,7 +318,7 @@ class AspirantesDatoFrmTest {
 
     @Test
     void btnModificarHandler_NoEncontradoEnBD_Error() {
-        when(aspirantesDatoDAO.leer(7)).thenReturn(null);
+        when(aspirantesDatoDAO.leer(testId)).thenReturn(null);
         frm.setRegistro(entidad);
         frm.btnModificarHandler(null);
         verify(aspirantesDatoDAO, never()).actualizar(any());

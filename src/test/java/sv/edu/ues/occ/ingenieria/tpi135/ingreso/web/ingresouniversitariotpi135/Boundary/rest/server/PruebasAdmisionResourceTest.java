@@ -13,6 +13,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.UUID;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,14 +33,16 @@ class PruebasAdmisionResourceTest {
 
     private PruebasAdmisionResource resource;
     private PruebasAdmision entidad;
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
         resource = new PruebasAdmisionResource();
         resource.pruebasAdmisionDAO = pruebasAdmisionDAO;
 
         entidad = new PruebasAdmision();
-        entidad.setId(1);
+        entidad.setId(testId);
         entidad.setNombrePrueba("Prueba 2026");
         entidad.setAnio(2026);
         entidad.setActiva(true);
@@ -111,22 +114,22 @@ class PruebasAdmisionResourceTest {
 
     @Test
     void findById_ConIdExistente_DebeRetornar200ConEntidad() {
-        when(pruebasAdmisionDAO.leer(1)).thenReturn(entidad);
+        when(pruebasAdmisionDAO.leer(testId)).thenReturn(entidad);
 
-        Response response = resource.findById(1);
+        Response response = resource.findById(testId);
 
         assertEquals(200, response.getStatus());
         PruebasAdmision resultado = (PruebasAdmision) response.getEntity();
-        assertEquals(1, resultado.getId());
+        assertEquals(testId, resultado.getId());
         assertEquals("Prueba 2026", resultado.getNombrePrueba());
-        verify(pruebasAdmisionDAO).leer(1);
+        verify(pruebasAdmisionDAO).leer(testId);
     }
 
     @Test
     void findById_ConIdInexistente_DebeRetornar404() {
-        when(pruebasAdmisionDAO.leer(999)).thenReturn(null);
+        when(pruebasAdmisionDAO.leer(testId)).thenReturn(null);
 
-        Response response = resource.findById(999);
+        Response response = resource.findById(testId);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
@@ -145,7 +148,7 @@ class PruebasAdmisionResourceTest {
     void findById_ConExcepcionEnDAO_DebeRetornar500() {
         when(pruebasAdmisionDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
-        Response response = resource.findById(1);
+        Response response = resource.findById(testId);
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
@@ -204,13 +207,13 @@ class PruebasAdmisionResourceTest {
 
     @Test
     void update_ConIdYEntidadValidos_DebeRetornar200() {
-        when(pruebasAdmisionDAO.leer(1)).thenReturn(entidad);
+        when(pruebasAdmisionDAO.leer(testId)).thenReturn(entidad);
         PruebasAdmision actualizada = new PruebasAdmision();
         actualizada.setNombrePrueba("Prueba 2026 Actualizada");
         actualizada.setAnio(2026);
         actualizada.setActiva(false);
 
-        Response response = resource.update(1, actualizada);
+        Response response = resource.update(testId, actualizada);
 
         assertEquals(200, response.getStatus());
         verify(pruebasAdmisionDAO).actualizar(actualizada);
@@ -226,7 +229,7 @@ class PruebasAdmisionResourceTest {
 
     @Test
     void update_ConEntidadNula_DebeRetornar422() {
-        Response response = resource.update(1, null);
+        Response response = resource.update(testId, null);
 
         assertEquals(422, response.getStatus());
         verifyNoInteractions(pruebasAdmisionDAO);
@@ -234,9 +237,9 @@ class PruebasAdmisionResourceTest {
 
     @Test
     void update_ConIdInexistente_DebeRetornar404() {
-        when(pruebasAdmisionDAO.leer(999)).thenReturn(null);
+        when(pruebasAdmisionDAO.leer(testId)).thenReturn(null);
 
-        Response response = resource.update(999, entidad);
+        Response response = resource.update(testId, entidad);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
@@ -244,9 +247,9 @@ class PruebasAdmisionResourceTest {
 
     @Test
     void update_ConExcepcionEnDAO_DebeRetornar500() {
-        when(pruebasAdmisionDAO.leer(1)).thenThrow(new RuntimeException("Error de BD"));
+        when(pruebasAdmisionDAO.leer(testId)).thenThrow(new RuntimeException("Error de BD"));
 
-        Response response = resource.update(1, entidad);
+        Response response = resource.update(testId, entidad);
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
@@ -256,9 +259,9 @@ class PruebasAdmisionResourceTest {
 
     @Test
     void delete_ConIdExistente_DebeRetornar204() {
-        when(pruebasAdmisionDAO.leer(1)).thenReturn(entidad);
+        when(pruebasAdmisionDAO.leer(testId)).thenReturn(entidad);
 
-        Response response = resource.delete(1);
+        Response response = resource.delete(testId);
 
         assertEquals(204, response.getStatus());
         verify(pruebasAdmisionDAO).eliminar(entidad);
@@ -274,9 +277,9 @@ class PruebasAdmisionResourceTest {
 
     @Test
     void delete_ConIdInexistente_DebeRetornar404() {
-        when(pruebasAdmisionDAO.leer(999)).thenReturn(null);
+        when(pruebasAdmisionDAO.leer(testId)).thenReturn(null);
 
-        Response response = resource.delete(999);
+        Response response = resource.delete(testId);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
@@ -286,7 +289,7 @@ class PruebasAdmisionResourceTest {
     void delete_ConExcepcionEnDAO_DebeRetornar500() {
         when(pruebasAdmisionDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
-        Response response = resource.delete(1);
+        Response response = resource.delete(testId);
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));

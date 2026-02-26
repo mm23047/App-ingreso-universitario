@@ -25,6 +25,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.RespuestasExaman;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.ResourceBundle;
 import java.util.stream.Stream;
 
@@ -52,32 +53,34 @@ class RespuestasExamanFrmTest {
     private OpcionesRespuesta opcion;
 
     // ==================== SETUP ====================
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
         facesContextStatic = mockStatic(FacesContext.class);
         facesContextStatic.when(FacesContext::getCurrentInstance).thenReturn(facesContextMock);
 
         AreasConocimiento area = new AreasConocimiento();
-        area.setId(1);
+        area.setId(testId);
         area.setNombreArea("Matemáticas");
 
         pregunta = new BancoPregunta();
-        pregunta.setId(3);
+        pregunta.setId(testId);
         pregunta.setEnunciado("¿Cuánto es 2+2?");
         pregunta.setIdArea(area);
 
         opcion = new OpcionesRespuesta();
-        opcion.setId(7);
+        opcion.setId(testId);
         opcion.setTextoOpcion("4");
         opcion.setEsCorrecta(true);
         opcion.setIdPregunta(pregunta);
 
         examen = new ExamenesRealizado();
-        examen.setId(2);
+        examen.setId(testId);
 
         entidad = new RespuestasExaman();
-        entidad.setId(15);
+        entidad.setId(testId);
         entidad.setIdExamen(examen);
         entidad.setIdPregunta(pregunta);
         entidad.setIdOpcionSeleccionada(opcion);
@@ -117,7 +120,7 @@ class RespuestasExamanFrmTest {
 
     @Test
     void getIdAsText_EntidadConId_RetornaStringDelId() {
-        assertEquals("15", frm.getIdAsText(entidad));
+        assertEquals(testId.toString(), frm.getIdAsText(entidad));
     }
 
     @Test
@@ -134,10 +137,10 @@ class RespuestasExamanFrmTest {
 
     @Test
     void getIdByText_IdValido_RetornaEntidadDesdeDAO() {
-        when(respuestasExamanDAO.leer(15)).thenReturn(entidad);
-        RespuestasExaman resultado = frm.getIdByText("15");
+        when(respuestasExamanDAO.leer(testId)).thenReturn(entidad);
+        RespuestasExaman resultado = frm.getIdByText(testId.toString());
         assertSame(entidad, resultado);
-        verify(respuestasExamanDAO).leer(15);
+        verify(respuestasExamanDAO).leer(testId);
     }
 
     @Test
@@ -154,8 +157,8 @@ class RespuestasExamanFrmTest {
 
     @Test
     void getIdByText_DAORetornaNull_RetornaNull() {
-        when(respuestasExamanDAO.leer(99)).thenReturn(null);
-        assertNull(frm.getIdByText("99"));
+        when(respuestasExamanDAO.leer(testId)).thenReturn(null);
+        assertNull(frm.getIdByText(testId.toString()));
     }
 
     // ==================== createNewEntity ====================
@@ -346,7 +349,7 @@ class RespuestasExamanFrmTest {
 
     @Test
     void btnModificarHandler_Valido_ActualizaRefrescaYLimpia() {
-        when(respuestasExamanDAO.leer(15)).thenReturn(entidad);
+        when(respuestasExamanDAO.leer(testId)).thenReturn(entidad);
         when(respuestasExamanDAO.findRange(anyInt(), anyInt())).thenReturn(List.of());
         configurarBundle("frm.botones.opModificar", "Modificado");
         frm.setRegistro(entidad);
@@ -371,7 +374,7 @@ class RespuestasExamanFrmTest {
 
     @Test
     void btnModificarHandler_NoEncontradoEnBD_Error() {
-        when(respuestasExamanDAO.leer(15)).thenReturn(null);
+        when(respuestasExamanDAO.leer(testId)).thenReturn(null);
         frm.setRegistro(entidad);
         frm.btnModificarHandler(null);
         verify(respuestasExamanDAO, never()).actualizar(any());

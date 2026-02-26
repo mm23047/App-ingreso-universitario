@@ -14,6 +14,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.Collections;
 import java.util.List;
 
@@ -40,14 +41,16 @@ class EtapasAdmisionResourceTest {
 
     private EtapasAdmisionResource resource;
     private EtapasAdmision entidadPrueba;
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
         resource = new EtapasAdmisionResource();
         resource.etapasAdmisionDAO = etapasAdmisionDAO;
 
         entidadPrueba = new EtapasAdmision();
-        entidadPrueba.setId((short) 1);
+        entidadPrueba.setId(testId);
         entidadPrueba.setNombre("Etapa Preuniversitaria");
         entidadPrueba.setPuntajeMinimo(new BigDecimal("60.00"));
         entidadPrueba.setPuntajeMaximo(new BigDecimal("100.00"));
@@ -139,26 +142,26 @@ class EtapasAdmisionResourceTest {
     @Test
     void findById_ConIdExistente_DebeRetornar200ConEntidad() {
         // Arrange
-        when(etapasAdmisionDAO.leer((short) 1)).thenReturn(entidadPrueba);
+        when(etapasAdmisionDAO.leer(testId)).thenReturn(entidadPrueba);
 
         // Act
-        Response response = resource.findById((short) 1);
+        Response response = resource.findById(testId);
 
         // Assert
         assertEquals(200, response.getStatus());
         EtapasAdmision resultado = (EtapasAdmision) response.getEntity();
         assertEquals(entidadPrueba.getId(), resultado.getId());
         assertEquals(entidadPrueba.getNombre(), resultado.getNombre());
-        verify(etapasAdmisionDAO, times(1)).leer((short) 1);
+        verify(etapasAdmisionDAO, times(1)).leer(testId);
     }
 
     @Test
     void findById_ConIdInexistente_DebeRetornar404() {
         // Arrange
-        when(etapasAdmisionDAO.leer((short) 999)).thenReturn(null);
+        when(etapasAdmisionDAO.leer(testId)).thenReturn(null);
 
         // Act
-        Response response = resource.findById((short) 999);
+        Response response = resource.findById(testId);
 
         // Assert
         assertEquals(404, response.getStatus());
@@ -182,7 +185,7 @@ class EtapasAdmisionResourceTest {
         when(etapasAdmisionDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
         // Act
-        Response response = resource.findById((short) 1);
+        Response response = resource.findById(testId);
 
         // Assert
         assertEquals(500, response.getStatus());
@@ -224,7 +227,7 @@ class EtapasAdmisionResourceTest {
     void create_ConEntidadConIdYaAsignado_DebeRetornar422() throws Exception {
         // Arrange - el cliente no debe proveer id en POST (la BD lo genera)
         EtapasAdmision conId = new EtapasAdmision();
-        conId.setId((short) 5);
+        conId.setId(testId);
         conId.setNombre("Etapa con ID");
 
         // Act
@@ -256,14 +259,14 @@ class EtapasAdmisionResourceTest {
     @Test
     void update_ConIdYEntidadValidos_DebeRetornar200() throws Exception {
         // Arrange
-        when(etapasAdmisionDAO.leer((short) 1)).thenReturn(entidadPrueba);
+        when(etapasAdmisionDAO.leer(testId)).thenReturn(entidadPrueba);
         when(etapasAdmisionDAO.actualizar(any())).thenReturn(entidadPrueba);
 
         EtapasAdmision actualizada = new EtapasAdmision();
         actualizada.setNombre("Nombre Actualizado");
 
         // Act
-        Response response = resource.update((short) 1, actualizada);
+        Response response = resource.update(testId, actualizada);
 
         // Assert
         assertEquals(200, response.getStatus());
@@ -284,7 +287,7 @@ class EtapasAdmisionResourceTest {
     @Test
     void update_ConEntidadNula_DebeRetornar422() throws Exception {
         // Act
-        Response response = resource.update((short) 1, null);
+        Response response = resource.update(testId, null);
 
         // Assert
         assertEquals(422, response.getStatus());
@@ -295,10 +298,10 @@ class EtapasAdmisionResourceTest {
     @Test
     void update_ConIdInexistente_DebeRetornar404() throws Exception {
         // Arrange
-        when(etapasAdmisionDAO.leer((short) 999)).thenReturn(null);
+        when(etapasAdmisionDAO.leer(testId)).thenReturn(null);
 
         // Act
-        Response response = resource.update((short) 999, entidadPrueba);
+        Response response = resource.update(testId, entidadPrueba);
 
         // Assert
         assertEquals(404, response.getStatus());
@@ -308,10 +311,10 @@ class EtapasAdmisionResourceTest {
     @Test
     void update_ConExcepcionEnDAO_DebeRetornar500() throws Exception {
         // Arrange
-        when(etapasAdmisionDAO.leer((short) 1)).thenThrow(new RuntimeException("Error de BD"));
+        when(etapasAdmisionDAO.leer(testId)).thenThrow(new RuntimeException("Error de BD"));
 
         // Act
-        Response response = resource.update((short) 1, entidadPrueba);
+        Response response = resource.update(testId, entidadPrueba);
 
         // Assert
         assertEquals(500, response.getStatus());
@@ -323,10 +326,10 @@ class EtapasAdmisionResourceTest {
     @Test
     void delete_ConIdExistente_DebeRetornar204() throws Exception {
         // Arrange
-        when(etapasAdmisionDAO.leer((short) 1)).thenReturn(entidadPrueba);
+        when(etapasAdmisionDAO.leer(testId)).thenReturn(entidadPrueba);
 
         // Act
-        Response response = resource.delete((short) 1);
+        Response response = resource.delete(testId);
 
         // Assert
         assertEquals(204, response.getStatus());
@@ -347,10 +350,10 @@ class EtapasAdmisionResourceTest {
     @Test
     void delete_ConIdInexistente_DebeRetornar404() throws Exception {
         // Arrange
-        when(etapasAdmisionDAO.leer((short) 999)).thenReturn(null);
+        when(etapasAdmisionDAO.leer(testId)).thenReturn(null);
 
         // Act
-        Response response = resource.delete((short) 999);
+        Response response = resource.delete(testId);
 
         // Assert
         assertEquals(404, response.getStatus());
@@ -363,7 +366,7 @@ class EtapasAdmisionResourceTest {
         when(etapasAdmisionDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
         // Act
-        Response response = resource.delete((short) 1);
+        Response response = resource.delete(testId);
 
         // Assert
         assertEquals(500, response.getStatus());

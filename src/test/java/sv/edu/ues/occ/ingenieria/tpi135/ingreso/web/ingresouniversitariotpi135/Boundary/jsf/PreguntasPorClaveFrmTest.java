@@ -26,6 +26,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -51,34 +52,40 @@ class PreguntasPorClaveFrmTest {
     private BancoPregunta pregunta;
 
     // ==================== SETUP ====================
+    private UUID testId;
+    private UUID claveUUID;
+    private UUID preguntaUUID;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
+        claveUUID = UUID.randomUUID();
+        preguntaUUID = UUID.randomUUID();
         facesContextStatic = mockStatic(FacesContext.class);
         facesContextStatic.when(FacesContext::getCurrentInstance).thenReturn(facesContextMock);
 
         PruebasAdmision prueba = new PruebasAdmision();
-        prueba.setId(1);
+        prueba.setId(testId);
         prueba.setNombrePrueba("Prueba 2026");
         prueba.setAnio(2026);
 
         clave = new ClavesExaman();
-        clave.setId(2);
+        clave.setId(testId);
         clave.setNombreClave("Clave A");
         clave.setIdPrueba(prueba);
 
         AreasConocimiento area = new AreasConocimiento();
-        area.setId(1);
+        area.setId(testId);
         area.setNombreArea("Matemáticas");
 
         pregunta = new BancoPregunta();
-        pregunta.setId(5);
+        pregunta.setId(testId);
         pregunta.setEnunciado("¿Cuánto es 2+2?");
         pregunta.setIdArea(area);
 
         claveId = new PreguntasPorClaveId();
-        claveId.setIdClave(2);
-        claveId.setIdPregunta(5);
+        claveId.setIdClave(claveUUID);
+        claveId.setIdPregunta(preguntaUUID);
 
         entidad = new PreguntasPorClave();
         entidad.setId(claveId);
@@ -121,7 +128,7 @@ class PreguntasPorClaveFrmTest {
     @Test
     void getIdAsText_EntidadConIdCompleto_RetornaTextoCompuesto() {
         // La clave compuesta se serializa como "idClave|idPregunta"
-        assertEquals("2|5", frm.getIdAsText(entidad));
+        assertEquals(claveUUID + "|" + preguntaUUID, frm.getIdAsText(entidad));
     }
 
     @Test
@@ -146,7 +153,7 @@ class PreguntasPorClaveFrmTest {
     @Test
     void getIdByText_FormatoValido_RetornaEntidadDesdeDAO() {
         when(preguntasPorClaveDAO.leer(claveId)).thenReturn(entidad);
-        PreguntasPorClave resultado = frm.getIdByText("2|5");
+        PreguntasPorClave resultado = frm.getIdByText(claveUUID + "|" + preguntaUUID);
         assertSame(entidad, resultado);
         verify(preguntasPorClaveDAO).leer(claveId);
     }
@@ -159,29 +166,31 @@ class PreguntasPorClaveFrmTest {
 
     @Test
     void getIdByText_SinSeparador_RetornaNull() {
-        assertNull(frm.getIdByText("25"));
+        assertNull(frm.getIdByText(claveUUID.toString().replace("-", "") + preguntaUUID.toString().replace("-", "")));
         verify(preguntasPorClaveDAO, never()).leer(any());
     }
 
     @Test
     void getIdByText_ClaveNoNumerica_RetornaNull() {
-        assertNull(frm.getIdByText("abc|5"));
+        assertNull(frm.getIdByText("no-es-un-uuid-valido|" + preguntaUUID));
         verify(preguntasPorClaveDAO, never()).leer(any());
     }
 
     @Test
     void getIdByText_PreguntaNoNumerica_RetornaNull() {
-        assertNull(frm.getIdByText("2|abc"));
+        assertNull(frm.getIdByText(claveUUID + "|no-es-un-uuid-valido"));
         verify(preguntasPorClaveDAO, never()).leer(any());
     }
 
     @Test
     void getIdByText_DAORetornaNull_RetornaNull() {
+        UUID otroClaveUUID = UUID.randomUUID();
+        UUID otroPreguntaUUID = UUID.randomUUID();
         PreguntasPorClaveId otraClave = new PreguntasPorClaveId();
-        otraClave.setIdClave(99);
-        otraClave.setIdPregunta(99);
+        otraClave.setIdClave(otroClaveUUID);
+        otraClave.setIdPregunta(otroPreguntaUUID);
         when(preguntasPorClaveDAO.leer(otraClave)).thenReturn(null);
-        assertNull(frm.getIdByText("99|99"));
+        assertNull(frm.getIdByText(otroClaveUUID + "|" + otroPreguntaUUID));
     }
 
     // ==================== createNewEntity ====================

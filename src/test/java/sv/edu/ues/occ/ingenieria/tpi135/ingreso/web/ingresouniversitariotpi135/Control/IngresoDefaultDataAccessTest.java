@@ -15,6 +15,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -80,12 +81,14 @@ class IngresoDefaultDataAccessTest {
             }
         };
     }
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
         dataAccess = new IngresoDefaultDataAccessImpl();
         entidadPrueba = new EtapasAdmision();
-        entidadPrueba.setId((short) 1);
+        entidadPrueba.setId(testId);
         entidadPrueba.setNombre("Etapa Preuniversitaria");
         entidadPrueba.setPuntajeMinimo(new BigDecimal("60.00"));
         entidadPrueba.setPuntajeMaximo(new BigDecimal("100.00"));
@@ -154,7 +157,7 @@ class IngresoDefaultDataAccessTest {
     @Test
     void eliminar_ConRegistroFueraDeContexto_DebeMergearYEliminarResultadoDelMerge() {
         EtapasAdmision entidadMergeada = new EtapasAdmision();
-        entidadMergeada.setId((short) 1);
+        entidadMergeada.setId(testId);
 
         when(entityManager.contains(entidadPrueba)).thenReturn(false);
         when(entityManager.merge(entidadPrueba)).thenReturn(entidadMergeada);
@@ -205,7 +208,7 @@ class IngresoDefaultDataAccessTest {
     @Test
     void actualizar_ConRegistroValido_DebeRetornarInstanciaDelMerge() {
         EtapasAdmision entidadMergeada = new EtapasAdmision();
-        entidadMergeada.setId((short) 1);
+        entidadMergeada.setId(testId);
         entidadMergeada.setNombre("Nombre modificado");
 
         when(entityManager.merge(entidadPrueba)).thenReturn(entidadMergeada);
@@ -292,7 +295,7 @@ class IngresoDefaultDataAccessTest {
     void leer_ConEntityManagerNulo_DebeLanzarIllegalStateException() {
         IllegalStateException ex = assertThrows(
                 IllegalStateException.class,
-                () -> dataAccessSinEM().leer((short) 1));
+                () -> dataAccessSinEM().leer(testId));
 
         assertEquals("EntityManager no inicializado", ex.getMessage());
     }
@@ -304,7 +307,7 @@ class IngresoDefaultDataAccessTest {
 
         IllegalStateException ex = assertThrows(
                 IllegalStateException.class,
-                () -> dataAccess.leer((short) 1));
+                () -> dataAccess.leer(testId));
 
         assertTrue(ex.getMessage().contains("Error al leer registro de EtapasAdmision"));
         assertNotNull(ex.getCause());

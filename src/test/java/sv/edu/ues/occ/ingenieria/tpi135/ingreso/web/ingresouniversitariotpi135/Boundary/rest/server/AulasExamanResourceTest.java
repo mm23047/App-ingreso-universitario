@@ -14,6 +14,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.UUID;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -33,14 +34,16 @@ class AulasExamanResourceTest {
 
     private AulasExamanResource resource;
     private AulasExaman entidad;
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
         resource = new AulasExamanResource();
         resource.aulasExamanDAO = aulasExamanDAO;
 
         entidad = new AulasExaman();
-        entidad.setId(5);
+        entidad.setId(testId);
         entidad.setIdAulaApi("AULA-01");
         entidad.setCapacidad(30);
         entidad.setCuposOcupados(0);
@@ -113,21 +116,21 @@ class AulasExamanResourceTest {
 
     @Test
     void findById_ConIdExistente_DebeRetornar200ConEntidad() {
-        when(aulasExamanDAO.leer(5)).thenReturn(entidad);
+        when(aulasExamanDAO.leer(testId)).thenReturn(entidad);
 
-        Response response = resource.findById(5);
+        Response response = resource.findById(testId);
 
         assertEquals(200, response.getStatus());
         AulasExaman resultado = (AulasExaman) response.getEntity();
-        assertEquals(5, resultado.getId());
-        verify(aulasExamanDAO).leer(5);
+        assertEquals(testId, resultado.getId());
+        verify(aulasExamanDAO).leer(testId);
     }
 
     @Test
     void findById_ConIdInexistente_DebeRetornar404() {
-        when(aulasExamanDAO.leer(999)).thenReturn(null);
+        when(aulasExamanDAO.leer(testId)).thenReturn(null);
 
-        Response response = resource.findById(999);
+        Response response = resource.findById(testId);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
@@ -146,7 +149,7 @@ class AulasExamanResourceTest {
     void findById_ConExcepcionEnDAO_DebeRetornar500() {
         when(aulasExamanDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
-        Response response = resource.findById(5);
+        Response response = resource.findById(testId);
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
@@ -162,7 +165,7 @@ class AulasExamanResourceTest {
         nueva.setCuposOcupados(0);
         nueva.setAccesibleSillaRuedas(true);
         TurnosExaman turno = new TurnosExaman();
-        turno.setId(1);
+        turno.setId(testId);
         nueva.setIdTurno(turno);
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
@@ -213,7 +216,7 @@ class AulasExamanResourceTest {
         nueva.setCapacidad(25);
         nueva.setAccesibleSillaRuedas(false);
         TurnosExaman turno = new TurnosExaman();
-        turno.setId(1);
+        turno.setId(testId);
         nueva.setIdTurno(turno);
         doThrow(new RuntimeException("Error de BD")).when(aulasExamanDAO).crear(any());
 
@@ -227,13 +230,13 @@ class AulasExamanResourceTest {
 
     @Test
     void update_ConIdYEntidadValidos_DebeRetornar200() {
-        when(aulasExamanDAO.leer(5)).thenReturn(entidad);
+        when(aulasExamanDAO.leer(testId)).thenReturn(entidad);
         AulasExaman actualizada = new AulasExaman();
         actualizada.setIdAulaApi("AULA-01-MOD");
         actualizada.setCapacidad(35);
         actualizada.setAccesibleSillaRuedas(true);
 
-        Response response = resource.update(5, actualizada);
+        Response response = resource.update(testId, actualizada);
 
         assertEquals(200, response.getStatus());
         verify(aulasExamanDAO).actualizar(actualizada);
@@ -249,7 +252,7 @@ class AulasExamanResourceTest {
 
     @Test
     void update_ConEntidadNula_DebeRetornar422() {
-        Response response = resource.update(5, null);
+        Response response = resource.update(testId, null);
 
         assertEquals(422, response.getStatus());
         verifyNoInteractions(aulasExamanDAO);
@@ -257,9 +260,9 @@ class AulasExamanResourceTest {
 
     @Test
     void update_ConIdInexistente_DebeRetornar404() {
-        when(aulasExamanDAO.leer(999)).thenReturn(null);
+        when(aulasExamanDAO.leer(testId)).thenReturn(null);
 
-        Response response = resource.update(999, entidad);
+        Response response = resource.update(testId, entidad);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
@@ -267,9 +270,9 @@ class AulasExamanResourceTest {
 
     @Test
     void update_ConExcepcionEnDAO_DebeRetornar500() {
-        when(aulasExamanDAO.leer(5)).thenThrow(new RuntimeException("Error de BD"));
+        when(aulasExamanDAO.leer(testId)).thenThrow(new RuntimeException("Error de BD"));
 
-        Response response = resource.update(5, entidad);
+        Response response = resource.update(testId, entidad);
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
@@ -279,9 +282,9 @@ class AulasExamanResourceTest {
 
     @Test
     void delete_ConIdExistente_DebeRetornar204() {
-        when(aulasExamanDAO.leer(5)).thenReturn(entidad);
+        when(aulasExamanDAO.leer(testId)).thenReturn(entidad);
 
-        Response response = resource.delete(5);
+        Response response = resource.delete(testId);
 
         assertEquals(204, response.getStatus());
         verify(aulasExamanDAO).eliminar(entidad);
@@ -297,9 +300,9 @@ class AulasExamanResourceTest {
 
     @Test
     void delete_ConIdInexistente_DebeRetornar404() {
-        when(aulasExamanDAO.leer(999)).thenReturn(null);
+        when(aulasExamanDAO.leer(testId)).thenReturn(null);
 
-        Response response = resource.delete(999);
+        Response response = resource.delete(testId);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
@@ -309,7 +312,7 @@ class AulasExamanResourceTest {
     void delete_ConExcepcionEnDAO_DebeRetornar500() {
         when(aulasExamanDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
-        Response response = resource.delete(5);
+        Response response = resource.delete(testId);
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));

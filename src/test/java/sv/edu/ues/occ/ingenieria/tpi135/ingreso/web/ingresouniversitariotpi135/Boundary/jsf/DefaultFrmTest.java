@@ -20,6 +20,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 import java.util.ResourceBundle;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -66,7 +67,7 @@ class DefaultFrmTest {
         @Override protected String getIdAsText(EtapasAdmision r) {
             return (r != null && r.getId() != null) ? r.getId().toString() : null;
         }
-        @Override protected EtapasAdmision getIdByText(String id)  { return dao.leer(Short.parseShort(id)); }
+        @Override protected EtapasAdmision getIdByText(String id)  { return dao.leer(UUID.fromString(id)); }
         @Override protected EtapasAdmision createNewEntity()        { return new EtapasAdmision(); }
         @Override protected Object getEntityId(EtapasAdmision e)    { return e != null ? e.getId() : null; }
         @Override protected String getEntityName()                  { return "EtapasAdmision"; }
@@ -79,14 +80,16 @@ class DefaultFrmTest {
     }
 
     // ==================== SETUP ====================
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
         facesContextStatic = mockStatic(FacesContext.class);
         facesContextStatic.when(FacesContext::getCurrentInstance).thenReturn(facesContextMock);
         frm = new TestableDefaultFrm(dao, facesContextMock);
         entidad = new EtapasAdmision();
-        entidad.setId((short) 1);
+        entidad.setId(testId);
         entidad.setNombre("Etapa Preuniversitaria");
         entidad.setPuntajeMinimo(new BigDecimal("60.00"));
         entidad.setPuntajeMaximo(new BigDecimal("100.00"));

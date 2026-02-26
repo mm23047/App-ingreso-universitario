@@ -13,6 +13,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.UUID;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,14 +33,16 @@ class AreasConocimientoResourceTest {
 
     private AreasConocimientoResource resource;
     private AreasConocimiento entidad;
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
         resource = new AreasConocimientoResource();
         resource.areasConocimientoDAO = areasConocimientoDAO;
 
         entidad = new AreasConocimiento();
-        entidad.setId(1);
+        entidad.setId(testId);
         entidad.setNombreArea("Matemáticas");
     }
 
@@ -109,22 +112,22 @@ class AreasConocimientoResourceTest {
 
     @Test
     void findById_ConIdExistente_DebeRetornar200ConEntidad() {
-        when(areasConocimientoDAO.leer(1)).thenReturn(entidad);
+        when(areasConocimientoDAO.leer(testId)).thenReturn(entidad);
 
-        Response response = resource.findById(1);
+        Response response = resource.findById(testId);
 
         assertEquals(200, response.getStatus());
         AreasConocimiento resultado = (AreasConocimiento) response.getEntity();
-        assertEquals(1, resultado.getId());
+        assertEquals(testId, resultado.getId());
         assertEquals("Matemáticas", resultado.getNombreArea());
-        verify(areasConocimientoDAO).leer(1);
+        verify(areasConocimientoDAO).leer(testId);
     }
 
     @Test
     void findById_ConIdInexistente_DebeRetornar404() {
-        when(areasConocimientoDAO.leer(999)).thenReturn(null);
+        when(areasConocimientoDAO.leer(testId)).thenReturn(null);
 
-        Response response = resource.findById(999);
+        Response response = resource.findById(testId);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
@@ -143,7 +146,7 @@ class AreasConocimientoResourceTest {
     void findById_ConExcepcionEnDAO_DebeRetornar500() {
         when(areasConocimientoDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
-        Response response = resource.findById(1);
+        Response response = resource.findById(testId);
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
@@ -199,11 +202,11 @@ class AreasConocimientoResourceTest {
 
     @Test
     void update_ConIdYEntidadValidos_DebeRetornar200() {
-        when(areasConocimientoDAO.leer(1)).thenReturn(entidad);
+        when(areasConocimientoDAO.leer(testId)).thenReturn(entidad);
         AreasConocimiento actualizada = new AreasConocimiento();
         actualizada.setNombreArea("Matemáticas Avanzadas");
 
-        Response response = resource.update(1, actualizada);
+        Response response = resource.update(testId, actualizada);
 
         assertEquals(200, response.getStatus());
         verify(areasConocimientoDAO).actualizar(actualizada);
@@ -219,7 +222,7 @@ class AreasConocimientoResourceTest {
 
     @Test
     void update_ConEntidadNula_DebeRetornar422() {
-        Response response = resource.update(1, null);
+        Response response = resource.update(testId, null);
 
         assertEquals(422, response.getStatus());
         verifyNoInteractions(areasConocimientoDAO);
@@ -227,9 +230,9 @@ class AreasConocimientoResourceTest {
 
     @Test
     void update_ConIdInexistente_DebeRetornar404() {
-        when(areasConocimientoDAO.leer(999)).thenReturn(null);
+        when(areasConocimientoDAO.leer(testId)).thenReturn(null);
 
-        Response response = resource.update(999, entidad);
+        Response response = resource.update(testId, entidad);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
@@ -237,9 +240,9 @@ class AreasConocimientoResourceTest {
 
     @Test
     void update_ConExcepcionEnDAO_DebeRetornar500() {
-        when(areasConocimientoDAO.leer(1)).thenThrow(new RuntimeException("Error de BD"));
+        when(areasConocimientoDAO.leer(testId)).thenThrow(new RuntimeException("Error de BD"));
 
-        Response response = resource.update(1, entidad);
+        Response response = resource.update(testId, entidad);
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
@@ -249,9 +252,9 @@ class AreasConocimientoResourceTest {
 
     @Test
     void delete_ConIdExistente_DebeRetornar204() {
-        when(areasConocimientoDAO.leer(1)).thenReturn(entidad);
+        when(areasConocimientoDAO.leer(testId)).thenReturn(entidad);
 
-        Response response = resource.delete(1);
+        Response response = resource.delete(testId);
 
         assertEquals(204, response.getStatus());
         verify(areasConocimientoDAO).eliminar(entidad);
@@ -267,9 +270,9 @@ class AreasConocimientoResourceTest {
 
     @Test
     void delete_ConIdInexistente_DebeRetornar404() {
-        when(areasConocimientoDAO.leer(999)).thenReturn(null);
+        when(areasConocimientoDAO.leer(testId)).thenReturn(null);
 
-        Response response = resource.delete(999);
+        Response response = resource.delete(testId);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
@@ -279,7 +282,7 @@ class AreasConocimientoResourceTest {
     void delete_ConExcepcionEnDAO_DebeRetornar500() {
         when(areasConocimientoDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
-        Response response = resource.delete(1);
+        Response response = resource.delete(testId);
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));

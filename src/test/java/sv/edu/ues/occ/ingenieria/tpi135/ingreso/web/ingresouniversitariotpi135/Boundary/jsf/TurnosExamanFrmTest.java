@@ -22,6 +22,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.ResourceBundle;
 import java.util.stream.Stream;
 
@@ -45,19 +46,21 @@ class TurnosExamanFrmTest {
     private PruebasAdmision prueba;
 
     // ==================== SETUP ====================
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
         facesContextStatic = mockStatic(FacesContext.class);
         facesContextStatic.when(FacesContext::getCurrentInstance).thenReturn(facesContextMock);
 
         prueba = new PruebasAdmision();
-        prueba.setId(1);
+        prueba.setId(testId);
         prueba.setNombrePrueba("Prueba 2026");
         prueba.setAnio(2026);
 
         entidad = new TurnosExaman();
-        entidad.setId(10);
+        entidad.setId(testId);
         entidad.setNombreTurno("Turno Mañana");
         entidad.setFecha(LocalDate.of(2026, 3, 15));
         entidad.setHoraInicio(LocalTime.of(7, 0));
@@ -99,7 +102,7 @@ class TurnosExamanFrmTest {
 
     @Test
     void getIdAsText_EntidadConId_RetornaStringDelId() {
-        assertEquals("10", frm.getIdAsText(entidad));
+        assertEquals(testId.toString(), frm.getIdAsText(entidad));
     }
 
     @Test
@@ -116,10 +119,10 @@ class TurnosExamanFrmTest {
 
     @Test
     void getIdByText_IdValido_RetornaEntidadDesdeDAO() {
-        when(turnosExamanDAO.leer(10)).thenReturn(entidad);
-        TurnosExaman resultado = frm.getIdByText("10");
+        when(turnosExamanDAO.leer(testId)).thenReturn(entidad);
+        TurnosExaman resultado = frm.getIdByText(testId.toString());
         assertSame(entidad, resultado);
-        verify(turnosExamanDAO).leer(10);
+        verify(turnosExamanDAO).leer(testId);
     }
 
     @Test
@@ -136,8 +139,8 @@ class TurnosExamanFrmTest {
 
     @Test
     void getIdByText_DAORetornaNull_RetornaNull() {
-        when(turnosExamanDAO.leer(99)).thenReturn(null);
-        assertNull(frm.getIdByText("99"));
+        when(turnosExamanDAO.leer(testId)).thenReturn(null);
+        assertNull(frm.getIdByText(testId.toString()));
     }
 
     // ==================== createNewEntity ====================
@@ -291,7 +294,7 @@ class TurnosExamanFrmTest {
 
     @Test
     void btnModificarHandler_Valido_ActualizaRefrescaYLimpia() {
-        when(turnosExamanDAO.leer(10)).thenReturn(entidad);
+        when(turnosExamanDAO.leer(testId)).thenReturn(entidad);
         when(turnosExamanDAO.findRange(anyInt(), anyInt())).thenReturn(List.of());
         configurarBundle("frm.botones.opModificar", "Modificado");
         frm.setRegistro(entidad);
@@ -316,7 +319,7 @@ class TurnosExamanFrmTest {
 
     @Test
     void btnModificarHandler_NoEncontradoEnBD_Error() {
-        when(turnosExamanDAO.leer(10)).thenReturn(null);
+        when(turnosExamanDAO.leer(testId)).thenReturn(null);
         frm.setRegistro(entidad);
         frm.btnModificarHandler(null);
         verify(turnosExamanDAO, never()).actualizar(any());

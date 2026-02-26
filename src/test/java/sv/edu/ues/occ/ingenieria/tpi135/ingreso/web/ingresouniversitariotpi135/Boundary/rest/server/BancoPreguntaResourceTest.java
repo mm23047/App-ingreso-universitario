@@ -14,6 +14,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.UUID;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -33,14 +34,16 @@ class BancoPreguntaResourceTest {
 
     private BancoPreguntaResource resource;
     private BancoPregunta entidad;
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
         resource = new BancoPreguntaResource();
         resource.bancoPreguntaDAO = bancoPreguntaDAO;
 
         entidad = new BancoPregunta();
-        entidad.setId(2);
+        entidad.setId(testId);
         entidad.setEnunciado("¿Cuánto es 2+2?");
     }
 
@@ -110,21 +113,21 @@ class BancoPreguntaResourceTest {
 
     @Test
     void findById_ConIdExistente_DebeRetornar200ConEntidad() {
-        when(bancoPreguntaDAO.leer(2)).thenReturn(entidad);
+        when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
 
-        Response response = resource.findById(2);
+        Response response = resource.findById(testId);
 
         assertEquals(200, response.getStatus());
         BancoPregunta resultado = (BancoPregunta) response.getEntity();
-        assertEquals(2, resultado.getId());
-        verify(bancoPreguntaDAO).leer(2);
+        assertEquals(testId, resultado.getId());
+        verify(bancoPreguntaDAO).leer(testId);
     }
 
     @Test
     void findById_ConIdInexistente_DebeRetornar404() {
-        when(bancoPreguntaDAO.leer(999)).thenReturn(null);
+        when(bancoPreguntaDAO.leer(testId)).thenReturn(null);
 
-        Response response = resource.findById(999);
+        Response response = resource.findById(testId);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
@@ -143,7 +146,7 @@ class BancoPreguntaResourceTest {
     void findById_ConExcepcionEnDAO_DebeRetornar500() {
         when(bancoPreguntaDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
-        Response response = resource.findById(2);
+        Response response = resource.findById(testId);
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
@@ -156,7 +159,7 @@ class BancoPreguntaResourceTest {
         BancoPregunta nueva = new BancoPregunta();
         nueva.setEnunciado("¿Cuál es la capital de El Salvador?");
         AreasConocimiento area = new AreasConocimiento();
-        area.setId(1);
+        area.setId(testId);
         nueva.setIdArea(area);
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
@@ -203,7 +206,7 @@ class BancoPreguntaResourceTest {
         BancoPregunta nueva = new BancoPregunta();
         nueva.setEnunciado("¿Cuál es la capital de El Salvador?");
         AreasConocimiento area = new AreasConocimiento();
-        area.setId(1);
+        area.setId(testId);
         nueva.setIdArea(area);
         doThrow(new RuntimeException("Error de BD")).when(bancoPreguntaDAO).crear(any());
 
@@ -217,11 +220,11 @@ class BancoPreguntaResourceTest {
 
     @Test
     void update_ConIdYEntidadValidos_DebeRetornar200() {
-        when(bancoPreguntaDAO.leer(2)).thenReturn(entidad);
+        when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
         BancoPregunta actualizada = new BancoPregunta();
         actualizada.setEnunciado("¿Cuánto es 3+3?");
 
-        Response response = resource.update(2, actualizada);
+        Response response = resource.update(testId, actualizada);
 
         assertEquals(200, response.getStatus());
         verify(bancoPreguntaDAO).actualizar(actualizada);
@@ -237,7 +240,7 @@ class BancoPreguntaResourceTest {
 
     @Test
     void update_ConEntidadNula_DebeRetornar422() {
-        Response response = resource.update(2, null);
+        Response response = resource.update(testId, null);
 
         assertEquals(422, response.getStatus());
         verifyNoInteractions(bancoPreguntaDAO);
@@ -245,9 +248,9 @@ class BancoPreguntaResourceTest {
 
     @Test
     void update_ConIdInexistente_DebeRetornar404() {
-        when(bancoPreguntaDAO.leer(999)).thenReturn(null);
+        when(bancoPreguntaDAO.leer(testId)).thenReturn(null);
 
-        Response response = resource.update(999, entidad);
+        Response response = resource.update(testId, entidad);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
@@ -255,9 +258,9 @@ class BancoPreguntaResourceTest {
 
     @Test
     void update_ConExcepcionEnDAO_DebeRetornar500() {
-        when(bancoPreguntaDAO.leer(2)).thenThrow(new RuntimeException("Error de BD"));
+        when(bancoPreguntaDAO.leer(testId)).thenThrow(new RuntimeException("Error de BD"));
 
-        Response response = resource.update(2, entidad);
+        Response response = resource.update(testId, entidad);
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
@@ -267,9 +270,9 @@ class BancoPreguntaResourceTest {
 
     @Test
     void delete_ConIdExistente_DebeRetornar204() {
-        when(bancoPreguntaDAO.leer(2)).thenReturn(entidad);
+        when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
 
-        Response response = resource.delete(2);
+        Response response = resource.delete(testId);
 
         assertEquals(204, response.getStatus());
         verify(bancoPreguntaDAO).eliminar(entidad);
@@ -285,9 +288,9 @@ class BancoPreguntaResourceTest {
 
     @Test
     void delete_ConIdInexistente_DebeRetornar404() {
-        when(bancoPreguntaDAO.leer(999)).thenReturn(null);
+        when(bancoPreguntaDAO.leer(testId)).thenReturn(null);
 
-        Response response = resource.delete(999);
+        Response response = resource.delete(testId);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
@@ -297,7 +300,7 @@ class BancoPreguntaResourceTest {
     void delete_ConExcepcionEnDAO_DebeRetornar500() {
         when(bancoPreguntaDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
-        Response response = resource.delete(2);
+        Response response = resource.delete(testId);
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));

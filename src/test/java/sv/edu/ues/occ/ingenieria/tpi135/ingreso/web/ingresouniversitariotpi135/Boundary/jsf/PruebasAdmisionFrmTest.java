@@ -18,6 +18,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.ResourceBundle;
 import java.util.stream.Stream;
 
@@ -39,14 +40,16 @@ class PruebasAdmisionFrmTest {
     private PruebasAdmision entidad;
 
     // ==================== SETUP ====================
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
         facesContextStatic = mockStatic(FacesContext.class);
         facesContextStatic.when(FacesContext::getCurrentInstance).thenReturn(facesContextMock);
 
         entidad = new PruebasAdmision();
-        entidad.setId(1);
+        entidad.setId(testId);
         entidad.setNombrePrueba("Prueba 2026");
         entidad.setAnio(2026);
         entidad.setActiva(true);
@@ -86,7 +89,7 @@ class PruebasAdmisionFrmTest {
 
     @Test
     void getIdAsText_EntidadConId_RetornaStringDelId() {
-        assertEquals("1", frm.getIdAsText(entidad));
+        assertEquals(testId.toString(), frm.getIdAsText(entidad));
     }
 
     @Test
@@ -103,10 +106,10 @@ class PruebasAdmisionFrmTest {
 
     @Test
     void getIdByText_IdValido_RetornaEntidadDesdeDAO() {
-        when(pruebasAdmisionDAO.leer(1)).thenReturn(entidad);
-        PruebasAdmision resultado = frm.getIdByText("1");
+        when(pruebasAdmisionDAO.leer(testId)).thenReturn(entidad);
+        PruebasAdmision resultado = frm.getIdByText(testId.toString());
         assertSame(entidad, resultado);
-        verify(pruebasAdmisionDAO).leer(1);
+        verify(pruebasAdmisionDAO).leer(testId);
     }
 
     @Test
@@ -123,8 +126,8 @@ class PruebasAdmisionFrmTest {
 
     @Test
     void getIdByText_DAORetornaNull_RetornaNull() {
-        when(pruebasAdmisionDAO.leer(99)).thenReturn(null);
-        assertNull(frm.getIdByText("99"));
+        when(pruebasAdmisionDAO.leer(testId)).thenReturn(null);
+        assertNull(frm.getIdByText(testId.toString()));
     }
 
     // ==================== createNewEntity ====================
@@ -242,7 +245,7 @@ class PruebasAdmisionFrmTest {
 
     @Test
     void btnModificarHandler_Valido_ActualizaRefrescaYLimpia() {
-        when(pruebasAdmisionDAO.leer(1)).thenReturn(entidad);
+        when(pruebasAdmisionDAO.leer(testId)).thenReturn(entidad);
         when(pruebasAdmisionDAO.findRange(anyInt(), anyInt())).thenReturn(List.of());
         configurarBundle("frm.botones.opModificar", "Modificado");
         frm.setRegistro(entidad);
@@ -267,7 +270,7 @@ class PruebasAdmisionFrmTest {
 
     @Test
     void btnModificarHandler_NoEncontradoEnBD_Error() {
-        when(pruebasAdmisionDAO.leer(1)).thenReturn(null);
+        when(pruebasAdmisionDAO.leer(testId)).thenReturn(null);
         frm.setRegistro(entidad);
         frm.btnModificarHandler(null);
         verify(pruebasAdmisionDAO, never()).actualizar(any());

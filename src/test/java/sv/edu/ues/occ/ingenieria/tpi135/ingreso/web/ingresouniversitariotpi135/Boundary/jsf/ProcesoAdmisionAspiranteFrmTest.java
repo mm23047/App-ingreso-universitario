@@ -1,4 +1,4 @@
-﻿package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.jsf;
+package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.jsf;
 
 import jakarta.faces.application.Application;
 import jakarta.faces.application.FacesMessage;
@@ -24,6 +24,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ProcesoAdmisionAspirante;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.ResourceBundle;
 import java.util.stream.Stream;
 
@@ -51,17 +52,19 @@ class ProcesoAdmisionAspiranteFrmTest {
     private CatalogoCarrera carrera;
 
     // ==================== SETUP ====================
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
         facesContextStatic = mockStatic(FacesContext.class);
         facesContextStatic.when(FacesContext::getCurrentInstance).thenReturn(facesContextMock);
 
         inscripcion = new InscripcionesPrueba();
-        inscripcion.setId(10);
+        inscripcion.setId(testId);
 
         etapa = new EtapasAdmision();
-        etapa.setId((short) 1);
+        etapa.setId(testId);
         etapa.setNombre("Inscripcion");
 
         carrera = new CatalogoCarrera();
@@ -69,7 +72,7 @@ class ProcesoAdmisionAspiranteFrmTest {
         carrera.setNombre("Ingenieria en Sistemas");
 
         entidad = new ProcesoAdmisionAspirante();
-        entidad.setId(10);
+        entidad.setId(testId);
         entidad.setInscripcionesPrueba(inscripcion);
         entidad.setIdEtapaActual(etapa);
         entidad.setCarreraAsignada(carrera);
@@ -110,7 +113,7 @@ class ProcesoAdmisionAspiranteFrmTest {
 
     @Test
     void getIdAsText_EntidadConId_RetornaString() {
-        assertEquals("10", frm.getIdAsText(entidad));
+        assertEquals(testId.toString(), frm.getIdAsText(entidad));
     }
 
     @Test
@@ -127,10 +130,10 @@ class ProcesoAdmisionAspiranteFrmTest {
 
     @Test
     void getIdByText_IdValido_RetornaEntidadDesdeDAO() {
-        when(procesoAdmisionAspiranteDAO.leer(10)).thenReturn(entidad);
-        ProcesoAdmisionAspirante resultado = frm.getIdByText("10");
+        when(procesoAdmisionAspiranteDAO.leer(testId)).thenReturn(entidad);
+        ProcesoAdmisionAspirante resultado = frm.getIdByText(testId.toString());
         assertSame(entidad, resultado);
-        verify(procesoAdmisionAspiranteDAO).leer(10);
+        verify(procesoAdmisionAspiranteDAO).leer(testId);
     }
 
     @Test
@@ -147,8 +150,8 @@ class ProcesoAdmisionAspiranteFrmTest {
 
     @Test
     void getIdByText_DAORetornaNull_RetornaNull() {
-        when(procesoAdmisionAspiranteDAO.leer(999)).thenReturn(null);
-        assertNull(frm.getIdByText("999"));
+        when(procesoAdmisionAspiranteDAO.leer(testId)).thenReturn(null);
+        assertNull(frm.getIdByText(testId.toString()));
     }
 
     // ==================== createNewEntity ====================
@@ -335,7 +338,7 @@ class ProcesoAdmisionAspiranteFrmTest {
 
     @Test
     void btnModificarHandler_Valido_ActualizaRefrescaYLimpia() {
-        when(procesoAdmisionAspiranteDAO.leer(10)).thenReturn(entidad);
+        when(procesoAdmisionAspiranteDAO.leer(testId)).thenReturn(entidad);
         when(procesoAdmisionAspiranteDAO.findRange(anyInt(), anyInt())).thenReturn(List.of());
         configurarBundle("frm.botones.opModificar", "Modificado");
         frm.setRegistro(entidad);
@@ -360,7 +363,7 @@ class ProcesoAdmisionAspiranteFrmTest {
 
     @Test
     void btnModificarHandler_NoEncontradoEnBD_Error() {
-        when(procesoAdmisionAspiranteDAO.leer(10)).thenReturn(null);
+        when(procesoAdmisionAspiranteDAO.leer(testId)).thenReturn(null);
         frm.setRegistro(entidad);
         frm.btnModificarHandler(null);
         verify(procesoAdmisionAspiranteDAO, never()).actualizar(any());

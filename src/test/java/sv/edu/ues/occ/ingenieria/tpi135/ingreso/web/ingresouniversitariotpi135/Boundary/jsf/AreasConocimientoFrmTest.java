@@ -18,6 +18,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AreasConocimiento;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.ResourceBundle;
 import java.util.stream.Stream;
 
@@ -40,15 +41,17 @@ class AreasConocimientoFrmTest {
     private AreasConocimiento entidad;
 
     // ==================== SETUP ====================
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
         // getFacesContext() y enviarMensaje() usan FacesContext.getCurrentInstance()
         facesContextStatic = mockStatic(FacesContext.class);
         facesContextStatic.when(FacesContext::getCurrentInstance).thenReturn(facesContextMock);
 
         entidad = new AreasConocimiento();
-        entidad.setId(10);
+        entidad.setId(testId);
         entidad.setNombreArea("Ciencias Exactas");
     }
 
@@ -86,7 +89,7 @@ class AreasConocimientoFrmTest {
 
     @Test
     void getIdAsText_EntidadConId_RetornaStringDelId() {
-        assertEquals("10", frm.getIdAsText(entidad));
+        assertEquals(testId.toString(), frm.getIdAsText(entidad));
     }
 
     @Test
@@ -103,10 +106,10 @@ class AreasConocimientoFrmTest {
 
     @Test
     void getIdByText_IdValido_RetornaEntidadDesdeDAO() {
-        when(areasConocimientoDAO.leer(10)).thenReturn(entidad);
-        AreasConocimiento resultado = frm.getIdByText("10");
+        when(areasConocimientoDAO.leer(testId)).thenReturn(entidad);
+        AreasConocimiento resultado = frm.getIdByText(testId.toString());
         assertSame(entidad, resultado);
-        verify(areasConocimientoDAO).leer(10);
+        verify(areasConocimientoDAO).leer(testId);
     }
 
     @Test
@@ -126,8 +129,8 @@ class AreasConocimientoFrmTest {
 
     @Test
     void getIdByText_DAORetornaNull_RetornaNull() {
-        when(areasConocimientoDAO.leer(99)).thenReturn(null);
-        assertNull(frm.getIdByText("99"));
+        when(areasConocimientoDAO.leer(testId)).thenReturn(null);
+        assertNull(frm.getIdByText(testId.toString()));
     }
 
     // ==================== createNewEntity ====================
@@ -154,7 +157,7 @@ class AreasConocimientoFrmTest {
     void getEntityId_EntidadConId_RetornaElId() {
         // Se verifica indirectamente: btnModificarHandler comprueba getEntityId != null
         frm.setRegistro(entidad);
-        when(areasConocimientoDAO.leer(10)).thenReturn(entidad);
+        when(areasConocimientoDAO.leer(testId)).thenReturn(entidad);
         when(areasConocimientoDAO.findRange(anyInt(), anyInt())).thenReturn(List.of());
         configurarBundle("frm.botones.opModificar", "Modificado");
         frm.btnModificarHandler(null);
@@ -278,7 +281,7 @@ class AreasConocimientoFrmTest {
 
     @Test
     void btnModificarHandler_Valido_ActualizaRefrescaYLimpia() {
-        when(areasConocimientoDAO.leer(10)).thenReturn(entidad);
+        when(areasConocimientoDAO.leer(testId)).thenReturn(entidad);
         when(areasConocimientoDAO.findRange(anyInt(), anyInt())).thenReturn(List.of());
         configurarBundle("frm.botones.opModificar", "Modificado");
         frm.setRegistro(entidad);
@@ -303,7 +306,7 @@ class AreasConocimientoFrmTest {
 
     @Test
     void btnModificarHandler_NoEncontradoEnBD_Error() {
-        when(areasConocimientoDAO.leer(10)).thenReturn(null);
+        when(areasConocimientoDAO.leer(testId)).thenReturn(null);
         frm.setRegistro(entidad);
         frm.btnModificarHandler(null);
         verify(areasConocimientoDAO, never()).actualizar(any());

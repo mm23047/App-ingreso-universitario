@@ -24,6 +24,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -50,21 +51,23 @@ class CarrerasElegidaFrmTest {
     private CatalogoCarrera carrera;
 
     // ==================== SETUP ====================
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
         facesContextStatic = mockStatic(FacesContext.class);
         facesContextStatic.when(FacesContext::getCurrentInstance).thenReturn(facesContextMock);
 
         inscripcion = new InscripcionesPrueba();
-        inscripcion.setId(1);
+        inscripcion.setId(testId);
 
         carrera = new CatalogoCarrera();
         carrera.setIdCarrera("MEC");
         carrera.setNombre("Ingeniería Mecánica");
 
         carrerasId = new CarrerasElegidaId();
-        carrerasId.setIdInscripcion(1);
+        carrerasId.setIdInscripcion(testId);
         carrerasId.setIdCarrera("MEC");
 
         entidad = new CarrerasElegida();
@@ -109,7 +112,7 @@ class CarrerasElegidaFrmTest {
     @Test
     void getIdAsText_EntidadConIdCompleto_RetornaTextoCompuesto() {
         // La clave compuesta se serializa como "idInscripcion|idCarrera"
-        assertEquals("1|MEC", frm.getIdAsText(entidad));
+        assertEquals(testId + "|MEC", frm.getIdAsText(entidad));
     }
 
     @Test
@@ -137,7 +140,7 @@ class CarrerasElegidaFrmTest {
     void getIdByText_FormatoValido_RetornaEntidadDesdeDAO() {
         // La clave reconstruida debe igualar carrerasId por equals/hashCode
         when(carrerasElegidaDAO.leer(carrerasId)).thenReturn(entidad);
-        CarrerasElegida resultado = frm.getIdByText("1|MEC");
+        CarrerasElegida resultado = frm.getIdByText(testId + "|MEC");
         assertSame(entidad, resultado);
         verify(carrerasElegidaDAO).leer(carrerasId);
     }
@@ -151,7 +154,7 @@ class CarrerasElegidaFrmTest {
     @Test
     void getIdByText_SinSeparador_RetornaNull() {
         // split produce solo 1 parte → no se reconstruye la clave
-        assertNull(frm.getIdByText("1MEC"));
+        assertNull(frm.getIdByText(testId.toString().replace("-", "") + "MEC"));
         verify(carrerasElegidaDAO, never()).leer(any());
     }
 
@@ -164,11 +167,12 @@ class CarrerasElegidaFrmTest {
 
     @Test
     void getIdByText_DAORetornaNull_RetornaNull() {
+        UUID otherId = UUID.randomUUID();
         CarrerasElegidaId clave = new CarrerasElegidaId();
-        clave.setIdInscripcion(99);
+        clave.setIdInscripcion(otherId);
         clave.setIdCarrera("XXX");
         when(carrerasElegidaDAO.leer(clave)).thenReturn(null);
-        assertNull(frm.getIdByText("99|XXX"));
+        assertNull(frm.getIdByText(otherId + "|XXX"));
     }
 
     // ==================== createNewEntity ====================
