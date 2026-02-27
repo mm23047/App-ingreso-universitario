@@ -110,7 +110,7 @@ public class AsignacionesAulaPupitreResource extends AbstractResource<Asignacion
     @DELETE
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response delete(@PathParam("id") Integer id) {
+    public Response delete(@PathParam("id") UUID id) {
         if (id != null) {
             try {
                 AsignacionesAulaPupitre existing = asignacionesAulaPupitreDAO.leer(id);

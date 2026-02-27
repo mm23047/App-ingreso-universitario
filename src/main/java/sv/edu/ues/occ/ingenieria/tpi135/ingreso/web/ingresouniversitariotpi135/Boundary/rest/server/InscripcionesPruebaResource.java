@@ -109,7 +109,7 @@ public class InscripcionesPruebaResource extends AbstractResource<InscripcionesP
     @DELETE
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response delete(@PathParam("id") Integer id) {
+    public Response delete(@PathParam("id") UUID id) {
         if (id != null) {
             try {
                 InscripcionesPrueba existing = inscripcionesPruebaDAO.leer(id);
