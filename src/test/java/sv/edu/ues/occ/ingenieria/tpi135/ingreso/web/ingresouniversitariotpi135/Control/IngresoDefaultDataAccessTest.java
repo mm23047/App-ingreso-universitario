@@ -260,25 +260,24 @@ class IngresoDefaultDataAccessTest {
 
     @Test
     void leer_ConIdValido_DebeRetornarEntidad() {
-        Short id = (short) 1;
-        when(entityManager.find(EtapasAdmision.class, id)).thenReturn(entidadPrueba);
+        when(entityManager.find(EtapasAdmision.class, testId)).thenReturn(entidadPrueba);
 
-        EtapasAdmision resultado = dataAccess.leer(id);
+        EtapasAdmision resultado = dataAccess.leer(testId);
 
         assertNotNull(resultado);
         assertSame(entidadPrueba, resultado);
-        verify(entityManager).find(EtapasAdmision.class, id);
+        verify(entityManager).find(EtapasAdmision.class, testId);
     }
 
     @Test
     void leer_ConIdInexistente_DebeRetornarNull() {
-        Short id = (short) 999;
-        when(entityManager.find(EtapasAdmision.class, id)).thenReturn(null);
+        UUID otroId = UUID.randomUUID();
+        when(entityManager.find(EtapasAdmision.class, otroId)).thenReturn(null);
 
-        EtapasAdmision resultado = dataAccess.leer(id);
+        EtapasAdmision resultado = dataAccess.leer(otroId);
 
         assertNull(resultado);
-        verify(entityManager).find(EtapasAdmision.class, id);
+        verify(entityManager).find(EtapasAdmision.class, otroId);
     }
 
     @Test
