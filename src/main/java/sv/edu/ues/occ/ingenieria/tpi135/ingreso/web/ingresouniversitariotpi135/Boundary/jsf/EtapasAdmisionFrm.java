@@ -8,13 +8,14 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDAOInterface;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
 
-import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.util.UUID;
+
 @Named
 @ViewScoped
-public class EtapasAdmisionFrm extends DefaultFrm<EtapasAdmision> implements Serializable {
+public class EtapasAdmisionFrm extends DefaultFrm<EtapasAdmision> {
 
     @Inject
     EtapasAdmisionDAO etapasAdmisionDAO;
@@ -35,7 +36,7 @@ public class EtapasAdmisionFrm extends DefaultFrm<EtapasAdmision> implements Ser
     protected EtapasAdmision getIdByText(String id) {
         if (id != null) {
             try {
-                Short buscado = Short.parseShort(id);
+                UUID buscado = UUID.fromString(id);
                 return etapasAdmisionDAO.leer(buscado);
             } catch (Exception e) {
                 Logger.getLogger(EtapasAdmisionFrm.class.getName()).log(Level.SEVERE, null, e);

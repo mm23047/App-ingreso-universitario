@@ -4,13 +4,15 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "asignaciones_aula_pupitre", schema = "public")
 public class AsignacionesAulaPupitre {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id_asignacion", nullable = false)
-    private Integer id;
+    private UUID id;
 
     @NotNull
     @OneToOne(fetch = FetchType.LAZY, optional = false)
@@ -27,11 +29,11 @@ public class AsignacionesAulaPupitre {
     @Column(name = "pupitre", nullable = false, length = 20)
     private String pupitre;
 
-    public Integer getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

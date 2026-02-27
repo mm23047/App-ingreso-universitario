@@ -10,15 +10,16 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AreasConocimiento;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.util.UUID;
+
 @Named
 @ViewScoped
-public class BancoPreguntaFrm extends DefaultFrm<BancoPregunta> implements Serializable {
+public class BancoPreguntaFrm extends DefaultFrm<BancoPregunta> {
 
     @Inject
     BancoPreguntaDAO bancoPreguntaDAO;
@@ -59,7 +60,7 @@ public class BancoPreguntaFrm extends DefaultFrm<BancoPregunta> implements Seria
     protected BancoPregunta getIdByText(String id) {
         if (id != null) {
             try {
-                Integer buscado = Integer.parseInt(id);
+                UUID buscado = UUID.fromString(id);
                 return bancoPreguntaDAO.leer(buscado);
             } catch (Exception e) {
                 Logger.getLogger(BancoPreguntaFrm.class.getName()).log(Level.SEVERE, null, e);

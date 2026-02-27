@@ -6,13 +6,15 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "etapas_admision", schema = "public")
 public class EtapasAdmision {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id_etapa", nullable = false)
-    private Short id;
+    private UUID id;
 
     @Size(max = 50)
     @NotNull
@@ -29,11 +31,11 @@ public class EtapasAdmision {
     @Column(name = "descripcion")
     private String descripcion;
 
-    public Short getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Short id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

@@ -20,6 +20,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.ResourceBundle;
 import java.util.stream.Stream;
 
@@ -43,18 +44,20 @@ class BancoPreguntaFrmTest {
     private AreasConocimiento area;
 
     // ==================== SETUP ====================
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
         facesContextStatic = mockStatic(FacesContext.class);
         facesContextStatic.when(FacesContext::getCurrentInstance).thenReturn(facesContextMock);
 
         area = new AreasConocimiento();
-        area.setId(3);
+        area.setId(testId);
         area.setNombreArea("Matemáticas");
 
         entidad = new BancoPregunta();
-        entidad.setId(1);
+        entidad.setId(testId);
         entidad.setEnunciado("¿Cuánto es 2+2?");
         entidad.setIdArea(area);
     }
@@ -93,7 +96,7 @@ class BancoPreguntaFrmTest {
 
     @Test
     void getIdAsText_EntidadConId_RetornaStringDelId() {
-        assertEquals("1", frm.getIdAsText(entidad));
+        assertEquals(testId.toString(), frm.getIdAsText(entidad));
     }
 
     @Test
@@ -110,10 +113,10 @@ class BancoPreguntaFrmTest {
 
     @Test
     void getIdByText_IdValido_RetornaEntidadDesdeDAO() {
-        when(bancoPreguntaDAO.leer(1)).thenReturn(entidad);
-        BancoPregunta resultado = frm.getIdByText("1");
+        when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
+        BancoPregunta resultado = frm.getIdByText(testId.toString());
         assertSame(entidad, resultado);
-        verify(bancoPreguntaDAO).leer(1);
+        verify(bancoPreguntaDAO).leer(testId);
     }
 
     @Test
@@ -130,8 +133,8 @@ class BancoPreguntaFrmTest {
 
     @Test
     void getIdByText_DAORetornaNull_RetornaNull() {
-        when(bancoPreguntaDAO.leer(99)).thenReturn(null);
-        assertNull(frm.getIdByText("99"));
+        when(bancoPreguntaDAO.leer(testId)).thenReturn(null);
+        assertNull(frm.getIdByText(testId.toString()));
     }
 
     // ==================== createNewEntity ====================
@@ -284,7 +287,7 @@ class BancoPreguntaFrmTest {
 
     @Test
     void btnModificarHandler_Valido_ActualizaRefrescaYLimpia() {
-        when(bancoPreguntaDAO.leer(1)).thenReturn(entidad);
+        when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
         when(bancoPreguntaDAO.findRange(anyInt(), anyInt())).thenReturn(List.of());
         configurarBundle("frm.botones.opModificar", "Modificado");
         frm.setRegistro(entidad);
@@ -309,7 +312,7 @@ class BancoPreguntaFrmTest {
 
     @Test
     void btnModificarHandler_NoEncontradoEnBD_Error() {
-        when(bancoPreguntaDAO.leer(1)).thenReturn(null);
+        when(bancoPreguntaDAO.leer(testId)).thenReturn(null);
         frm.setRegistro(entidad);
         frm.btnModificarHandler(null);
         verify(bancoPreguntaDAO, never()).actualizar(any());

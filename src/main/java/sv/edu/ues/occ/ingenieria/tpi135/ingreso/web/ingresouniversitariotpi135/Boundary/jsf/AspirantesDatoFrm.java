@@ -10,15 +10,16 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.UsuariosSistema;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.util.UUID;
+
 @Named
 @ViewScoped
-public class AspirantesDatoFrm extends DefaultFrm<AspirantesDato> implements Serializable {
+public class AspirantesDatoFrm extends DefaultFrm<AspirantesDato> {
 
     @Inject
     AspirantesDatoDAO aspirantesDatoDAO;
@@ -59,7 +60,7 @@ public class AspirantesDatoFrm extends DefaultFrm<AspirantesDato> implements Ser
     protected AspirantesDato getIdByText(String id) {
         if (id != null) {
             try {
-                Integer buscado = Integer.parseInt(id);
+                UUID buscado = UUID.fromString(id);
                 return aspirantesDatoDAO.leer(buscado);
             } catch (Exception e) {
                 Logger.getLogger(AspirantesDatoFrm.class.getName()).log(Level.SEVERE, null, e);

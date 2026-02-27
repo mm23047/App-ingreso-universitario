@@ -15,6 +15,7 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Collections;
+import java.util.UUID;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -34,14 +35,16 @@ class TurnosExamanResourceTest {
 
     private TurnosExamanResource resource;
     private TurnosExaman entidad;
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
+        testId = UUID.randomUUID();
         resource = new TurnosExamanResource();
         resource.turnosExamanDAO = turnosExamanDAO;
 
         entidad = new TurnosExaman();
-        entidad.setId(3);
+        entidad.setId(testId);
         entidad.setNombreTurno("Turno Mañana");
         entidad.setFecha(LocalDate.of(2026, 3, 1));
         entidad.setHoraInicio(LocalTime.of(8, 0));
@@ -114,21 +117,21 @@ class TurnosExamanResourceTest {
 
     @Test
     void findById_ConIdExistente_DebeRetornar200ConEntidad() {
-        when(turnosExamanDAO.leer(3)).thenReturn(entidad);
+        when(turnosExamanDAO.leer(testId)).thenReturn(entidad);
 
-        Response response = resource.findById(3);
+        Response response = resource.findById(testId);
 
         assertEquals(200, response.getStatus());
         TurnosExaman resultado = (TurnosExaman) response.getEntity();
-        assertEquals(3, resultado.getId());
-        verify(turnosExamanDAO).leer(3);
+        assertEquals(testId, resultado.getId());
+        verify(turnosExamanDAO).leer(testId);
     }
 
     @Test
     void findById_ConIdInexistente_DebeRetornar404() {
-        when(turnosExamanDAO.leer(999)).thenReturn(null);
+        when(turnosExamanDAO.leer(testId)).thenReturn(null);
 
-        Response response = resource.findById(999);
+        Response response = resource.findById(testId);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
@@ -147,7 +150,7 @@ class TurnosExamanResourceTest {
     void findById_ConExcepcionEnDAO_DebeRetornar500() {
         when(turnosExamanDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
-        Response response = resource.findById(3);
+        Response response = resource.findById(testId);
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
@@ -208,14 +211,14 @@ class TurnosExamanResourceTest {
 
     @Test
     void update_ConIdYEntidadValidos_DebeRetornar200() {
-        when(turnosExamanDAO.leer(3)).thenReturn(entidad);
+        when(turnosExamanDAO.leer(testId)).thenReturn(entidad);
         TurnosExaman actualizado = new TurnosExaman();
         actualizado.setNombreTurno("Turno Mañana Actualizado");
         actualizado.setFecha(LocalDate.of(2026, 3, 15));
         actualizado.setHoraInicio(LocalTime.of(7, 30));
         actualizado.setHoraFin(LocalTime.of(11, 30));
 
-        Response response = resource.update(3, actualizado);
+        Response response = resource.update(testId, actualizado);
 
         assertEquals(200, response.getStatus());
         verify(turnosExamanDAO).actualizar(actualizado);
@@ -231,7 +234,7 @@ class TurnosExamanResourceTest {
 
     @Test
     void update_ConEntidadNula_DebeRetornar422() {
-        Response response = resource.update(3, null);
+        Response response = resource.update(testId, null);
 
         assertEquals(422, response.getStatus());
         verifyNoInteractions(turnosExamanDAO);
@@ -239,9 +242,9 @@ class TurnosExamanResourceTest {
 
     @Test
     void update_ConIdInexistente_DebeRetornar404() {
-        when(turnosExamanDAO.leer(999)).thenReturn(null);
+        when(turnosExamanDAO.leer(testId)).thenReturn(null);
 
-        Response response = resource.update(999, entidad);
+        Response response = resource.update(testId, entidad);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
@@ -249,9 +252,9 @@ class TurnosExamanResourceTest {
 
     @Test
     void update_ConExcepcionEnDAO_DebeRetornar500() {
-        when(turnosExamanDAO.leer(3)).thenThrow(new RuntimeException("Error de BD"));
+        when(turnosExamanDAO.leer(testId)).thenThrow(new RuntimeException("Error de BD"));
 
-        Response response = resource.update(3, entidad);
+        Response response = resource.update(testId, entidad);
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
@@ -261,9 +264,9 @@ class TurnosExamanResourceTest {
 
     @Test
     void delete_ConIdExistente_DebeRetornar204() {
-        when(turnosExamanDAO.leer(3)).thenReturn(entidad);
+        when(turnosExamanDAO.leer(testId)).thenReturn(entidad);
 
-        Response response = resource.delete(3);
+        Response response = resource.delete(testId);
 
         assertEquals(204, response.getStatus());
         verify(turnosExamanDAO).eliminar(entidad);
@@ -279,9 +282,9 @@ class TurnosExamanResourceTest {
 
     @Test
     void delete_ConIdInexistente_DebeRetornar404() {
-        when(turnosExamanDAO.leer(999)).thenReturn(null);
+        when(turnosExamanDAO.leer(testId)).thenReturn(null);
 
-        Response response = resource.delete(999);
+        Response response = resource.delete(testId);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
@@ -291,7 +294,7 @@ class TurnosExamanResourceTest {
     void delete_ConExcepcionEnDAO_DebeRetornar500() {
         when(turnosExamanDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
-        Response response = resource.delete(3);
+        Response response = resource.delete(testId);
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));

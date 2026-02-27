@@ -12,15 +12,16 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AulasExaman;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.util.UUID;
+
 @Named
 @ViewScoped
-public class AsignacionesAulaPupitreFrm extends DefaultFrm<AsignacionesAulaPupitre> implements Serializable {
+public class AsignacionesAulaPupitreFrm extends DefaultFrm<AsignacionesAulaPupitre> {
 
     @Inject
     AsignacionesAulaPupitreDAO asignacionesAulaPupitreDAO;
@@ -73,7 +74,7 @@ public class AsignacionesAulaPupitreFrm extends DefaultFrm<AsignacionesAulaPupit
     protected AsignacionesAulaPupitre getIdByText(String id) {
         if (id != null) {
             try {
-                Integer buscado = Integer.parseInt(id);
+                UUID buscado = UUID.fromString(id);
                 return asignacionesAulaPupitreDAO.leer(buscado);
             } catch (Exception e) {
                 Logger.getLogger(AsignacionesAulaPupitreFrm.class.getName()).log(Level.SEVERE, null, e);

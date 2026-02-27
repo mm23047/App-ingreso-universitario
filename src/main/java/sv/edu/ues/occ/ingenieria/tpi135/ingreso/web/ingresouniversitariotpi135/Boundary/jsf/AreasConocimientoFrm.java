@@ -8,13 +8,14 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDAOInterface;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AreasConocimiento;
 
-import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.util.UUID;
+
 @Named
 @ViewScoped
-public class AreasConocimientoFrm extends DefaultFrm<AreasConocimiento> implements Serializable {
+public class AreasConocimientoFrm extends DefaultFrm<AreasConocimiento> {
 
     @Inject
     AreasConocimientoDAO areasConocimientoDAO;
@@ -35,7 +36,7 @@ public class AreasConocimientoFrm extends DefaultFrm<AreasConocimiento> implemen
     protected AreasConocimiento getIdByText(String id) {
         if (id != null) {
             try {
-                Integer buscado = Integer.parseInt(id);
+                UUID buscado = UUID.fromString(id);
                 return areasConocimientoDAO.leer(buscado);
             } catch (Exception e) {
                 Logger.getLogger(AreasConocimientoFrm.class.getName()).log(Level.SEVERE, null, e);

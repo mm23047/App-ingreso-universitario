@@ -7,24 +7,25 @@ import jakarta.validation.constraints.Size;
 
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.UUID;
 
 @Embeddable
 public class CarrerasElegidaId implements Serializable {
     private static final long serialVersionUID = -6297830737150961833L;
     @NotNull
     @Column(name = "id_inscripcion", nullable = false)
-    private Integer idInscripcion;
+    private UUID idInscripcion;
 
     @Size(max = 10)
     @NotNull
     @Column(name = "id_carrera", nullable = false, length = 10)
     private String idCarrera;
 
-    public Integer getIdInscripcion() {
+    public UUID getIdInscripcion() {
         return idInscripcion;
     }
 
-    public void setIdInscripcion(Integer idInscripcion) {
+    public void setIdInscripcion(UUID idInscripcion) {
         this.idInscripcion = idInscripcion;
     }
 

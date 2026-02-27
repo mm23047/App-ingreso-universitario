@@ -6,13 +6,15 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "examenes_realizados", schema = "public")
 public class ExamenesRealizado {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id_examen", nullable = false)
-    private Integer id;
+    private UUID id;
 
     @NotNull
     @OneToOne(fetch = FetchType.LAZY, optional = false)
@@ -35,11 +37,11 @@ public class ExamenesRealizado {
     @JoinColumn(name = "id_etapa", nullable = false)
     private EtapasAdmision idEtapa;
 
-    public Integer getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
