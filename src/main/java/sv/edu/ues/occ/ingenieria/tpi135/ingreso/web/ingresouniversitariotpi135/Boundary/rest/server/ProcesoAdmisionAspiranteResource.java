@@ -58,7 +58,11 @@ public class ProcesoAdmisionAspiranteResource extends AbstractResource<ProcesoAd
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
     public Response create(ProcesoAdmisionAspirante entity, @Context UriInfo uriInfo) {
-        if (entity != null && entity.getId() == null) {
+        if (entity != null && entity.getId() == null
+                && entity.getInscripcionesPrueba() != null
+                && entity.getIdEtapaActual() != null
+                && entity.getEstado() != null
+                && !entity.getEstado().isBlank()) {
             try {
                 procesoAdmisionAspiranteDAO.crear(entity);
                 return Response.created(
@@ -73,7 +77,7 @@ public class ProcesoAdmisionAspiranteResource extends AbstractResource<ProcesoAd
             }
         }
         return Response.status(422)
-                .header(MISSING_PARAMETER, "entity must not be null and entity.id must be null")
+                .header(MISSING_PARAMETER, "entity must not be null; id must be null; inscripcionesPrueba, idEtapaActual y estado no deben ser nulos ni vacios")
                 .build();
     }
 

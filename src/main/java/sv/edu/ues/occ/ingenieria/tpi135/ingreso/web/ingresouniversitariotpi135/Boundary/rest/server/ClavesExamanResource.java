@@ -111,7 +111,7 @@ public class ClavesExamanResource extends AbstractResource<ClavesExaman> {
     @DELETE
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response delete(@PathParam("id") Integer id) {
+    public Response delete(@PathParam("id") UUID id) {
         if (id != null) {
             try {
                 ClavesExaman existing = clavesExamanDAO.leer(id);

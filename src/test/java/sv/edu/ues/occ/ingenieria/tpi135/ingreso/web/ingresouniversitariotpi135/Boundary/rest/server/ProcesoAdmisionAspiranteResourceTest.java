@@ -9,6 +9,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.ProcesoAdmisionAspiranteDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ProcesoAdmisionAspirante;
 
 import java.net.URI;
@@ -157,14 +159,58 @@ class ProcesoAdmisionAspiranteResourceTest {
     void create_ConEntidadValida_DebeRetornar201() {
         ProcesoAdmisionAspirante nuevo = new ProcesoAdmisionAspirante();
         nuevo.setEstado("PENDIENTE");
+        nuevo.setInscripcionesPrueba(new InscripcionesPrueba());
+        nuevo.setIdEtapaActual(new EtapasAdmision());
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
-        when(uriBuilder.build()).thenReturn(URI.create("http://localhost/proceso_admision_aspirante/11"));
+        when(uriBuilder.build()).thenReturn(URI.create("http://localhost/proceso_admision_aspirante/null"));
 
         Response response = resource.create(nuevo, uriInfo);
 
         assertEquals(201, response.getStatus());
         verify(procesoAdmisionAspiranteDAO).crear(nuevo);
+    }
+
+    @Test
+    void create_SinInscripcion_DebeRetornar422() {
+        ProcesoAdmisionAspirante nuevo = new ProcesoAdmisionAspirante();
+        nuevo.setEstado("PENDIENTE");
+        nuevo.setIdEtapaActual(new EtapasAdmision());
+        // inscripcionesPrueba ausente
+
+        Response response = resource.create(nuevo, uriInfo);
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+        verifyNoInteractions(procesoAdmisionAspiranteDAO);
+    }
+
+    @Test
+    void create_SinEtapaActual_DebeRetornar422() {
+        ProcesoAdmisionAspirante nuevo = new ProcesoAdmisionAspirante();
+        nuevo.setEstado("PENDIENTE");
+        nuevo.setInscripcionesPrueba(new InscripcionesPrueba());
+        // idEtapaActual ausente
+
+        Response response = resource.create(nuevo, uriInfo);
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+        verifyNoInteractions(procesoAdmisionAspiranteDAO);
+    }
+
+    @Test
+    void create_SinEstado_DebeRetornar422() {
+        ProcesoAdmisionAspirante nuevo = new ProcesoAdmisionAspirante();
+        nuevo.setInscripcionesPrueba(new InscripcionesPrueba());
+        nuevo.setIdEtapaActual(new EtapasAdmision());
+        // estado ausente
+
+        Response response = resource.create(nuevo, uriInfo);
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+        verifyNoInteractions(procesoAdmisionAspiranteDAO);
     }
 
     @Test
@@ -188,6 +234,8 @@ class ProcesoAdmisionAspiranteResourceTest {
     void create_ConExcepcionEnDAO_DebeRetornar500() {
         ProcesoAdmisionAspirante nuevo = new ProcesoAdmisionAspirante();
         nuevo.setEstado("PENDIENTE");
+        nuevo.setInscripcionesPrueba(new InscripcionesPrueba());
+        nuevo.setIdEtapaActual(new EtapasAdmision());
         doThrow(new RuntimeException("Error de BD")).when(procesoAdmisionAspiranteDAO).crear(any());
 
         Response response = resource.create(nuevo, uriInfo);
