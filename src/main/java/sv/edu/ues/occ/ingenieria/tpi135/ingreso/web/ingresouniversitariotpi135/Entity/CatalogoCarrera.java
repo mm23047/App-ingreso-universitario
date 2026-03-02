@@ -7,24 +7,26 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "catalogo_carreras", schema = "public")
 public class CatalogoCarrera {
     @Id
     @Size(max = 10)
     @Column(name = "id_carrera", nullable = false, length = 10)
-    private String idCarrera;
+    private UUID idCarrera;
 
     @Size(max = 100)
     @NotNull
     @Column(name = "nombre", nullable = false, length = 100)
     private String nombre;
 
-    public String getIdCarrera() {
+    public UUID getIdCarrera() {
         return idCarrera;
     }
 
-    public void setIdCarrera(String idCarrera) {
+    public void setIdCarrera(UUID idCarrera) {
         this.idCarrera = idCarrera;
     }
 

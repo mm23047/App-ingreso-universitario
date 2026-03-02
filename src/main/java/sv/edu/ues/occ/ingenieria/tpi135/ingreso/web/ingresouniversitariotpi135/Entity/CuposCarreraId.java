@@ -19,7 +19,7 @@ public class CuposCarreraId implements Serializable {
     @Size(max = 10)
     @NotNull
     @Column(name = "id_carrera", nullable = false, length = 10)
-    private String idCarrera;
+    private UUID idCarrera;
 
     @NotNull
     @Column(name = "id_etapa", nullable = false)
@@ -33,11 +33,11 @@ public class CuposCarreraId implements Serializable {
         this.idPrueba = idPrueba;
     }
 
-    public String getIdCarrera() {
+    public UUID getIdCarrera() {
         return idCarrera;
     }
 
-    public void setIdCarrera(String idCarrera) {
+    public void setIdCarrera(UUID idCarrera) {
         this.idCarrera = idCarrera;
     }
 
