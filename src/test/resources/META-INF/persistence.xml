@@ -29,12 +29,9 @@
         <class>sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExaman</class>
         <class>sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.UsuariosSistema</class>
         <properties>
-            <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/ingresoTPI135" />
-            <property name="jakarta.persistence.jdbc.user" value="postgres" />
-            <property name="jakarta.persistence.jdbc.password" value="abc123" />
-            <property name="jakarta.persistence.jdbc.port" value="5432" />
-            <property name="jakarta.persistence.jdbc.database" value="ingresoTPI135" />
             <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver" />
+            <property name="eclipselink.logging.level" value="FINE" />
+            <property name="eclipselink.ddl-generation" value="none" />
         </properties>
     </persistence-unit>
 </persistence>

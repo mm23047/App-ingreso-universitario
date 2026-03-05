@@ -3,6 +3,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import org.junit.jupiter.api.Test;
+import java.util.Map;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -28,12 +29,17 @@ public AreasConocimientoDAOIT() {
    @Test
     public void testCount() {
         System.out.println("count");
-       EntityManagerFactory emf = Persistence.createEntityManagerFactory("ingresoPUIT");
+       assertTrue(postgres.isRunning());
+       Integer puertoPostgresql = postgres.getMappedPort(5432);
+       Map<String, Object> props = Map.of(
+           "jakarta.persistence.jdbc.url", "jdbc:postgresql://localhost:" + puertoPostgresql + "/ingresoTPI135",
+           "jakarta.persistence.jdbc.user", "postgres",
+           "jakarta.persistence.jdbc.password", "abc123"
+       );
+       EntityManagerFactory emf = Persistence.createEntityManagerFactory("ingresoPUIT", props);
        EntityManager em = emf.createEntityManager();
        AreasConocimientoDAO cut = new AreasConocimientoDAO();
        cut.em = em;
-       assertTrue(postgres.isRunning());
-       Integer puertoPostgresql = postgres.getMappedPort(5432);
        int resultado = cut.count();
        assertTrue(resultado>0);
 
