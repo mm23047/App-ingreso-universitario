@@ -4,11 +4,19 @@ import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.AspirantesDatoDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDAOInterface;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.InscripcionesPruebaDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.PruebasAdmisionDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Named("inscripcionesPruebasFrm")
 @ViewScoped
@@ -17,6 +25,32 @@ public class InscripcionesPruebaFrm extends DefaultFrm<InscripcionesPrueba> impl
     //DAO para interactuar con la BD y hacer CRUD.
     @Inject
     InscripcionesPruebaDAO inscripcionesPruebaDAO;
+
+    //DAOS de las tablas foraneas
+    @Inject
+    AspirantesDatoDAO aspirantesDatoDAO;
+    @Inject
+    PruebasAdmisionDAO pruebasAdmisionDAO;
+
+    //  Creamos las listas para los ComboBoxes
+    private List<AspirantesDato> listAspirantes;
+    private List<PruebasAdmision> listPruebas;
+
+    public InscripcionesPruebaFrm() {
+        this.nombreBean = "inscripcionesPruebasFrm";
+    }
+
+    //Iniciamos las listas de las tablas compartidas
+    @Override
+    public void inicializarListas() {
+        super.inicializarListas();
+        if (aspirantesDatoDAO != null) {
+            this.listAspirantes = aspirantesDatoDAO.findRange(0, 100);
+        }
+        if (pruebasAdmisionDAO != null) {
+            this.listPruebas = pruebasAdmisionDAO.findRange(0, 100);
+        }
+    }
 
     // FC Para saber el ciclo de vida de la vista actual que utiliza el usuario
     @Override
@@ -76,8 +110,15 @@ public class InscripcionesPruebaFrm extends DefaultFrm<InscripcionesPrueba> impl
      */
     @Override
     protected InscripcionesPrueba getIdByText(String id) {
-        if(id!=null && !id.isEmpty()){
-            return inscripcionesPruebaDAO.leer(id);
+    // Convertimos el String a UUID para buscar en la BD
+        if (id != null && !id.isEmpty()) {
+            try {
+                UUID idConvertido = UUID.fromString(id);
+                return inscripcionesPruebaDAO.leer(idConvertido);
+            } catch (IllegalArgumentException e) {
+                Logger.getLogger(InscripcionesPruebaFrm.class.getName()).log(Level.SEVERE, "Error al convertir String a UUID", e);
+                return null;
+            }
         }
         return null;
     }
@@ -88,7 +129,16 @@ public class InscripcionesPruebaFrm extends DefaultFrm<InscripcionesPrueba> impl
      */
     @Override
     protected InscripcionesPrueba createNewEntity() {
-        return new  InscripcionesPrueba();
+        InscripcionesPrueba nuevaInscripcion = new InscripcionesPrueba();
+
+        // Inicializamos las foráneas para evitar NullPointerExceptions en JSF
+        nuevaInscripcion.setIdAspirante(new AspirantesDato());
+        nuevaInscripcion.setIdPrueba(new PruebasAdmision());
+
+        // El script SQL tiene un DEFAULT 'INSCRITO', pero es buena práctica setearlo aquí también
+        nuevaInscripcion.setEstado("INSCRITO");
+
+        return nuevaInscripcion;
     }
 
     /**
@@ -108,6 +158,15 @@ public class InscripcionesPruebaFrm extends DefaultFrm<InscripcionesPrueba> impl
     //EL nombre de la entidad utilizada en este momento
     @Override
     protected String getEntityName() {
-        return "Inscripciones de Prueba";
+        return this.nombreBean;
+    }
+
+    // Getters para que la página web pueda leer las listas
+    public List<AspirantesDato> getListAspirantes() {
+        return listAspirantes;
+    }
+
+    public List<PruebasAdmision> getListPruebas() {
+        return listPruebas;
     }
 }

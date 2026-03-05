@@ -7,9 +7,15 @@ import jakarta.inject.Named;
 
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.ClavesExamanDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDAOInterface;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.PruebasAdmisionDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Named("clavesExamenFrm")
 @ViewScoped
@@ -22,6 +28,26 @@ public class ClavesExamenFrm extends DefaultFrm<ClavesExaman> implements Seriali
      */
     @Inject
     private ClavesExamanDAO clavesExamanDAO;
+
+    // Inyectamos el DAO de la tabla relacionada (Pruebas)
+    @Inject
+    private PruebasAdmisionDAO pruebasAdmisionDAO;
+
+    // Creamos la lista para alimentar el ComboBox en la vista
+    private List<PruebasAdmision> listPruebas;
+
+    public ClavesExamenFrm() {
+        this.nombreBean = "clavesExamenFrm";
+    }
+
+    @Override
+    public void inicializarListas() {
+        super.inicializarListas();
+        // Llenamos la lista cuando cargue la página
+        if (pruebasAdmisionDAO != null) {
+            this.listPruebas = pruebasAdmisionDAO.findRange(0, 100);
+        }
+    }
 
     /**
      * Proporciona el FacesContext actual.
@@ -106,8 +132,15 @@ public class ClavesExamenFrm extends DefaultFrm<ClavesExaman> implements Seriali
      */
     @Override
     protected ClavesExaman getIdByText(String id) {
+        // 3. Corregimos: JSF envía un String, pero JPA necesita un UUID
         if (id != null && !id.isEmpty()) {
-            return clavesExamanDAO.leer(id);
+            try {
+                UUID idConvertido = UUID.fromString(id);
+                return clavesExamanDAO.leer(idConvertido);
+            } catch (IllegalArgumentException e) {
+                Logger.getLogger(ClavesExamenFrm.class.getName()).log(Level.SEVERE, "Error al convertir String a UUID", e);
+                return null;
+            }
         }
         return null;
     }
@@ -121,7 +154,12 @@ public class ClavesExamenFrm extends DefaultFrm<ClavesExaman> implements Seriali
      */
     @Override
     protected ClavesExaman createNewEntity() {
-        return new ClavesExaman();
+        ClavesExaman nuevaClave = new ClavesExaman();
+
+        // Inicializamos la foránea para que JSF no nos lance errores de NullPointerException cuando intente asignar el valor del ComboBox
+        nuevaClave.setIdPrueba(new PruebasAdmision());
+
+        return nuevaClave;
     }
 
     /**
@@ -153,6 +191,11 @@ public class ClavesExamenFrm extends DefaultFrm<ClavesExaman> implements Seriali
      */
     @Override
     protected String getEntityName() {
-        return "Claves Examen";
+        return this.nombreBean;
+    }
+
+    // Getter necesario para que la página HTML pueda leer la lista
+    public List<PruebasAdmision> getListPruebas() {
+        return listPruebas;
     }
 }

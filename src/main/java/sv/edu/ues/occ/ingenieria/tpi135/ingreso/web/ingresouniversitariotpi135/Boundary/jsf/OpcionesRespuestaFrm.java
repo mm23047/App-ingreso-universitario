@@ -4,11 +4,17 @@ import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.BancoPreguntaDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDAOInterface;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.OpcionesRespuestaDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.OpcionesRespuesta;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Named("opciobesRespuestaFrm")
 @ViewScoped
@@ -19,6 +25,26 @@ public class OpcionesRespuestaFrm extends DefaultFrm<OpcionesRespuesta> implemen
      */
     @Inject
     OpcionesRespuestaDAO opcionesRespuestaDAO;
+
+    // Inyectamos el DAO de la tabla foránea (Preguntas)
+    @Inject
+    BancoPreguntaDAO bancoPreguntasDAO;
+
+    // 2. Creamos la lista para alimentar el menú desplegable (ComboBox) en la vista
+    private List<BancoPregunta> listPreguntas;
+
+    public OpcionesRespuestaFrm() {
+        this.nombreBean = "opcionesRespuestaFrm";
+    }
+
+    @Override
+    public void inicializarListas() {
+        super.inicializarListas();
+        // Llenamos la lista de preguntas disponibles
+        if (bancoPreguntasDAO != null) {
+            this.listPreguntas = bancoPreguntasDAO.findRange(0, 100);
+        }
+    }
 
     //Para acceder al FC que se esta utilizando
     @Override
@@ -78,8 +104,15 @@ public class OpcionesRespuestaFrm extends DefaultFrm<OpcionesRespuesta> implemen
      */
     @Override
     protected OpcionesRespuesta getIdByText(String id) {
+        // Convertimos de String (JSF) a UUID (BD) de forma segura
         if (id != null && !id.isEmpty()) {
-            return opcionesRespuestaDAO.leer(id);
+            try {
+                UUID idConvertido = UUID.fromString(id);
+                return opcionesRespuestaDAO.leer(idConvertido);
+            } catch (IllegalArgumentException e) {
+                Logger.getLogger(OpcionesRespuestaFrm.class.getName()).log(Level.SEVERE, "Error al convertir String a UUID", e);
+                return null;
+            }
         }
         return null;
     }
@@ -90,7 +123,15 @@ public class OpcionesRespuestaFrm extends DefaultFrm<OpcionesRespuesta> implemen
      */
     @Override
     protected OpcionesRespuesta createNewEntity() {
-        return new OpcionesRespuesta();
+        OpcionesRespuesta nuevaOpcion = new OpcionesRespuesta();
+
+        // Inicializamos la llave foránea para evitar NullPointerException al usar el ComboBox
+        nuevaOpcion.setIdPregunta(new BancoPregunta());
+
+        // Asignamos el valor por defecto que dicta la base de datos (false)
+        nuevaOpcion.setEsCorrecta(false);
+
+        return nuevaOpcion;
     }
 
     /**
@@ -111,6 +152,11 @@ public class OpcionesRespuestaFrm extends DefaultFrm<OpcionesRespuesta> implemen
     //Retorna el nombre de la entidad UTILIZADA en el instante actual
     @Override
     protected String getEntityName() {
-        return "Opciones Respuesta";
+        return this.nombreBean;
+    }
+
+    // Getter para que la vista web pueda iterar sobre la lista de preguntas
+    public List<BancoPregunta> getListPreguntas() {
+        return listPreguntas;
     }
 }
