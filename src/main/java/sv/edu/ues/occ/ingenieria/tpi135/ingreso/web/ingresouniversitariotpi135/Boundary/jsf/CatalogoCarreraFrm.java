@@ -9,7 +9,6 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera;
 
 import java.io.Serializable;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -89,7 +88,7 @@ public class CatalogoCarreraFrm extends DefaultFrm<CatalogoCarrera> implements S
     @Override
     protected String getIdAsText(CatalogoCarrera r) {
         if (r != null && r.getIdCarrera() != null) {
-            return r.getIdCarrera().toString();
+            return r.getIdCarrera();
         }
         return null;
     }
@@ -97,23 +96,13 @@ public class CatalogoCarreraFrm extends DefaultFrm<CatalogoCarrera> implements S
     /**
      * Convierte un identificador en formato texto recibido de HTML a un objeto UUID real.
      * Cuando el usuario selecciona una fila para editar, la web solo envía un String.
-     * Aquí transformamos ese String de vuelta a UUID y buscamos la carrera en la BD.
-     *
      * @param id Identificador en formato texto enviado desde la vista.
      * @return Entidad completa de la base de datos o null si falla la conversión.
      */
     @Override
     protected CatalogoCarrera getIdByText(String id) {
-        if (id != null && !id.trim().isEmpty()) {
-            try {
-                // Convertimos el String a UUID antes de consultar al DAO
-                UUID idBuscado = UUID.fromString(id);
-                return catalogoCarreraDAO.leer(idBuscado);
-            } catch (Exception e) {
-                // Si el texto no tiene formato de UUID, capturamos el error para que la app no explote
-                Logger.getLogger(CatalogoCarreraFrm.class.getName())
-                        .log(Level.SEVERE, "Error al convertir String a UUID en CatalogoCarrera", e);
-            }
+        if (id != null && !id.isEmpty()) {
+            return catalogoCarreraDAO.leer(id);
         }
         return null;
     }
@@ -127,9 +116,10 @@ public class CatalogoCarreraFrm extends DefaultFrm<CatalogoCarrera> implements S
      */
     @Override
     protected CatalogoCarrera createNewEntity() {
-        CatalogoCarrera nueva = new CatalogoCarrera();
-        nueva.setNombre(""); // Podemos inicializar valores por defecto si lo deseamos
-        return nueva;
+        CatalogoCarrera nuevoDatoCatalogoCarrera = new CatalogoCarrera();
+        nuevoDatoCatalogoCarrera.setIdCarrera("");
+        nuevoDatoCatalogoCarrera.setNombre("");
+        return nuevoDatoCatalogoCarrera;
     }
 
     /**

@@ -1,0 +1,179 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ProcesoAdmisionAspirante</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity</a>
+</div>
+
+<h1>Coverage Summary for Class: ProcesoAdmisionAspirante (sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ProcesoAdmisionAspirante</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (11/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (11/11)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
+&nbsp;
+&nbsp;import jakarta.persistence.*;
+&nbsp;import jakarta.validation.constraints.NotNull;
+&nbsp;import jakarta.validation.constraints.Size;
+&nbsp;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;@Entity
+&nbsp;@Table(name = &quot;proceso_admision_aspirante&quot;, schema = &quot;public&quot;)
+<b class="fc">&nbsp;public class ProcesoAdmisionAspirante {</b>
+&nbsp;    @Id
+&nbsp;    @Column(name = &quot;id_inscripcion&quot;, nullable = false)
+&nbsp;    private UUID id;
+&nbsp;
+&nbsp;    @MapsId
+&nbsp;    @OneToOne(fetch = FetchType.LAZY, optional = false)
+&nbsp;    @JoinColumn(name = &quot;id_inscripcion&quot;, nullable = false)
+&nbsp;    private InscripcionesPrueba inscripcionesPrueba;
+&nbsp;
+&nbsp;    @NotNull
+&nbsp;    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+&nbsp;    @JoinColumn(name = &quot;id_etapa_actual&quot;, nullable = false)
+&nbsp;    private EtapasAdmision idEtapaActual;
+&nbsp;
+&nbsp;    @Size(max = 30)
+&nbsp;    @NotNull
+&nbsp;    @Column(name = &quot;estado&quot;, nullable = false, length = 30)
+&nbsp;    private String estado;
+&nbsp;
+&nbsp;    @ManyToOne(fetch = FetchType.LAZY)
+&nbsp;    @JoinColumn(name = &quot;carrera_asignada&quot;)
+&nbsp;    private CatalogoCarrera carreraAsignada;
+&nbsp;
+&nbsp;    public UUID getId() {
+<b class="fc">&nbsp;        return id;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setId(UUID id) {
+<b class="fc">&nbsp;        this.id = id;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public InscripcionesPrueba getInscripcionesPrueba() {
+<b class="fc">&nbsp;        return inscripcionesPrueba;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setInscripcionesPrueba(InscripcionesPrueba inscripcionesPrueba) {
+<b class="fc">&nbsp;        this.inscripcionesPrueba = inscripcionesPrueba;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public EtapasAdmision getIdEtapaActual() {
+<b class="fc">&nbsp;        return idEtapaActual;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setIdEtapaActual(EtapasAdmision idEtapaActual) {
+<b class="fc">&nbsp;        this.idEtapaActual = idEtapaActual;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getEstado() {
+<b class="fc">&nbsp;        return estado;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setEstado(String estado) {
+<b class="fc">&nbsp;        this.estado = estado;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public CatalogoCarrera getCarreraAsignada() {
+<b class="fc">&nbsp;        return carreraAsignada;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setCarreraAsignada(CatalogoCarrera carreraAsignada) {
+<b class="fc">&nbsp;        this.carreraAsignada = carreraAsignada;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-03-02 23:33</div>
+</div>
+</body>
+</html>

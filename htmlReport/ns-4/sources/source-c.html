@@ -1,0 +1,249 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > IngresoDefaultDataAccess</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control</a>
+</div>
+
+<h1>Coverage Summary for Class: IngresoDefaultDataAccess (sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">IngresoDefaultDataAccess</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (8/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (16/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (49/49)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control;
+&nbsp;
+&nbsp;import jakarta.persistence.EntityManager;
+&nbsp;import jakarta.persistence.TypedQuery;
+&nbsp;import jakarta.persistence.criteria.CriteriaBuilder;
+&nbsp;import jakarta.persistence.criteria.CriteriaQuery;
+&nbsp;import jakarta.persistence.criteria.Root;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;public abstract class IngresoDefaultDataAccess&lt;T&gt; implements IngresoDAOInterface&lt;T&gt; {
+&nbsp;
+&nbsp;    private final Class&lt;T&gt; tipoDato;
+&nbsp;
+<b class="fc">&nbsp;    public IngresoDefaultDataAccess(Class&lt;T&gt; tipoDato) {</b>
+<b class="fc">&nbsp;        this.tipoDato = tipoDato;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // Método abstracto que cada DAO debe implementar
+&nbsp;    public abstract EntityManager getEntityManager();
+&nbsp;
+&nbsp;    private EntityManager resolverEntityManager() {
+<b class="fc">&nbsp;        EntityManager em = getEntityManager();</b>
+<b class="fc">&nbsp;        if (em == null) {</b>
+<b class="fc">&nbsp;            throw new IllegalStateException(&quot;EntityManager no inicializado&quot;);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return em;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void crear(T registro) throws IllegalArgumentException {
+<b class="fc">&nbsp;        if (registro == null) {</b>
+<b class="fc">&nbsp;            throw new IllegalArgumentException(&quot;El registro no puede ser nulo&quot;);</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="fc">&nbsp;            EntityManager em = resolverEntityManager();</b>
+<b class="fc">&nbsp;            em.persist(registro);</b>
+<b class="fc">&nbsp;            em.flush();</b>
+&nbsp;        } catch (IllegalStateException ex) {
+&nbsp;            throw ex;
+&nbsp;        } catch (Exception ex) {
+<b class="fc">&nbsp;            throw new IllegalStateException(&quot;Error al ingresar el registro: &quot; + ex.getMessage(), ex);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void eliminar(T registro) throws IllegalStateException, IllegalArgumentException {
+<b class="fc">&nbsp;        if (registro == null) {</b>
+<b class="fc">&nbsp;            throw new IllegalArgumentException(&quot;El registro no puede ser nulo&quot;);</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="fc">&nbsp;            EntityManager em = resolverEntityManager();</b>
+<b class="fc">&nbsp;            if (!em.contains(registro)) {</b>
+<b class="fc">&nbsp;                registro = em.merge(registro);</b>
+&nbsp;            }
+<b class="fc">&nbsp;            em.remove(registro);</b>
+&nbsp;        } catch (IllegalStateException ex) {
+&nbsp;            throw ex;
+&nbsp;        } catch (Exception ex) {
+<b class="fc">&nbsp;            throw new IllegalStateException(&quot;Error al eliminar el registro&quot;, ex);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public T actualizar(T registro) {
+<b class="fc">&nbsp;        if (registro == null) {</b>
+<b class="fc">&nbsp;            throw new IllegalArgumentException(&quot;El registro a actualizar no puede ser nulo&quot;);</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="fc">&nbsp;            EntityManager em = resolverEntityManager();</b>
+<b class="fc">&nbsp;            T resultado = em.merge(registro);</b>
+<b class="fc">&nbsp;            em.flush();</b>
+<b class="fc">&nbsp;            return resultado;</b>
+&nbsp;        } catch (IllegalStateException ex) {
+&nbsp;            throw ex;
+&nbsp;        } catch (Exception ex) {
+<b class="fc">&nbsp;            throw new IllegalStateException(&quot;Error al actualizar registro de &quot; + tipoDato.getSimpleName(), ex);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public T leer(Object id) {
+<b class="fc">&nbsp;        if (id == null) {</b>
+<b class="fc">&nbsp;            throw new IllegalArgumentException(&quot;El id no puede ser nulo&quot;);</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="fc">&nbsp;            return resolverEntityManager().find(tipoDato, id);</b>
+&nbsp;        } catch (IllegalStateException ex) {
+&nbsp;            throw ex;
+&nbsp;        } catch (Exception ex) {
+<b class="fc">&nbsp;            throw new IllegalStateException(&quot;Error al leer registro de &quot; + tipoDato.getSimpleName(), ex);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;T&gt; findRange(int first, int max) throws IllegalStateException {
+<b class="fc">&nbsp;        if (first &lt; 0 || max &lt; 1) {</b>
+<b class="fc">&nbsp;            throw new IllegalArgumentException();</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="fc">&nbsp;            EntityManager em = resolverEntityManager();</b>
+<b class="fc">&nbsp;            CriteriaBuilder cb = em.getCriteriaBuilder();</b>
+<b class="fc">&nbsp;            CriteriaQuery&lt;T&gt; cq = cb.createQuery(tipoDato);</b>
+<b class="fc">&nbsp;            Root&lt;T&gt; root = cq.from(tipoDato);</b>
+<b class="fc">&nbsp;            cq.select(root);</b>
+<b class="fc">&nbsp;            TypedQuery&lt;T&gt; allQuery = em.createQuery(cq);</b>
+<b class="fc">&nbsp;            allQuery.setFirstResult(first);</b>
+<b class="fc">&nbsp;            allQuery.setMaxResults(max);</b>
+<b class="fc">&nbsp;            return allQuery.getResultList();</b>
+&nbsp;        } catch (IllegalStateException ex) {
+&nbsp;            throw ex;
+&nbsp;        } catch (Exception e) {
+<b class="fc">&nbsp;            throw new IllegalStateException(&quot;No se pudo acceder al repositorio&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public int count() throws IllegalStateException {
+&nbsp;        try {
+<b class="fc">&nbsp;            EntityManager em = resolverEntityManager();</b>
+<b class="fc">&nbsp;            CriteriaBuilder cb = em.getCriteriaBuilder();</b>
+<b class="fc">&nbsp;            CriteriaQuery&lt;Long&gt; cq = cb.createQuery(Long.class);</b>
+<b class="fc">&nbsp;            Root&lt;T&gt; root = cq.from(tipoDato);</b>
+<b class="fc">&nbsp;            cq.select(cb.count(root));</b>
+<b class="fc">&nbsp;            return em.createQuery(cq).getSingleResult().intValue();</b>
+&nbsp;        } catch (IllegalStateException ex) {
+&nbsp;            throw ex;
+&nbsp;        } catch (Exception e) {
+<b class="fc">&nbsp;            throw new IllegalStateException(&quot;No se pudo acceder al repositorio&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-03-02 23:33</div>
+</div>
+</body>
+</html>

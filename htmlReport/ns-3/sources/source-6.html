@@ -1,0 +1,246 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > BancoPreguntaResource</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.rest.server</a>
+</div>
+
+<h1>Coverage Summary for Class: BancoPreguntaResource (sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.rest.server)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BancoPreguntaResource</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (6/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (20/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (57/57)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.rest.server;
+&nbsp;
+&nbsp;import static sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.rest.server.RestHeaders.*;
+&nbsp;
+&nbsp;import jakarta.inject.Inject;
+&nbsp;import jakarta.ws.rs.*;
+&nbsp;import jakarta.ws.rs.core.Context;
+&nbsp;import jakarta.ws.rs.core.MediaType;
+&nbsp;import jakarta.ws.rs.core.Response;
+&nbsp;import jakarta.ws.rs.core.UriInfo;
+&nbsp;import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.BancoPreguntaDAO;
+&nbsp;import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
+&nbsp;import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
+&nbsp;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;/**
+&nbsp; * Recurso REST para la gestión del Banco de Preguntas.
+&nbsp; * Hereda el endpoint GET paginado de AbstractResource.
+&nbsp; * Expone operaciones CRUD completas bajo /resources/v1/banco_preguntas
+&nbsp; */
+&nbsp;@Path(&quot;banco_preguntas&quot;)
+<b class="fc">&nbsp;public class BancoPreguntaResource extends AbstractResource&lt;BancoPregunta&gt; {</b>
+&nbsp;
+&nbsp;    @Inject
+&nbsp;    BancoPreguntaDAO bancoPreguntaDAO;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected IngresoDefaultDataAccess&lt;BancoPregunta&gt; getDAO() {
+<b class="fc">&nbsp;        return bancoPreguntaDAO;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @GET
+&nbsp;    @Path(&quot;{id}&quot;)
+&nbsp;    @Produces({MediaType.APPLICATION_JSON})
+&nbsp;    public Response findById(@PathParam(&quot;id&quot;) UUID id) {
+<b class="fc">&nbsp;        if (id != null) {</b>
+&nbsp;            try {
+<b class="fc">&nbsp;                BancoPregunta resp = bancoPreguntaDAO.leer(id);</b>
+<b class="fc">&nbsp;                if (resp != null) {</b>
+<b class="fc">&nbsp;                    return Response.ok(resp).build();</b>
+&nbsp;                }
+<b class="fc">&nbsp;                return Response.status(Response.Status.NOT_FOUND)</b>
+<b class="fc">&nbsp;                        .header(NOT_FOUND_ID, &quot;Record with id &quot; + id + &quot; not found&quot;)</b>
+<b class="fc">&nbsp;                        .build();</b>
+&nbsp;            } catch (Exception ex) {
+<b class="fc">&nbsp;                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)</b>
+<b class="fc">&nbsp;                        .header(SERVER_EXCEPTION, &quot;Cannot access db&quot;)</b>
+<b class="fc">&nbsp;                        .build();</b>
+&nbsp;            }
+&nbsp;        }
+<b class="fc">&nbsp;        return Response.status(422)</b>
+<b class="fc">&nbsp;                .header(MISSING_PARAMETER, &quot;id&quot;)</b>
+<b class="fc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @POST
+&nbsp;    @Produces({MediaType.APPLICATION_JSON})
+&nbsp;    @Consumes({MediaType.APPLICATION_JSON})
+&nbsp;    public Response create(BancoPregunta entity, @Context UriInfo uriInfo) {
+<b class="fc">&nbsp;        if (entity != null &amp;&amp; entity.getId() == null &amp;&amp; entity.getIdArea() != null) {</b>
+&nbsp;            try {
+<b class="fc">&nbsp;                bancoPreguntaDAO.crear(entity);</b>
+<b class="fc">&nbsp;                return Response.created(</b>
+<b class="fc">&nbsp;                        uriInfo.getAbsolutePathBuilder()</b>
+<b class="fc">&nbsp;                                .path(String.valueOf(entity.getId()))</b>
+<b class="fc">&nbsp;                                .build())</b>
+<b class="fc">&nbsp;                        .build();</b>
+&nbsp;            } catch (Exception ex) {
+<b class="fc">&nbsp;                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)</b>
+<b class="fc">&nbsp;                        .header(SERVER_EXCEPTION, &quot;Cannot access db&quot;)</b>
+<b class="fc">&nbsp;                        .build();</b>
+&nbsp;            }
+&nbsp;        }
+<b class="fc">&nbsp;        return Response.status(422)</b>
+<b class="fc">&nbsp;                .header(MISSING_PARAMETER, &quot;entity must not be null, entity.id must be null and entity.idArea must not be null&quot;)</b>
+<b class="fc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PUT
+&nbsp;    @Path(&quot;{id}&quot;)
+&nbsp;    @Produces({MediaType.APPLICATION_JSON})
+&nbsp;    @Consumes({MediaType.APPLICATION_JSON})
+&nbsp;    public Response update(@PathParam(&quot;id&quot;) UUID id, BancoPregunta entity) {
+<b class="fc">&nbsp;        if (id != null &amp;&amp; entity != null) {</b>
+&nbsp;            try {
+<b class="fc">&nbsp;                BancoPregunta existing = bancoPreguntaDAO.leer(id);</b>
+<b class="fc">&nbsp;                if (existing != null) {</b>
+<b class="fc">&nbsp;                    entity.setId(id);</b>
+<b class="fc">&nbsp;                    bancoPreguntaDAO.actualizar(entity);</b>
+<b class="fc">&nbsp;                    return Response.ok(entity).build();</b>
+&nbsp;                }
+<b class="fc">&nbsp;                return Response.status(Response.Status.NOT_FOUND)</b>
+<b class="fc">&nbsp;                        .header(NOT_FOUND_ID, &quot;Record with id &quot; + id + &quot; not found&quot;)</b>
+<b class="fc">&nbsp;                        .build();</b>
+&nbsp;            } catch (Exception ex) {
+<b class="fc">&nbsp;                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)</b>
+<b class="fc">&nbsp;                        .header(SERVER_EXCEPTION, &quot;Cannot access db&quot;)</b>
+<b class="fc">&nbsp;                        .build();</b>
+&nbsp;            }
+&nbsp;        }
+<b class="fc">&nbsp;        return Response.status(422)</b>
+<b class="fc">&nbsp;                .header(MISSING_PARAMETER, &quot;id and entity must not be null&quot;)</b>
+<b class="fc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @DELETE
+&nbsp;    @Path(&quot;{id}&quot;)
+&nbsp;    public Response delete(@PathParam(&quot;id&quot;) UUID id) {
+<b class="fc">&nbsp;        if (id != null) {</b>
+&nbsp;            try {
+<b class="fc">&nbsp;                BancoPregunta resp = bancoPreguntaDAO.leer(id);</b>
+<b class="fc">&nbsp;                if (resp != null) {</b>
+<b class="fc">&nbsp;                    bancoPreguntaDAO.eliminar(resp);</b>
+<b class="fc">&nbsp;                    return Response.noContent().build();</b>
+&nbsp;                }
+<b class="fc">&nbsp;                return Response.status(Response.Status.NOT_FOUND)</b>
+<b class="fc">&nbsp;                        .header(NOT_FOUND_ID, &quot;Record with id &quot; + id + &quot; not found&quot;)</b>
+<b class="fc">&nbsp;                        .build();</b>
+&nbsp;            } catch (Exception ex) {
+<b class="fc">&nbsp;                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)</b>
+<b class="fc">&nbsp;                        .header(SERVER_EXCEPTION, &quot;Cannot access db&quot;)</b>
+<b class="fc">&nbsp;                        .build();</b>
+&nbsp;            }
+&nbsp;        }
+<b class="fc">&nbsp;        return Response.status(422)</b>
+<b class="fc">&nbsp;                .header(MISSING_PARAMETER, &quot;id&quot;)</b>
+<b class="fc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-03-02 23:33</div>
+</div>
+</body>
+</html>

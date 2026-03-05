@@ -15,18 +15,18 @@ public class CatalogoCarrera {
     @Id
     @Size(max = 10)
     @Column(name = "id_carrera", nullable = false, length = 10)
-    private UUID idCarrera;
+    private String idCarrera;
 
     @Size(max = 100)
     @NotNull
     @Column(name = "nombre", nullable = false, length = 100)
     private String nombre;
 
-    public UUID getIdCarrera() {
+    public String getIdCarrera() {
         return idCarrera;
     }
 
-    public void setIdCarrera(UUID idCarrera) {
+    public void setIdCarrera(String idCarrera) {
         this.idCarrera = idCarrera;
     }
 

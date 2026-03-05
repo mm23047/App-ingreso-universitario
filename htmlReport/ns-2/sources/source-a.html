@@ -1,0 +1,367 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DefaultFrm</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.jsf</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultFrm (sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.jsf)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultFrm</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    92.9%
+  </span>
+  <span class="absValue">
+    (26/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (26/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    97.8%
+  </span>
+  <span class="absValue">
+    (90/92)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.jsf;
+&nbsp;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.faces.application.FacesMessage;
+&nbsp;import jakarta.faces.context.FacesContext;
+&nbsp;import jakarta.faces.event.ActionEvent;
+&nbsp;import jakarta.faces.component.UIComponent;
+&nbsp;import jakarta.faces.validator.ValidatorException;
+&nbsp;import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDAOInterface;
+&nbsp;
+&nbsp;import java.io.Serializable;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.logging.Level;
+&nbsp;import java.util.logging.Logger;
+&nbsp;
+<b class="fc">&nbsp;public abstract class DefaultFrm&lt;T&gt; implements Serializable {</b>
+&nbsp;
+<b class="fc">&nbsp;    protected ESTADO_CRUD estado = ESTADO_CRUD.NADA;</b>
+&nbsp;    protected String nombreBean;
+&nbsp;    protected List&lt;T&gt; registros;
+&nbsp;    protected T registro;
+<b class="fc">&nbsp;    protected int pageSize = 5;</b>
+<b class="fc">&nbsp;    protected int paginaActual = 0;</b>
+&nbsp;
+&nbsp;    // Métodos abstractos que cada bean debe implementar
+&nbsp;    protected abstract FacesContext getFacesContext();
+&nbsp;
+&nbsp;    protected abstract IngresoDAOInterface&lt;T&gt; getDao();
+&nbsp;
+&nbsp;    protected abstract T nuevoRegistro();
+&nbsp;
+&nbsp;    protected abstract T buscarRegistroPorId(Object id);
+&nbsp;
+&nbsp;    protected abstract String getIdAsText(T r);
+&nbsp;
+&nbsp;    protected abstract T getIdByText(String id);
+&nbsp;
+&nbsp;    protected abstract T createNewEntity();
+&nbsp;
+&nbsp;    protected abstract Object getEntityId(T entity);
+&nbsp;
+&nbsp;    protected abstract String getEntityName();
+&nbsp;
+&nbsp;    @PostConstruct
+&nbsp;    public void inicializar() {
+<b class="fc">&nbsp;        inicializarRegistros();</b>
+<b class="fc">&nbsp;        inicializarListas();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void inicializarListas() {
+&nbsp;        // Implementación por defecto - puede ser sobrescrita
+<b class="fc">&nbsp;    }</b>
+&nbsp;
+&nbsp;    public void inicializarRegistros() {
+&nbsp;        try {
+<b class="fc">&nbsp;            this.registros = getDao().findRange(paginaActual * pageSize, pageSize);</b>
+&nbsp;        } catch (Exception e) {
+<b class="fc">&nbsp;            this.registros = Collections.emptyList();</b>
+<b class="fc">&nbsp;            enviarMensajeError(&quot;Error al inicializar registros: &quot; + e.getMessage());</b>
+<b class="fc">&nbsp;            Logger.getLogger(DefaultFrm.class.getName()).log(Level.SEVERE, &quot;Error en inicializarRegistros&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void seleccionarRegistro(T registroSeleccionado) {
+<b class="fc">&nbsp;        if (registroSeleccionado != null) {</b>
+<b class="fc">&nbsp;            this.registro = registroSeleccionado;</b>
+<b class="fc">&nbsp;            this.estado = ESTADO_CRUD.MODIFICAR;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void btnNuevoHandler(ActionEvent actionEvent) {
+&nbsp;        try {
+<b class="fc">&nbsp;            limpiarFormulario();</b>
+<b class="fc">&nbsp;            this.estado = ESTADO_CRUD.CREAR;</b>
+<b class="fc">&nbsp;            this.registro = nuevoRegistro();</b>
+<b class="fc">&nbsp;            configurarNuevoRegistro();</b>
+<b class="fc">&nbsp;            enviarMensajeExito(getFacesContext().getApplication()</b>
+<b class="fc">&nbsp;                    .getResourceBundle(getFacesContext(), &quot;crud&quot;)</b>
+<b class="fc">&nbsp;                    .getString(&quot;frm.botones.formListo&quot;));</b>
+&nbsp;        } catch (Exception e) {
+<b class="fc">&nbsp;            enviarMensajeError(&quot;Error al preparar nuevo registro: &quot; + e.getMessage());</b>
+<b class="fc">&nbsp;            Logger.getLogger(DefaultFrm.class.getName()).log(Level.SEVERE, &quot;Error en btnNuevoHandler&quot;, e);</b>
+<b class="fc">&nbsp;            limpiarFormulario();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void btnGuardarHandler(ActionEvent actionEvent) {
+&nbsp;        try {
+<b class="fc">&nbsp;            if (registro != null) {</b>
+<b class="fc">&nbsp;                getDao().crear(registro);</b>
+<b class="fc">&nbsp;                enviarMensajeExito(getFacesContext().getApplication()</b>
+<b class="fc">&nbsp;                        .getResourceBundle(getFacesContext(), &quot;crud&quot;)</b>
+<b class="fc">&nbsp;                        .getString(&quot;frm.botones.creado&quot;));</b>
+<b class="fc">&nbsp;                limpiarFormulario();</b>
+<b class="fc">&nbsp;                this.inicializarRegistros();</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="fc">&nbsp;            enviarMensaje(&quot;Error al crear el registro: &quot; + e.getMessage(), FacesMessage.SEVERITY_ERROR);</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="fc">&nbsp;        enviarMensaje(&quot;El registro a crear no puede ser nulo&quot;, FacesMessage.SEVERITY_ERROR);</b>
+<b class="fc">&nbsp;        this.registro = null;</b>
+<b class="fc">&nbsp;        this.estado = ESTADO_CRUD.NADA;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void btnModificarHandler(ActionEvent event) {
+&nbsp;        try {
+<b class="fc">&nbsp;            if (this.registro == null || getEntityId(registro) == null) {</b>
+<b class="fc">&nbsp;                enviarMensajeError(&quot;No hay registro seleccionado para modificar&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="fc">&nbsp;            T registroExistente = buscarRegistroPorId(getEntityId(registro));</b>
+<b class="fc">&nbsp;            if (registroExistente == null) {</b>
+<b class="fc">&nbsp;                enviarMensajeError(&quot;El registro seleccionado no existe en la base de datos&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+<b class="fc">&nbsp;            getDao().actualizar(registro);</b>
+<b class="fc">&nbsp;            inicializarRegistros();</b>
+<b class="fc">&nbsp;            enviarMensajeExito(getFacesContext().getApplication()</b>
+<b class="fc">&nbsp;                    .getResourceBundle(getFacesContext(), &quot;crud&quot;)</b>
+<b class="fc">&nbsp;                    .getString(&quot;frm.botones.opModificar&quot;));</b>
+<b class="fc">&nbsp;            limpiarFormulario();</b>
+&nbsp;        } catch (Exception e) {
+<b class="fc">&nbsp;            enviarMensajeError(&quot;Error al modificar el registro: &quot; + e.getMessage());</b>
+<b class="fc">&nbsp;            Logger.getLogger(DefaultFrm.class.getName()).log(Level.SEVERE, &quot;Error en btnModificarHandler&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void btnEliminarHandler(ActionEvent actionEvent) {
+&nbsp;        try {
+<b class="fc">&nbsp;            if (registro != null &amp;&amp; getEntityId(registro) != null) {</b>
+<b class="fc">&nbsp;                getDao().eliminar(registro);</b>
+<b class="fc">&nbsp;                inicializarRegistros();</b>
+<b class="fc">&nbsp;                enviarMensajeExito(getFacesContext().getApplication()</b>
+<b class="fc">&nbsp;                        .getResourceBundle(getFacesContext(), &quot;crud&quot;)</b>
+<b class="fc">&nbsp;                        .getString(&quot;frm.botones.opEliminar&quot;));</b>
+<b class="fc">&nbsp;                limpiarFormulario();</b>
+&nbsp;            } else {
+<b class="fc">&nbsp;                enviarMensajeError(&quot;No hay registro seleccionado para eliminar&quot;);</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="fc">&nbsp;            enviarMensajeError(&quot;Error al eliminar: &quot; + e.getMessage());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void btnCancelarHandler(ActionEvent actionEvent) {
+&nbsp;        try {
+<b class="fc">&nbsp;            limpiarFormulario();</b>
+<b class="fc">&nbsp;            enviarMensajeExito(getFacesContext().getApplication()</b>
+<b class="fc">&nbsp;                    .getResourceBundle(getFacesContext(), &quot;crud&quot;)</b>
+<b class="fc">&nbsp;                    .getString(&quot;frm.botones.opCancelar&quot;));</b>
+&nbsp;        } catch (Exception e) {
+<b class="fc">&nbsp;            enviarMensajeError(&quot;Error al cancelar operación: &quot; + e.getMessage());</b>
+<b class="fc">&nbsp;            Logger.getLogger(DefaultFrm.class.getName()).log(Level.SEVERE, &quot;Error en btnCancelarHandler&quot;, e);</b>
+<b class="fc">&nbsp;            limpiarFormulario();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    // Validadores
+&nbsp;    public void validarNombre(FacesContext facesContext, UIComponent uiComponent, Object nombre) {
+<b class="fc">&nbsp;        if (nombre == null || nombre.toString().isEmpty()) {</b>
+<b class="fc">&nbsp;            throw new ValidatorException(new FacesMessage(&quot;El nombre no puede estar vacío&quot;));</b>
+&nbsp;        }
+<b class="fc">&nbsp;        String nom = nombre.toString();</b>
+<b class="fc">&nbsp;        if (nom.trim().length() &lt; 3 || nom.trim().length() &gt; 155) {</b>
+<b class="fc">&nbsp;            throw new ValidatorException(new FacesMessage(&quot;El nombre debe tener entre 3 y 155 caracteres&quot;));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    // Métodos de utilidad
+&nbsp;    protected void limpiarFormulario() {
+<b class="fc">&nbsp;        this.registro = null;</b>
+<b class="fc">&nbsp;        this.estado = ESTADO_CRUD.NADA;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void configurarNuevoRegistro() {
+&nbsp;        // Implementación por defecto vacía - puede ser sobrescrita
+<b class="fc">&nbsp;    }</b>
+&nbsp;
+&nbsp;    protected void enviarMensaje(String mensaje, FacesMessage.Severity severity) {
+&nbsp;        String summary;
+<b class="fc">&nbsp;        if (FacesMessage.SEVERITY_ERROR.equals(severity)) {</b>
+<b class="fc">&nbsp;            summary = &quot;Error&quot;;</b>
+<b class="fc">&nbsp;        } else if (FacesMessage.SEVERITY_WARN.equals(severity)) {</b>
+<b class="fc">&nbsp;            summary = &quot;Advertencia&quot;;</b>
+&nbsp;        } else {
+<b class="fc">&nbsp;            summary = &quot;Éxito&quot;;</b>
+&nbsp;        }
+<b class="fc">&nbsp;        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, mensaje));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void enviarMensajeExito(String mensaje) {
+<b class="fc">&nbsp;        enviarMensaje(mensaje, FacesMessage.SEVERITY_INFO);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void enviarMensajeError(String mensaje) {
+<b class="fc">&nbsp;        enviarMensaje(mensaje, FacesMessage.SEVERITY_ERROR);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected void enviarMensajeAdvertencia(String mensaje) {
+<b class="fc">&nbsp;        enviarMensaje(mensaje, FacesMessage.SEVERITY_WARN);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // Getters y Setters
+&nbsp;    public String getNombreBean() {
+<b class="fc">&nbsp;        return nombreBean;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public T getRegistro() {
+<b class="fc">&nbsp;        return registro;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setRegistro(T registro) {
+<b class="fc">&nbsp;        this.registro = registro;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public ESTADO_CRUD getEstado() {
+<b class="fc">&nbsp;        return estado;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setEstado(ESTADO_CRUD estado) {
+<b class="nc">&nbsp;        this.estado = estado;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public List&lt;T&gt; getRegistros() {
+<b class="fc">&nbsp;        return registros;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setRegistros(List&lt;T&gt; registros) {
+<b class="nc">&nbsp;        this.registros = registros;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public int getPaginaActual() {
+<b class="fc">&nbsp;        return paginaActual;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setPaginaActual(int paginaActual) {
+<b class="fc">&nbsp;        this.paginaActual = paginaActual;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public int getPageSize() {
+<b class="fc">&nbsp;        return pageSize;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setPageSize(int pageSize) {
+<b class="fc">&nbsp;        this.pageSize = pageSize;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-03-02 23:33</div>
+</div>
+</body>
+</html>
