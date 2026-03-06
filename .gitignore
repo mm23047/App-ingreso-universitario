@@ -44,3 +44,6 @@ logs/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+### Reportes generados (no deben versionarse) ###
+htmlReport/
