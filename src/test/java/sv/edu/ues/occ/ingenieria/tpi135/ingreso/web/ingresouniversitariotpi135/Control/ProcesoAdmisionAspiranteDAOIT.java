@@ -12,7 +12,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ProcesoAdmisionAspirante;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
 import java.util.HashMap;
@@ -24,15 +26,21 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class InscripcionesPruebaDAOIT {
+public class ProcesoAdmisionAspiranteDAOIT {
 
-    // UUID de la inscripción creada en testCrear — compartido entre tests
+    // UUIDs del init.sql
+    private static final UUID ID_PROCESO_1   = UUID.fromString("09000000-0000-0000-0000-000000000001");
+    private static final UUID ID_ASPIRANTE_1 = UUID.fromString("e1000000-0000-0000-0000-000000000001");
+    private static final UUID ID_PRUEBA_2025 = UUID.fromString("d1000000-0000-0000-0000-000000000002");
+    private static final UUID ID_ETAPA_1     = UUID.fromString("c1000000-0000-0000-0000-000000000001");
+
+    // UUID del proceso creado en testCrear — compartido entre tests
     private static UUID idCreado;
 
     // EMF compartido — inicializado una sola vez en @BeforeAll
     private static EntityManagerFactory emf;
 
-    // static  un solo contenedor levantado una vez para toda la clase
+    // static → un solo contenedor levantado una vez para toda la clase
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17.5-alpine")
             .withDatabaseName("ingresoTPI135")
@@ -40,7 +48,7 @@ public class InscripcionesPruebaDAOIT {
             .withUsername("postgres")
             .withPassword("abc123");
 
-    public InscripcionesPruebaDAOIT() {
+    public ProcesoAdmisionAspiranteDAOIT() {
     }
 
     @BeforeAll
@@ -58,12 +66,12 @@ public class InscripcionesPruebaDAOIT {
     public void testCount() {
         assertTrue(postgres.isRunning());
 
-        InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+        ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
         cut.em = emf.createEntityManager();
 
         int resultado = cut.count();
 
-        // BD recién iniciada con init.sql  2 inscripciones
+        // BD recién iniciada con init.sql  2 registros: ambas inscripciones EN_PROCESO en etapa1
         assertTrue(resultado > 0);
         assertEquals(2, resultado);
     }
@@ -73,10 +81,10 @@ public class InscripcionesPruebaDAOIT {
     public void testFindRange() {
         assertTrue(postgres.isRunning());
 
-        InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+        ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
         cut.em = emf.createEntityManager();
 
-        List<InscripcionesPrueba> resultado = cut.findRange(0, 10);
+        List<ProcesoAdmisionAspirante> resultado = cut.findRange(0, 10);
 
         // Aún no se ha insertado nada  sigue habiendo 2
         assertNotNull(resultado);
@@ -90,26 +98,35 @@ public class InscripcionesPruebaDAOIT {
         assertTrue(postgres.isRunning());
 
         EntityManager em = emf.createEntityManager();
-        InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+        ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
         cut.em = em;
 
-        // Usar aspirante y prueba existentes del init.sql que no generan conflicto
-        AspirantesDato aspirante = em.find(AspirantesDato.class,
-                UUID.fromString("e1000000-0000-0000-0000-000000000001"));
-        PruebasAdmision prueba = em.find(PruebasAdmision.class,
-                UUID.fromString("d1000000-0000-0000-0000-000000000002"));
+        // Las dos inscripciones del init.sql ya tienen proceso asignado.
+        // Se crea una nueva InscripcionesPrueba (aspirante1 + prueba2025) para tener un PK libre.
+        AspirantesDato aspirante = em.find(AspirantesDato.class, ID_ASPIRANTE_1);
+        PruebasAdmision prueba   = em.find(PruebasAdmision.class, ID_PRUEBA_2025);
+        EtapasAdmision etapa1    = em.find(EtapasAdmision.class, ID_ETAPA_1);
 
-        InscripcionesPrueba nueva = new InscripcionesPrueba();
-        nueva.setIdAspirante(aspirante);
-        nueva.setIdPrueba(prueba);
-        nueva.setEstado("PENDIENTE");
+        InscripcionesPrueba nuevaIn = new InscripcionesPrueba();
+        nuevaIn.setIdAspirante(aspirante);
+        nuevaIn.setIdPrueba(prueba);
+        nuevaIn.setEstado("INSCRITO");
 
         em.getTransaction().begin();
-        cut.crear(nueva);
+        em.persist(nuevaIn);
+        em.flush(); // UUID auto-generado disponible después del flush
+
+        ProcesoAdmisionAspirante nuevoProceso = new ProcesoAdmisionAspirante();
+        nuevoProceso.setInscripcionesPrueba(nuevaIn);
+        nuevoProceso.setId(nuevaIn.getId()); // @MapsId: el PK debe coincidir
+        nuevoProceso.setIdEtapaActual(etapa1);
+        nuevoProceso.setEstado("EN_PROCESO");
+
+        cut.crear(nuevoProceso);
         em.getTransaction().commit();
 
         // Guardar el UUID para que testLeer, testActualizar y testEliminar lo usen
-        idCreado = nueva.getId();
+        idCreado = nuevoProceso.getId();
 
         assertNotNull(idCreado);
         assertEquals(3, cut.count());
@@ -120,15 +137,15 @@ public class InscripcionesPruebaDAOIT {
     public void testLeer() {
         assertTrue(postgres.isRunning());
 
-        InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+        ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
         cut.em = emf.createEntityManager();
 
-        UUID idExistente = UUID.fromString("09000000-0000-0000-0000-000000000001");
-        InscripcionesPrueba resultado = cut.leer(idExistente);
+        // Leer primer registro del init.sql: inscripcion1, etapa1, estado EN_PROCESO
+        ProcesoAdmisionAspirante resultado = cut.leer(ID_PROCESO_1);
 
         assertNotNull(resultado);
-        assertEquals(idExistente, resultado.getId());
-        assertEquals("INSCRITO", resultado.getEstado());
+        assertEquals("EN_PROCESO", resultado.getEstado());
+        assertEquals(ID_ETAPA_1, resultado.getIdEtapaActual().getId());
     }
 
     @Test
@@ -137,24 +154,22 @@ public class InscripcionesPruebaDAOIT {
         assertTrue(postgres.isRunning());
 
         EntityManager em = emf.createEntityManager();
-        InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+        ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
         cut.em = em;
 
-        UUID idExistente = UUID.fromString("09000000-0000-0000-0000-000000000001");
-        InscripcionesPrueba inscripcion = cut.leer(idExistente);
-        inscripcion.setEstado("PROCESADO");
+        // Cambiar estado de EN_PROCESO a ADMITIDO
+        ProcesoAdmisionAspirante proceso = cut.leer(ID_PROCESO_1);
+        assertNotNull(proceso);
+        assertEquals("EN_PROCESO", proceso.getEstado());
+
+        proceso.setEstado("ADMITIDO");
 
         em.getTransaction().begin();
-        InscripcionesPrueba resultado = cut.actualizar(inscripcion);
+        ProcesoAdmisionAspirante actualizado = cut.actualizar(proceso);
         em.getTransaction().commit();
 
-        assertNotNull(resultado);
-        assertEquals("PROCESADO", resultado.getEstado());
-
-        // Limpiar cache de primer nivel para forzar consulta real a BD
-        em.clear();
-        InscripcionesPrueba verificacion = cut.leer(idExistente);
-        assertEquals("PROCESADO", verificacion.getEstado());
+        assertNotNull(actualizado);
+        assertEquals("ADMITIDO", actualizado.getEstado());
     }
 
     @Test
@@ -163,15 +178,15 @@ public class InscripcionesPruebaDAOIT {
         assertTrue(postgres.isRunning());
 
         EntityManager em = emf.createEntityManager();
-        InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+        ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
         cut.em = em;
 
-        // Eliminar la inscripción creada en testCrear (sin hijos en otras tablas)
-        InscripcionesPrueba inscripcion = cut.leer(idCreado);
-        assertNotNull(inscripcion);
+        // Eliminar solo el proceso creado en testCrear (sin tocar la InscripcionesPrueba de respaldo)
+        ProcesoAdmisionAspirante proceso = cut.leer(idCreado);
+        assertNotNull(proceso);
 
         em.getTransaction().begin();
-        cut.eliminar(inscripcion);
+        cut.eliminar(proceso);
         em.getTransaction().commit();
 
         // Vuelve a los 2 registros originales del init.sql
