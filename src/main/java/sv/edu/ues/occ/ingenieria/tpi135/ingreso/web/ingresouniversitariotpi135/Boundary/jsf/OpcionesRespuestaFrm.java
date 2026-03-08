@@ -16,7 +16,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@Named("opciobesRespuestaFrm")
+@Named("opcionesRespuestaFrm")
 @ViewScoped
 public class OpcionesRespuestaFrm extends DefaultFrm<OpcionesRespuesta> implements Serializable {
 
