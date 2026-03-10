@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -24,6 +25,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PreguntasPorClaveDAOIT {
 
@@ -34,10 +36,10 @@ public class PreguntasPorClaveDAOIT {
     private static final UUID ID_PREGUNTA_3 = UUID.fromString("f1000000-0000-0000-0000-000000000003");
 
     // ID creado en testCrear — compartido entre tests
-    private static PreguntasPorClaveId idCreado;
+    private PreguntasPorClaveId idCreado;
 
     // EMF compartido — inicializado una sola vez en @BeforeAll
-    private static EntityManagerFactory emf;
+    private EntityManagerFactory emf;
 
     // static  un solo contenedor levantado una vez para toda la clase
     @Container
@@ -51,7 +53,7 @@ public class PreguntasPorClaveDAOIT {
     }
 
     @BeforeAll
-    static void inicializar() {
+    void inicializar() {
         Integer puertoPostgresql = postgres.getMappedPort(5432);
         Map<String, Object> propiedades = new HashMap<>();
         propiedades.put("jakarta.persistence.jdbc.url", String.format("jdbc:postgresql://localhost:%d/ingresoTPI135", puertoPostgresql));
