@@ -1,0 +1,45 @@
+services:
+
+  # ── Base de datos PostgreSQL ───────────────────────────────────────────────
+  postgres:
+    image: postgres:16
+    container_name: ingreso-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-ingreso_tpi135}
+      POSTGRES_USER: ${DB_USER:-ingreso_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ingreso_pgdata:/var/lib/postgresql/data
+    networks:
+      - ingreso-network
+    restart: unless-stopped
+
+  # ── Aplicación OpenLiberty ─────────────────────────────────────────────────
+  ingreso-app:
+    build: .
+    container_name: ingreso-app
+    ports:
+      - "9080:9080"   # HTTP
+      - "9443:9443"   # HTTPS
+    environment:
+      TZ: America/El_Salvador
+      # Conexión a la base de datos (apunta al servicio "postgres" de este compose)
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-ingreso_tpi135}
+      DB_USER: ${DB_USER:-ingreso_user}
+      DB_PASSWORD: ${DB_PASSWORD}
+      # Contraseña del keystore SSL generado en el arranque del contenedor
+      KEYSTORE_PASSWORD: ${KEYSTORE_PASSWORD}
+    depends_on:
+      - postgres
+    networks:
+      - ingreso-network
+    restart: unless-stopped
+
+volumes:
+  ingreso_pgdata:
+
+networks:
+  ingreso-network:
+    driver: bridge
