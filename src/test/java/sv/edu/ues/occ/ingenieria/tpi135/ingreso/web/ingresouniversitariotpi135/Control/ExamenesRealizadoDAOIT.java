@@ -7,17 +7,19 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AsignacionesAulaPupitre;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AulasExaman;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExamenesRealizado;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,14 +28,26 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ExamenesRealizadoDAOIT {
 
-    //ID que utilizaremos durante la prueba CRUD
-    private static UUID idExamenRealizado;
-    private static EntityManagerFactory emf;
+    // UUIDs del init.sql
+    private static final UUID ID_INSCRIPCION_1  = UUID.fromString("09000000-0000-0000-0000-000000000001");
+    private static final UUID ID_AULA_2         = UUID.fromString("0a000000-0000-0000-0000-000000000002");
+    private static final UUID ID_CLAVE_2        = UUID.fromString("08000000-0000-0000-0000-000000000002");
+    private static final UUID ID_ETAPA_2        = UUID.fromString("c1000000-0000-0000-0000-000000000002");
 
-    //Contenedor de Docker (Se levanta una vez para toda la clase)
+    // UUID del examen creado en testCrear — compartido entre tests
+    private UUID idCreado;
+
+    // UUID de la asignación auxiliar creada en testCrear para el prerequisito
+    private UUID idAsignacionAuxiliar;
+
+    // EMF compartido — inicializado una sola vez en @BeforeAll
+    private EntityManagerFactory emf;
+
+    // static → un solo contenedor levantado una vez para toda la clase
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17.5-alpine")
             .withDatabaseName("ingresoTPI135")
@@ -41,9 +55,11 @@ public class ExamenesRealizadoDAOIT {
             .withUsername("postgres")
             .withPassword("abc123");
 
-    // Configuración inicial
+    public ExamenesRealizadoDAOIT() {
+    }
+
     @BeforeAll
-    static void inicializar() {
+    void inicializar() {
         Integer puertoPostgresql = postgres.getMappedPort(5432);
         Map<String, Object> propiedades = new HashMap<>();
         propiedades.put("jakarta.persistence.jdbc.url", String.format("jdbc:postgresql://localhost:%d/ingresoTPI135", puertoPostgresql));
@@ -52,125 +68,153 @@ public class ExamenesRealizadoDAOIT {
         emf = Persistence.createEntityManagerFactory("ingresoPUIT", propiedades);
     }
 
-    public ExamenesRealizadoDAOIT() {}
-
     @Test
     @Order(1)
     public void testCount() {
-        System.out.println("Inicializando TEST COUNT() del DAO ExamenesRealizado");
+        System.out.println("count");
         assertTrue(postgres.isRunning());
 
         ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
-        EntityManager em = emf.createEntityManager();
+        cut.em = emf.createEntityManager();
 
-        cut.em=em;
         int resultado = cut.count();
 
-        assertEquals(resultado, 2);
-
+        // BD recién iniciada con init.sql → 2 exámenes realizados
+        assertTrue(resultado > 0);
+        assertEquals(2, resultado);
     }
 
     @Test
     @Order(2)
     public void testFindRange() {
-        System.out.println("Inicializando TEST testFindRange() del DAO ExamenesRealizado");
-        ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
+        System.out.println("findRange");
+        assertTrue(postgres.isRunning());
 
-        cut.em=emf.createEntityManager();
-        List<ExamenesRealizado> resultado = cut.findRange(0, 2);
+        ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
+        cut.em = emf.createEntityManager();
+
+        List<ExamenesRealizado> resultado = cut.findRange(0, 10);
+
+        // Aún no se ha insertado nada → sigue habiendo 2
         assertNotNull(resultado);
+        assertFalse(resultado.isEmpty());
+        assertEquals(2, resultado.size());
     }
 
     @Test
     @Order(3)
     public void testCrear() {
-        System.out.println("Inicializando TEST testCrear()");
-        ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
+        System.out.println("crear");
+        assertTrue(postgres.isRunning());
+
         EntityManager em = emf.createEntityManager();
+        ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
+        cut.em = em;
 
-        cut.em=em;
+        // Crear una nueva asignación de aula como prerequisito
+        // (inscripcion 1 + aula 2 con pupitre diferente; no hay UNIQUE constraint en la BD)
+        InscripcionesPrueba inscripcion = em.find(InscripcionesPrueba.class, ID_INSCRIPCION_1);
+        AulasExaman aula = em.find(AulasExaman.class, ID_AULA_2);
+        assertNotNull(inscripcion);
+        assertNotNull(aula);
 
-        AsignacionesAulaPupitre idAsignacionesAulaPupitre = em.createQuery("SELECT AP FROM AsignacionesAulaPupitre AP", AsignacionesAulaPupitre.class).setMaxResults(1).getSingleResult();
-        ClavesExaman idClaveExamen= em.createQuery("SELECT CE from ClavesExaman CE", ClavesExaman.class).setMaxResults(1).getSingleResult();
-        EtapasAdmision idEtapaAdmision= em.createQuery("SELECT EA from EtapasAdmision EA", EtapasAdmision.class).setMaxResults(1).getSingleResult();
+        AsignacionesAulaPupitre nuevaAsignacion = new AsignacionesAulaPupitre();
+        nuevaAsignacion.setIdInscripcion(inscripcion);
+        nuevaAsignacion.setIdAula(aula);
+        nuevaAsignacion.setPupitre("Z-99");
 
-        ExamenesRealizado nuevoExamen = new ExamenesRealizado();
+        // Cargar las FKs restantes del examen: clave B y etapa 2
+        ClavesExaman clave = em.find(ClavesExaman.class, ID_CLAVE_2);
+        EtapasAdmision etapa = em.find(EtapasAdmision.class, ID_ETAPA_2);
+        assertNotNull(clave);
+        assertNotNull(etapa);
 
+        ExamenesRealizado nuevo = new ExamenesRealizado();
+        nuevo.setIdAsignacion(nuevaAsignacion);
+        nuevo.setIdClave(clave);
+        nuevo.setIdEtapa(etapa);
+        // puntajeFinal y fechaRealizacion son opcionales → se dejan en null
 
-        nuevoExamen.setIdAsignacion(idAsignacionesAulaPupitre);
-        nuevoExamen.setIdClave(idClaveExamen);
-        nuevoExamen.setIdEtapa(idEtapaAdmision);
-        nuevoExamen.setPuntajeFinal(new BigDecimal("52"));
-        nuevoExamen.setFechaRealizacion(OffsetDateTime.now());
+        em.getTransaction().begin();
+        em.persist(nuevaAsignacion);   // persistir prerequisito primero
+        cut.crear(nuevo);
+        em.getTransaction().commit();
 
-        cut.em.getTransaction().begin();
-        cut.crear(nuevoExamen);
-        cut.em.getTransaction().commit();
-        idExamenRealizado=nuevoExamen.getId();
-        assertNotNull(idExamenRealizado);
+        idCreado = nuevo.getId();
+        idAsignacionAuxiliar = nuevaAsignacion.getId();
 
+        assertNotNull(idCreado);
         assertEquals(3, cut.count());
-
     }
 
     @Test
     @Order(4)
     public void testLeer() {
-        System.out.println("Inicializando TEST testLeer()");
+        System.out.println("leer");
+        assertTrue(postgres.isRunning());
+
         ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
-        cut.em=emf.createEntityManager();
-        ExamenesRealizado resultado = cut.leer(idExamenRealizado);
+        cut.em = emf.createEntityManager();
 
-        assertNotNull(resultado,"No debe de ser null porque debe de existir en la BD");
+        // Lee el registro insertado en testCrear usando el UUID almacenado
+        ExamenesRealizado resultado = cut.leer(idCreado);
 
-        assertEquals(new BigDecimal(52), resultado.getPuntajeFinal());
-        assertNotNull(resultado.getIdEtapa());
-        System.out.println(resultado.getIdEtapa());
+        assertNotNull(resultado);
+        assertEquals(ID_CLAVE_2, resultado.getIdClave().getId());
+        assertEquals(ID_ETAPA_2, resultado.getIdEtapa().getId());
+        assertNull(resultado.getPuntajeFinal());
     }
 
     @Test
     @Order(5)
     public void testActualizar() {
-        System.out.println("Inicializando TEST testUpdate()");
-        ExamenesRealizadoDAO cut=new ExamenesRealizadoDAO();
+        System.out.println("actualizar");
+        assertTrue(postgres.isRunning());
+
         EntityManager em = emf.createEntityManager();
+        ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
         cut.em = em;
 
-        //Leemos el registro de ExamenRealizado utilizado en este moemnto
-        ExamenesRealizado examenesRealizado=cut.leer(idExamenRealizado);
-        assertNotNull(examenesRealizado);
+        // Asignar un puntaje final al examen creado en testCrear
+        ExamenesRealizado examen = cut.leer(idCreado);
+        assertNotNull(examen);
+        examen.setPuntajeFinal(new BigDecimal("9.00"));
 
-        examenesRealizado.setPuntajeFinal(new BigDecimal("30"));
-
-        //GUardar camnois
         em.getTransaction().begin();
-        ExamenesRealizado resultado = cut.actualizar(examenesRealizado);
+        ExamenesRealizado resultado = cut.actualizar(examen);
         em.getTransaction().commit();
 
-        //Verificar cambios
-        assertEquals(new BigDecimal("30"), resultado.getPuntajeFinal());
-
+        assertNotNull(resultado);
+        assertEquals(new BigDecimal("9.00"), resultado.getPuntajeFinal());
+        // El conteo no cambia al actualizar → sigue en 3
+        assertEquals(3, cut.count());
     }
 
     @Test
     @Order(6)
     public void testEliminar() {
-        System.out.println("Inicializando TEST testEliminar()");
-        EntityManager em=emf.createEntityManager();
-        ExamenesRealizadoDAO cut=new ExamenesRealizadoDAO();
-        cut.em=em;
+        System.out.println("eliminar");
+        assertTrue(postgres.isRunning());
 
-        ExamenesRealizado examenesRealizado=cut.leer(idExamenRealizado);
-        assertNotNull(examenesRealizado);
+        EntityManager em = emf.createEntityManager();
+        ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
+        cut.em = em;
+
+        // Elimina el examen creado en testCrear
+        ExamenesRealizado examen = cut.leer(idCreado);
+        assertNotNull(examen);
 
         em.getTransaction().begin();
-        cut.eliminar(examenesRealizado);
+        cut.eliminar(examen);
+        // Limpiar también la asignación auxiliar creada en testCrear
+        AsignacionesAulaPupitre asignacion = em.find(AsignacionesAulaPupitre.class, idAsignacionAuxiliar);
+        if (asignacion != null) {
+            em.remove(asignacion);
+        }
         em.getTransaction().commit();
 
-        ExamenesRealizado registroBorrado = cut.leer(idExamenRealizado);
-        assertNull(registroBorrado,"Registro ya no debe de existir");
+        // Vuelve a los 2 registros originales del init.sql
         assertEquals(2, cut.count());
+        assertNull(cut.leer(idCreado));
     }
-
-
 }

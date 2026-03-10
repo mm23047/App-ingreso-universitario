@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server description="IngresoUniversitario TPI135">
+
+    <featureManager>
+        <!-- Jakarta EE 10 full platform: incluye EJB, JPA, JSF, JAX-RS, CDI, etc. -->
+        <feature>jakartaee-10.0</feature>
+        <!-- JDBC para el DataSource de PostgreSQL -->
+        <feature>jdbc-4.2</feature>
+    </featureManager>
+
+    <!-- ── Endpoint HTTP/HTTPS ─────────────────────────────────────────────── -->
+    <httpEndpoint id="defaultHttpEndpoint"
+                  host="*"
+                  httpPort="9080"
+                  httpsPort="9443"/>
+
+    <!-- ── SSL con keystore generado en el arranque del contenedor (CMD) ─── -->
+    <keyStore id="defaultKeyStore"
+              password="${env.KEYSTORE_PASSWORD}"
+              type="PKCS12"
+              location="${server.config.dir}/resources/security/keystore.p12"/>
+
+    <ssl id="defaultSSLConfig"
+         keyStoreRef="defaultKeyStore"
+         sslProtocol="TLSv1.2"/>
+
+    <!-- ── Driver JDBC PostgreSQL ─────────────────────────────────────────── -->
+    <library id="PostgreSQLLib">
+        <fileset dir="${shared.resource.dir}" includes="postgresql-*.jar"/>
+    </library>
+
+    <!-- ── DataSource JNDI jdbc/pgdb (referenciado en persistence.xml) ────── -->
+    <dataSource id="pgdb" jndiName="jdbc/pgdb">
+        <jdbcDriver libraryRef="PostgreSQLLib"/>
+        <properties.postgresql
+            serverName="${env.DB_HOST}"
+            portNumber="${env.DB_PORT}"
+            databaseName="${env.DB_NAME}"
+            user="${env.DB_USER}"
+            password="${env.DB_PASSWORD}"/>
+    </dataSource>
+
+    <!-- ── Registro de usuarios requerido por el ORB (jakartaee-10.0 full) ── -->
+    <basicRegistry id="basic" realm="BasicRealm"/>
+
+    <!-- ── Aplicación WAR ─────────────────────────────────────────────────── -->
+    <!--
+        classloader parentLast: las clases del WAR tienen prioridad sobre las
+        del servidor (necesario para evitar conflictos con EclipseLink/JPA).
+    -->
+    <application id="ingreso"
+                 location="ingreso.war"
+                 type="war">
+        <classloader delegation="parentLast"/>
+    </application>
+
+</server>

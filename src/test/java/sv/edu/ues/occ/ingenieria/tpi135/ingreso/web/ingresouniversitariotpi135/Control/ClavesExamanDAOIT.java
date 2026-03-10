@@ -7,11 +7,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
@@ -23,14 +23,20 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ClavesExamanDAOIT {
 
-        //ID que utilizaremos durante la prueba CRUD
-    private static UUID idClaveExamen;
-    private static EntityManagerFactory emf;
+    // UUIDs del init.sql
+    private static final UUID ID_PRUEBA_1 = UUID.fromString("d1000000-0000-0000-0000-000000000001");
 
-    //Contenedor de Docker (Se levanta una vez para toda la clase)
+    // UUID de la clave creada en testCrear — compartido entre tests
+    private UUID idCreado;
+
+    // EMF compartido — inicializado una sola vez en @BeforeAll
+    private EntityManagerFactory emf;
+
+    // static → un solo contenedor levantado una vez para toda la clase
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17.5-alpine")
             .withDatabaseName("ingresoTPI135")
@@ -38,9 +44,11 @@ public class ClavesExamanDAOIT {
             .withUsername("postgres")
             .withPassword("abc123");
 
-    // Configuración inicial
+    public ClavesExamanDAOIT() {
+    }
+
     @BeforeAll
-    static void inicializar() {
+    void inicializar() {
         Integer puertoPostgresql = postgres.getMappedPort(5432);
         Map<String, Object> propiedades = new HashMap<>();
         propiedades.put("jakarta.persistence.jdbc.url", String.format("jdbc:postgresql://localhost:%d/ingresoTPI135", puertoPostgresql));
@@ -49,118 +57,129 @@ public class ClavesExamanDAOIT {
         emf = Persistence.createEntityManagerFactory("ingresoPUIT", propiedades);
     }
 
-    public ClavesExamanDAOIT() {}
-
     @Test
     @Order(1)
     public void testCount() {
-        System.out.println("Inicializando TEST COUNT() del DAO ClavesExaman");
+        System.out.println("count");
         assertTrue(postgres.isRunning());
 
         ClavesExamanDAO cut = new ClavesExamanDAO();
-        cut.em=emf.createEntityManager();
+        cut.em = emf.createEntityManager();
 
         int resultado = cut.count();
-        assertEquals(2, resultado);
-        System.out.println("Cantidad de datos en la BD: "+resultado);
 
+        // BD recién iniciada con init.sql → 2 claves de examen (Clave A, Clave B)
+        assertTrue(resultado > 0);
+        assertEquals(2, resultado);
     }
 
     @Test
     @Order(2)
     public void testFindRange() {
-        System.out.println("Inicializando TEST CREATE() del DAO ClavesExaman");
+        System.out.println("findRange");
+        assertTrue(postgres.isRunning());
+
         ClavesExamanDAO cut = new ClavesExamanDAO();
-        EntityManager em = emf.createEntityManager();
-        cut.em = em;
+        cut.em = emf.createEntityManager();
 
         List<ClavesExaman> resultado = cut.findRange(0, 10);
-        assertNotNull(resultado);
-        System.out.println("Claves de examen encontradas: " + resultado.size());
-        assertTrue(resultado.size() > 0);
 
+        // Aún no se ha insertado nada → sigue habiendo 2
+        assertNotNull(resultado);
+        assertFalse(resultado.isEmpty());
+        assertEquals(2, resultado.size());
     }
+
     @Test
     @Order(3)
     public void testCrear() {
-        System.out.println("Inicializando TEST CREATE() del DAO ClavesExaman");
-        ClavesExamanDAO cut = new ClavesExamanDAO();
+        System.out.println("crear");
+        assertTrue(postgres.isRunning());
+
         EntityManager em = emf.createEntityManager();
+        ClavesExamanDAO cut = new ClavesExamanDAO();
         cut.em = em;
 
-        PruebasAdmision IdPruebaAdmision = em.createQuery("SELECT p FROM PruebasAdmision p", PruebasAdmision.class).setMaxResults(1).getSingleResult();
+        // Asociar la nueva clave a la prueba de admisión 2026 (d1...001)
+        PruebasAdmision prueba = em.find(PruebasAdmision.class, ID_PRUEBA_1);
+        assertNotNull(prueba);
 
-        ClavesExaman nuevaClave = new ClavesExaman();
-        nuevaClave.setIdPrueba(IdPruebaAdmision);
-        nuevaClave.setNombreClave("CLabe C");
+        ClavesExaman nueva = new ClavesExaman();
+        nueva.setIdPrueba(prueba);
+        nueva.setNombreClave("Clave C");
 
-        cut.em.getTransaction().begin();
-        cut.crear(nuevaClave);
-        cut.em.getTransaction().commit();
+        em.getTransaction().begin();
+        cut.crear(nueva);
+        em.getTransaction().commit();
 
-        idClaveExamen = nuevaClave.getId();
-        assertNotNull(idClaveExamen);
+        // Guardar el UUID para que testLeer, testActualizar y testEliminar lo usen
+        idCreado = nueva.getId();
+
+        assertNotNull(idCreado);
         assertEquals(3, cut.count());
-        System.out.println("Cantidad de datos en la BD: "+cut.count());
-
     }
 
     @Test
     @Order(4)
     public void testLeer() {
-        System.out.println("Inicializando TEST LEER() del DAO ClavesExaman");
-        ClavesExamanDAO cut = new ClavesExamanDAO();
-        cut.em=emf.createEntityManager();
+        System.out.println("leer");
+        assertTrue(postgres.isRunning());
 
-        ClavesExaman resultado = cut.leer(idClaveExamen);
-        assertNotNull(resultado, "El resultado no debe ser nulo");
-        assertEquals("CLabe C", resultado.getNombreClave());
+        ClavesExamanDAO cut = new ClavesExamanDAO();
+        cut.em = emf.createEntityManager();
+
+        // Lee el registro insertado en testCrear usando el UUID almacenado
+        ClavesExaman resultado = cut.leer(idCreado);
+
+        assertNotNull(resultado);
+        assertEquals("Clave C", resultado.getNombreClave());
     }
 
     @Test
     @Order(5)
     public void testActualizar() {
-        System.out.println("Inicializando TEST ACTUALIZAR() del DAO ClavesExaman");
+        System.out.println("actualizar");
+        assertTrue(postgres.isRunning());
+
+        EntityManager em = emf.createEntityManager();
         ClavesExamanDAO cut = new ClavesExamanDAO();
-        cut.em=emf.createEntityManager();
+        cut.em = em;
 
-        ClavesExaman claveExistente = cut.leer(idClaveExamen);
-        assertNotNull(claveExistente, "La clave de examen a actualizar no debe ser nula");
+        // Modifica el registro creado en testCrear
+        ClavesExaman clave = cut.leer(idCreado);
+        assertNotNull(clave);
+        clave.setNombreClave("Clave C actualizada");
 
-        claveExistente.setNombreClave("Clave C Actualizada");
+        em.getTransaction().begin();
+        ClavesExaman resultado = cut.actualizar(clave);
+        em.getTransaction().commit();
 
-        cut.em.getTransaction().begin();
-        cut.actualizar(claveExistente);
-        cut.em.getTransaction().commit();
-
-        ClavesExaman resultado = cut.leer(idClaveExamen);
-        assertNotNull(resultado, "El resultado no debe ser nulo");
-
-        assertEquals("Clave C Actualizada", resultado.getNombreClave());
-        System.out.println("Nombre de clase actualizada: " + resultado.getNombreClave());
+        assertNotNull(resultado);
+        assertEquals("Clave C actualizada", resultado.getNombreClave());
+        // El conteo no cambia al actualizar → sigue en 3
+        assertEquals(3, cut.count());
     }
 
-     @Test
-     @Order(6)
-     public void testEliminar() {
-         System.out.println("Inicializando TEST ELIMINAR() del DAO ClavesExaman");
-         ClavesExamanDAO cut = new ClavesExamanDAO();
-         cut.em=emf.createEntityManager();
+    @Test
+    @Order(6)
+    public void testEliminar() {
+        System.out.println("eliminar");
+        assertTrue(postgres.isRunning());
 
-         ClavesExaman claveExistente = cut.leer(idClaveExamen);
-         assertNotNull(claveExistente, "La clave de examen a eliminar no debe ser nula");
+        EntityManager em = emf.createEntityManager();
+        ClavesExamanDAO cut = new ClavesExamanDAO();
+        cut.em = em;
 
-         cut.em.getTransaction().begin();
-         cut.eliminar(claveExistente);
-         cut.em.getTransaction().commit();
+        // Elimina el registro creado en testCrear
+        ClavesExaman clave = cut.leer(idCreado);
+        assertNotNull(clave);
 
-         ClavesExaman resultado = cut.leer(idClaveExamen);
-         assertNull(resultado, "El resultado debe ser nulo porque el registro fue eliminado");
+        em.getTransaction().begin();
+        cut.eliminar(clave);
+        em.getTransaction().commit();
 
-         assertEquals(2, cut.count());
-         System.out.println("Registros en la BD: "+cut.count());
+        // Vuelve a los 2 registros originales del init.sql
+        assertEquals(2, cut.count());
+        assertNull(cut.leer(idCreado));
     }
-
-
-
 }

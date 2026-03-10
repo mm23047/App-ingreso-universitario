@@ -12,8 +12,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.OpcionesRespuesta;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.UsuariosSistema;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,13 +24,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class OpcionesRespuestaDAOIT {
+public class UsuariosSistemaDAOIT {
 
-    // UUIDs del init.sql
-    // f1...003 = "¿Cuántos planetas tiene el sistema solar?" — se usará para la nueva opción
-    private static final UUID ID_PREGUNTA_3 = UUID.fromString("f1000000-0000-0000-0000-000000000003");
-
-    // UUID de la opción creada en testCrear — compartido entre tests
+    // UUID del usuario creado en testCrear — compartido entre tests
     private UUID idCreado;
 
     // EMF compartido — inicializado una sola vez en @BeforeAll
@@ -45,7 +40,7 @@ public class OpcionesRespuestaDAOIT {
             .withUsername("postgres")
             .withPassword("abc123");
 
-    public OpcionesRespuestaDAOIT() {
+    public UsuariosSistemaDAOIT() {
     }
 
     @BeforeAll
@@ -64,14 +59,14 @@ public class OpcionesRespuestaDAOIT {
         System.out.println("count");
         assertTrue(postgres.isRunning());
 
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+        UsuariosSistemaDAO cut = new UsuariosSistemaDAO();
         cut.em = emf.createEntityManager();
 
         int resultado = cut.count();
 
-        // BD recién iniciada con init.sql → 10 opciones de respuesta en total
+        // BD recién iniciada con init.sql → 3 usuarios del sistema
         assertTrue(resultado > 0);
-        assertEquals(10, resultado);
+        assertEquals(3, resultado);
     }
 
     @Test
@@ -80,15 +75,15 @@ public class OpcionesRespuestaDAOIT {
         System.out.println("findRange");
         assertTrue(postgres.isRunning());
 
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+        UsuariosSistemaDAO cut = new UsuariosSistemaDAO();
         cut.em = emf.createEntityManager();
 
-        List<OpcionesRespuesta> resultado = cut.findRange(0, 15);
+        List<UsuariosSistema> resultado = cut.findRange(0, 10);
 
-        // Aún no se ha insertado nada → sigue habiendo 10
+        // Aún no se ha insertado nada → sigue habiendo 3
         assertNotNull(resultado);
         assertFalse(resultado.isEmpty());
-        assertEquals(10, resultado.size());
+        assertEquals(3, resultado.size());
     }
 
     @Test
@@ -98,27 +93,24 @@ public class OpcionesRespuestaDAOIT {
         assertTrue(postgres.isRunning());
 
         EntityManager em = emf.createEntityManager();
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+        UsuariosSistemaDAO cut = new UsuariosSistemaDAO();
         cut.em = em;
 
-        // Agregar una nueva opción a la pregunta f1...003 ("¿Cuántos planetas...?")
-        BancoPregunta pregunta = em.find(BancoPregunta.class, ID_PREGUNTA_3);
-        assertNotNull(pregunta);
-
-        OpcionesRespuesta nueva = new OpcionesRespuesta();
-        nueva.setIdPregunta(pregunta);
-        nueva.setTextoOpcion("9");
-        nueva.setEsCorrecta(false);
+        UsuariosSistema nuevo = new UsuariosSistema();
+        nuevo.setNombreUsuario("testuser");
+        nuevo.setCorreo("testuser@ues.edu.sv");
+        nuevo.setContrasenaHash("$2a$10$hashtest");
+        nuevo.setRol("ASPIRANTE");
 
         em.getTransaction().begin();
-        cut.crear(nueva);
+        cut.crear(nuevo);
         em.getTransaction().commit();
 
         // Guardar el UUID para que testLeer, testActualizar y testEliminar lo usen
-        idCreado = nueva.getId();
+        idCreado = nuevo.getId();
 
         assertNotNull(idCreado);
-        assertEquals(11, cut.count());
+        assertEquals(4, cut.count());
     }
 
     @Test
@@ -127,15 +119,15 @@ public class OpcionesRespuestaDAOIT {
         System.out.println("leer");
         assertTrue(postgres.isRunning());
 
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+        UsuariosSistemaDAO cut = new UsuariosSistemaDAO();
         cut.em = emf.createEntityManager();
 
         // Lee el registro insertado en testCrear usando el UUID almacenado
-        OpcionesRespuesta resultado = cut.leer(idCreado);
+        UsuariosSistema resultado = cut.leer(idCreado);
 
         assertNotNull(resultado);
-        assertEquals("9", resultado.getTextoOpcion());
-        assertFalse(resultado.getEsCorrecta());
+        assertEquals("testuser", resultado.getNombreUsuario());
+        assertEquals("testuser@ues.edu.sv", resultado.getCorreo());
     }
 
     @Test
@@ -145,22 +137,22 @@ public class OpcionesRespuestaDAOIT {
         assertTrue(postgres.isRunning());
 
         EntityManager em = emf.createEntityManager();
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+        UsuariosSistemaDAO cut = new UsuariosSistemaDAO();
         cut.em = em;
 
         // Modifica el registro creado en testCrear
-        OpcionesRespuesta opcion = cut.leer(idCreado);
-        assertNotNull(opcion);
-        opcion.setTextoOpcion("texto actualizado");
+        UsuariosSistema usuario = cut.leer(idCreado);
+        assertNotNull(usuario);
+        usuario.setNombreUsuario("testuser_actualizado");
 
         em.getTransaction().begin();
-        OpcionesRespuesta resultado = cut.actualizar(opcion);
+        UsuariosSistema resultado = cut.actualizar(usuario);
         em.getTransaction().commit();
 
         assertNotNull(resultado);
-        assertEquals("texto actualizado", resultado.getTextoOpcion());
-        // El conteo no cambia al actualizar → sigue en 11
-        assertEquals(11, cut.count());
+        assertEquals("testuser_actualizado", resultado.getNombreUsuario());
+        // El conteo no cambia al actualizar → sigue en 4
+        assertEquals(4, cut.count());
     }
 
     @Test
@@ -170,19 +162,19 @@ public class OpcionesRespuestaDAOIT {
         assertTrue(postgres.isRunning());
 
         EntityManager em = emf.createEntityManager();
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+        UsuariosSistemaDAO cut = new UsuariosSistemaDAO();
         cut.em = em;
 
         // Elimina el registro creado en testCrear
-        OpcionesRespuesta opcion = cut.leer(idCreado);
-        assertNotNull(opcion);
+        UsuariosSistema usuario = cut.leer(idCreado);
+        assertNotNull(usuario);
 
         em.getTransaction().begin();
-        cut.eliminar(opcion);
+        cut.eliminar(usuario);
         em.getTransaction().commit();
 
-        // Vuelve a los 10 registros originales del init.sql
-        assertEquals(10, cut.count());
+        // Vuelve a los 3 registros originales del init.sql
+        assertEquals(3, cut.count());
         assertNull(cut.leer(idCreado));
     }
 }

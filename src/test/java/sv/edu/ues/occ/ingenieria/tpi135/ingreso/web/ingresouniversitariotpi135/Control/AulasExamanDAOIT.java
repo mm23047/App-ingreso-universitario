@@ -12,8 +12,8 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.OpcionesRespuesta;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AulasExaman;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExaman;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,13 +25,12 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class OpcionesRespuestaDAOIT {
+public class AulasExamanDAOIT {
 
     // UUIDs del init.sql
-    // f1...003 = "¿Cuántos planetas tiene el sistema solar?" — se usará para la nueva opción
-    private static final UUID ID_PREGUNTA_3 = UUID.fromString("f1000000-0000-0000-0000-000000000003");
+    private static final UUID ID_TURNO_1 = UUID.fromString("07000000-0000-0000-0000-000000000001");
 
-    // UUID de la opción creada en testCrear — compartido entre tests
+    // UUID del aula creada en testCrear — compartido entre tests
     private UUID idCreado;
 
     // EMF compartido — inicializado una sola vez en @BeforeAll
@@ -45,7 +44,7 @@ public class OpcionesRespuestaDAOIT {
             .withUsername("postgres")
             .withPassword("abc123");
 
-    public OpcionesRespuestaDAOIT() {
+    public AulasExamanDAOIT() {
     }
 
     @BeforeAll
@@ -64,14 +63,14 @@ public class OpcionesRespuestaDAOIT {
         System.out.println("count");
         assertTrue(postgres.isRunning());
 
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+        AulasExamanDAO cut = new AulasExamanDAO();
         cut.em = emf.createEntityManager();
 
         int resultado = cut.count();
 
-        // BD recién iniciada con init.sql → 10 opciones de respuesta en total
+        // BD recién iniciada con init.sql → 2 aulas de examen (AULA-101, AULA-201)
         assertTrue(resultado > 0);
-        assertEquals(10, resultado);
+        assertEquals(2, resultado);
     }
 
     @Test
@@ -80,15 +79,15 @@ public class OpcionesRespuestaDAOIT {
         System.out.println("findRange");
         assertTrue(postgres.isRunning());
 
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+        AulasExamanDAO cut = new AulasExamanDAO();
         cut.em = emf.createEntityManager();
 
-        List<OpcionesRespuesta> resultado = cut.findRange(0, 15);
+        List<AulasExaman> resultado = cut.findRange(0, 10);
 
-        // Aún no se ha insertado nada → sigue habiendo 10
+        // Aún no se ha insertado nada → sigue habiendo 2
         assertNotNull(resultado);
         assertFalse(resultado.isEmpty());
-        assertEquals(10, resultado.size());
+        assertEquals(2, resultado.size());
     }
 
     @Test
@@ -98,17 +97,19 @@ public class OpcionesRespuestaDAOIT {
         assertTrue(postgres.isRunning());
 
         EntityManager em = emf.createEntityManager();
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+        AulasExamanDAO cut = new AulasExamanDAO();
         cut.em = em;
 
-        // Agregar una nueva opción a la pregunta f1...003 ("¿Cuántos planetas...?")
-        BancoPregunta pregunta = em.find(BancoPregunta.class, ID_PREGUNTA_3);
-        assertNotNull(pregunta);
+        // Asociar el nuevo aula al turno mañana (07...001)
+        TurnosExaman turno = em.find(TurnosExaman.class, ID_TURNO_1);
+        assertNotNull(turno);
 
-        OpcionesRespuesta nueva = new OpcionesRespuesta();
-        nueva.setIdPregunta(pregunta);
-        nueva.setTextoOpcion("9");
-        nueva.setEsCorrecta(false);
+        AulasExaman nueva = new AulasExaman();
+        nueva.setIdTurno(turno);
+        nueva.setIdAulaApi("AULA-301");
+        nueva.setCapacidad(30);
+        nueva.setCuposOcupados(0);
+        nueva.setAccesibleSillaRuedas(false);
 
         em.getTransaction().begin();
         cut.crear(nueva);
@@ -118,7 +119,7 @@ public class OpcionesRespuestaDAOIT {
         idCreado = nueva.getId();
 
         assertNotNull(idCreado);
-        assertEquals(11, cut.count());
+        assertEquals(3, cut.count());
     }
 
     @Test
@@ -127,15 +128,15 @@ public class OpcionesRespuestaDAOIT {
         System.out.println("leer");
         assertTrue(postgres.isRunning());
 
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+        AulasExamanDAO cut = new AulasExamanDAO();
         cut.em = emf.createEntityManager();
 
         // Lee el registro insertado en testCrear usando el UUID almacenado
-        OpcionesRespuesta resultado = cut.leer(idCreado);
+        AulasExaman resultado = cut.leer(idCreado);
 
         assertNotNull(resultado);
-        assertEquals("9", resultado.getTextoOpcion());
-        assertFalse(resultado.getEsCorrecta());
+        assertEquals("AULA-301", resultado.getIdAulaApi());
+        assertEquals(30, resultado.getCapacidad());
     }
 
     @Test
@@ -145,22 +146,22 @@ public class OpcionesRespuestaDAOIT {
         assertTrue(postgres.isRunning());
 
         EntityManager em = emf.createEntityManager();
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+        AulasExamanDAO cut = new AulasExamanDAO();
         cut.em = em;
 
         // Modifica el registro creado en testCrear
-        OpcionesRespuesta opcion = cut.leer(idCreado);
-        assertNotNull(opcion);
-        opcion.setTextoOpcion("texto actualizado");
+        AulasExaman aula = cut.leer(idCreado);
+        assertNotNull(aula);
+        aula.setCapacidad(25);
 
         em.getTransaction().begin();
-        OpcionesRespuesta resultado = cut.actualizar(opcion);
+        AulasExaman resultado = cut.actualizar(aula);
         em.getTransaction().commit();
 
         assertNotNull(resultado);
-        assertEquals("texto actualizado", resultado.getTextoOpcion());
-        // El conteo no cambia al actualizar → sigue en 11
-        assertEquals(11, cut.count());
+        assertEquals(25, resultado.getCapacidad());
+        // El conteo no cambia al actualizar → sigue en 3
+        assertEquals(3, cut.count());
     }
 
     @Test
@@ -170,19 +171,19 @@ public class OpcionesRespuestaDAOIT {
         assertTrue(postgres.isRunning());
 
         EntityManager em = emf.createEntityManager();
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+        AulasExamanDAO cut = new AulasExamanDAO();
         cut.em = em;
 
         // Elimina el registro creado en testCrear
-        OpcionesRespuesta opcion = cut.leer(idCreado);
-        assertNotNull(opcion);
+        AulasExaman aula = cut.leer(idCreado);
+        assertNotNull(aula);
 
         em.getTransaction().begin();
-        cut.eliminar(opcion);
+        cut.eliminar(aula);
         em.getTransaction().commit();
 
-        // Vuelve a los 10 registros originales del init.sql
-        assertEquals(10, cut.count());
+        // Vuelve a los 2 registros originales del init.sql
+        assertEquals(2, cut.count());
         assertNull(cut.leer(idCreado));
     }
 }
