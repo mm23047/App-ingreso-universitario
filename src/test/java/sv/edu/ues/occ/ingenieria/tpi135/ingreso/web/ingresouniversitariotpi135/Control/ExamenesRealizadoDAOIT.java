@@ -149,7 +149,6 @@ public class ExamenesRealizadoDAOIT {
 
         //Verificar cambios
         assertEquals(new BigDecimal("30"), resultado.getPuntajeFinal());
-        System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
     }
 
@@ -169,7 +168,7 @@ public class ExamenesRealizadoDAOIT {
         em.getTransaction().commit();
 
         ExamenesRealizado registroBorrado = cut.leer(idExamenRealizado);
-        assertNotNull(registroBorrado,"Registro ya no debe de existir");
+        assertNull(registroBorrado,"Registro ya no debe de existir");
         assertEquals(2, cut.count());
     }
 

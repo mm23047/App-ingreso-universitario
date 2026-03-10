@@ -15,8 +15,6 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.OpcionesRespuesta;
 
 
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -105,11 +103,82 @@ public class OpcionesRespuestaDAOIT {
         cut.crear(nuevaOpcion);
         cut.em.getTransaction().commit();
 
+        idOpcionRespuesta = nuevaOpcion.getId();
+        assertNotNull(idOpcionRespuesta);
+
         assertEquals(11, cut.count());
         System.out.println("Cantidad de datos en la BD: "+cut.count());
 
     }
+
+    @Test
+    @Order(4)
+    public void testLeer() {
+        System.out.println("Inicializando TEST testLeer() del DAO OpcionesRespuesta");
+        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+        EntityManager em = emf.createEntityManager();
+        cut.em = em;
+
+        OpcionesRespuesta resultado = cut.leer(idOpcionRespuesta);
+        assertNotNull(resultado, "No debe de ser null porque debe de existir en la BD");
+        
+        assertEquals(true, resultado.getEsCorrecta());
+        System.out.println("Opcion de respuesta encontrada: " + resultado.getEsCorrecta()+" EL texto de Opcion es: "+resultado.getTextoOpcion());
+        assertNotNull(resultado.getIdPregunta(), "La pregunta asociada a la opcion de respuesta no debe de ser null");
+
+    }
+
+    @Test
+    @Order(5)
+    public void testUpdate() {
+        System.out.println("Inicializando TEST testUpdate() del DAO OpcionesRespuesta");
+        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+        EntityManager em = emf.createEntityManager();
+        cut.em = em;
+
+        OpcionesRespuesta opcionExistente = cut.leer(idOpcionRespuesta);
+        assertNotNull(opcionExistente, "No debe de ser null porque debe de existir en la BD");
+
+        // Modificamos los campos que queremos actualizar 
+        opcionExistente.setTextoOpcion("5");
+        opcionExistente.setEsCorrecta(false);
+
+        // Guardamos los cambios
+        cut.em.getTransaction().begin();
+        cut.actualizar(opcionExistente);
+        cut.em.getTransaction().commit();
+
+        // Verificamos que los cambios se hayan guardado correctamente
+        OpcionesRespuesta opcionActualizada = cut.leer(idOpcionRespuesta);
+        assertNotNull(opcionActualizada, "No debe de ser null porque debe de existir en la BD");
+        assertEquals("5", opcionActualizada.getTextoOpcion());
+        assertEquals(false, opcionActualizada.getEsCorrecta());
+        System.out.println("Opcion de respuesta actualizada: " + opcionActualizada.getTextoOpcion()+" Es correcta? "+opcionActualizada.getEsCorrecta());
+
+    }
     
+    @Test
+    @Order(6)
+    public void testEliminar() {
+        System.out.println("Inicializando TEST testEliminar() del DAO OpcionesRespuesta");
+        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+        EntityManager em = emf.createEntityManager();
+        cut.em = em;
+
+        OpcionesRespuesta opcionExistente = cut.leer(idOpcionRespuesta);
+        assertNotNull(opcionExistente, "No debe de ser null porque debe de existir en la BD");
+
+        // Eliminamos el registro
+        cut.em.getTransaction().begin();
+        cut.eliminar(opcionExistente);
+        cut.em.getTransaction().commit();
+
+        // Verificamos que el registro haya sido eliminado
+        OpcionesRespuesta opcionEliminada = cut.leer(idOpcionRespuesta);
+        assertNull(opcionEliminada, "Debe de ser null porque el registro fue eliminado");
+        if(idOpcionRespuesta!=null){
+            System.out.println("Opcion de respuesta eliminada correctamente");}
+    }
 
 
 
