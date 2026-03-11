@@ -32,14 +32,13 @@ RUN mkdir -p /opt/wlp/usr/shared/resources \
          -O /opt/wlp/usr/shared/resources/postgresql-42.7.7.jar
 
 # ── Crear servidor Liberty y directorios necesarios ─────────────────────────
+# apps/ queda vacío: el WAR se inyecta en tiempo de test con Testcontainers
 RUN /opt/wlp/bin/server create tpi135_2026 \
  && mkdir -p /opt/wlp/usr/servers/tpi135_2026/apps \
+             /opt/wlp/usr/servers/tpi135_2026/dropins \
              /opt/wlp/usr/servers/tpi135_2026/resources/security
 
-# ── Artefactos del proyecto ───────────────────────────────────────────────────
-COPY target/IngresoUniversitarioTPI135-1.0-SNAPSHOT.war \
-     /opt/wlp/usr/servers/tpi135_2026/apps/ingreso.war
-
+# ── Configuración del servidor ─────────────────────────────────────────────────────
 COPY server.xml /opt/wlp/usr/servers/tpi135_2026/server.xml
 
 EXPOSE 9080 9443
@@ -47,7 +46,7 @@ EXPOSE 9080 9443
 # Genera el keystore SSL si no existe y arranca Liberty
 CMD ["/bin/bash", "-c", \
   "KEYSTORE=${LIBERTY_HOME}/usr/servers/tpi135_2026/resources/security/keystore.p12; \
-   if [ ! -f \"${KEYSTORE}\" ]; then \
+   if [ -n \"${KEYSTORE_PASSWORD}\" ] && [ ! -f \"${KEYSTORE}\" ]; then \
      echo '[init] Generando keystore SSL...'; \
      ${JAVA_HOME}/bin/keytool -genkeypair \
        -alias liberty -keyalg RSA -keysize 2048 -validity 3650 \

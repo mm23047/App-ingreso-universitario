@@ -33,11 +33,11 @@
     <dataSource id="pgdb" jndiName="jdbc/pgdb">
         <jdbcDriver libraryRef="PostgreSQLLib"/>
         <properties.postgresql
-            serverName="${env.DB_HOST}"
-            portNumber="${env.DB_PORT}"
-            databaseName="${env.DB_NAME}"
-            user="${env.DB_USER}"
-            password="${env.DB_PASSWORD}"/>
+            serverName="${env.PGSERVER}"
+            portNumber="${env.PGPORT}"
+            databaseName="${env.PGDBNAME}"
+            user="${env.PGUSER}"
+            password="${env.PGPASSWORD}"/>
     </dataSource>
 
     <!-- ── Registro de usuarios requerido por el ORB (jakartaee-10.0 full) ── -->
@@ -49,7 +49,7 @@
         del servidor (necesario para evitar conflictos con EclipseLink/JPA).
     -->
     <application id="ingreso"
-                 location="ingreso.war"
+                 location="${server.config.dir}/dropins/ingreso.war"
                  type="war">
         <classloader delegation="parentLast"/>
     </application>
