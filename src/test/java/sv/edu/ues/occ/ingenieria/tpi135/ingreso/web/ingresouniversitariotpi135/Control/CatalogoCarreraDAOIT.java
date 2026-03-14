@@ -1,50 +1,24 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class CatalogoCarreraDAOIT {
+public class CatalogoCarreraDAOIT extends AbstractBaseIT {
 
     //Creamos el ID tipo String
     private static String idCatalogo;
-    private static EntityManagerFactory emf;
 
-    //Contenedor de Docker (Se levanta una vez para toda la clase)
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17.5-alpine")
-            .withDatabaseName("ingresoTPI135")
-            .withInitScript("ingresoTPI135_init.sql")
-            .withUsername("postgres")
-            .withPassword("abc123");
-
-    // Configuración inicial
-    @BeforeAll
-    static void inicializar() {
-        Integer puertoPostgresql = postgres.getMappedPort(5432);
-        Map<String, Object> propiedades = new HashMap<>();
-        propiedades.put("jakarta.persistence.jdbc.url", String.format("jdbc:postgresql://localhost:%d/ingresoTPI135", puertoPostgresql));
-        propiedades.put("jakarta.persistence.jdbc.user", "postgres");
-        propiedades.put("jakarta.persistence.jdbc.password", "abc123");
-        emf = Persistence.createEntityManagerFactory("ingresoPUIT", propiedades);
-    }
 
     public CatalogoCarreraDAOIT() {
     }
@@ -155,7 +129,9 @@ public class CatalogoCarreraDAOIT {
         em.getTransaction().commit();
 
         //Verficar que ya no existe el registro
+
         assertNull(cut.leer(idCatalogo), "El registro no debe de existir y su retorno debe ser NULO");
+        System.out.println(cut.leer(idCatalogo) + " No existe el registro");
 
 
     }
