@@ -17,8 +17,8 @@ RUN wget -q https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.tar.
 ENV JAVA_HOME=/opt/jdk-21
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
-# ── OpenLiberty 25.0.0.8 jakartaee10 ─────────────────────────────────────────
-RUN wget -q https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/runtime/release/25.0.0.8/openliberty-jakartaee10-25.0.0.8.zip \
+# ── OpenLiberty 26.0.0.2 jakartaee10 ─────────────────────────────────────────
+RUN wget -q https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/runtime/release/26.0.0.2/openliberty-jakartaee10-26.0.0.2.zip \
          -O /tmp/liberty.zip \
  && unzip -q /tmp/liberty.zip -d /opt \
  && rm /tmp/liberty.zip
