@@ -1,11 +1,16 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.sistema;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestMethodOrder;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import org.junit.jupiter.api.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import static sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.rest.server.RestHeaders.TOTAL_RECORDS;
 
 /**
  * Esqueleto ST para el integrante 1.
@@ -16,22 +21,56 @@ import org.junit.jupiter.api.TestMethodOrder;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class FlujoInscripcionST extends BaseSistemaST {
 
+    UUID idAspirantePrueba;
+    Integer idInscripcionPrueba;
+
     @Test
     @Order(1)
     void listarAspirantesPaginado_debeRetornar200YTotalRecords() {
         // TODO integrante 1: GET /aspirantes_datos?first=0&max=50
+        System.out.println("listarAspirantesPaginado_debeRetornar200");
+
+        Response respuesta = targetDe("aspirantePrueba")
+                .queryParam("first", 0)
+                .queryParam("max", 30)
+                .request(MediaType.APPLICATION_JSON)
+                .get();
+
+        Assertions.assertEquals(200, respuesta.getStatus());
+        Assertions.assertTrue(respuesta.getHeaders().containsKey(TOTAL_RECORDS));
+
+        //Leer la respuesta utilizando JSON
+        List<Map<String, Object>> aspirantes = respuesta.readEntity(new GenericType< List<Map<String, Object >>>(){});
+        Assertions.assertFalse(aspirantes.isEmpty(), "No debe de ser null poeque la BD prueba debe tener datos");
+
+        //id del 1er aspirante para la siguiente prueba
+        idAspirantePrueba = UUID.fromString(aspirantes.get(0).get("id").toString());
+
     }
 
     @Test
     @Order(2)
     void obtenerAspiranteExistentePorId_debeRetornar200() {
         // TODO integrante 1: GET /aspirantes_datos/{id}
+        System.out.println("Orden 2\nobtenerAspiranteExistentePorId_debeRetornar200");
+
+        Assertions.assertNotNull(idAspirantePrueba,"El ID del Aspirante prueba NO debe ser null");
+
+        Response respuesta = targetDe("Aspirante datos "+ idAspirantePrueba.toString())
+                .request(MediaType.APPLICATION_JSON).get();
+
+        Assertions.assertEquals(200, respuesta.getStatus(), "Debe de encontrar el ID  del Aspirante prueba con un 200");
+
     }
 
     @Test
     @Order(3)
     void crearInscripcionValida_debeRetornar201YSerConsultable() {
         // TODO integrante 1: POST /inscripciones_prueba y luego GET por id
+        System.out.println("Orden 3\ncrearInscripcionValida_debeRetornar201");
+        Map<String, Object> nuevaInscripcion = new HashMap<>();
+
+
     }
 
     @Test
