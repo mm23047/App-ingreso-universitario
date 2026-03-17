@@ -59,11 +59,11 @@ public class CatalogoCarreraDAOIT extends AbstractBaseIT {
         cut.em=em;
         CatalogoCarrera nuevaCarrera = new CatalogoCarrera();
 
-        //EL ID se debe de generar manualmente para poder saber de donde proviene la carrera
+        //EL ID se debe de generar manualmente para poder identificar de mejor la carrera
         nuevaCarrera.setIdCarrera("INGSO-98");
         nuevaCarrera.setNombre("Ingenieria en Sistemas Informaticos") ;
 
-        //Abrimos transaccion entre ... para ...
+        //Abrimos transaccion
         cut.em.getTransaction().begin();
         cut.crear(nuevaCarrera);
         cut.em.getTransaction().commit();
