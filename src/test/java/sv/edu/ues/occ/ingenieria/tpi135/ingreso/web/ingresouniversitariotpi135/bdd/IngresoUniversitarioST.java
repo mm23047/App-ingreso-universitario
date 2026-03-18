@@ -1,4 +1,4 @@
-package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.sistema;
+package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.bdd;
 
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.GenericType;
