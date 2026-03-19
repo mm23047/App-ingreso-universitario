@@ -1,17 +1,12 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExamenesRealizado;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.OpcionesRespuesta;
@@ -24,10 +19,9 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class RespuestasExamanDAOIT {
+public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     private static final UUID ID_EXAMEN_1    = UUID.fromString("0d000000-0000-0000-0000-000000000001");
@@ -41,28 +35,12 @@ public class RespuestasExamanDAOIT {
     // UUID de la respuesta creada en testCrear — compartido entre tests
     private UUID idCreado;
 
-    // EMF compartido — inicializado una sola vez en @BeforeAll
-    private EntityManagerFactory emf;
-
-    // static  un solo contenedor levantado una vez para toda la clase
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17.5-alpine")
-            .withDatabaseName("ingresoTPI135")
-            .withInitScript("ingresoTPI135_init.sql")
-            .withUsername("postgres")
-            .withPassword("abc123");
-
     public RespuestasExamanDAOIT() {
     }
 
     @BeforeAll
     void inicializar() {
-        Integer puertoPostgresql = postgres.getMappedPort(5432);
-        Map<String, Object> propiedades = new HashMap<>();
-        propiedades.put("jakarta.persistence.jdbc.url", String.format("jdbc:postgresql://localhost:%d/ingresoTPI135", puertoPostgresql));
-        propiedades.put("jakarta.persistence.jdbc.user", "postgres");
-        propiedades.put("jakarta.persistence.jdbc.password", "abc123");
-        emf = Persistence.createEntityManagerFactory("ingresoPUIT", propiedades);
+        // La configuracion de postgres and emf se realiza en AbstractBaseIT
     }
 
     @Test
