@@ -16,12 +16,28 @@ public abstract class AbstractBaseIT {
     //  'private' en vez de 'protected' para que las clases hijas lo hereden
     protected static EntityManagerFactory emf;
 
+    // Singleton del contenedor PostgreSQL para todas las pruebas de integracion
+    static class SharedPostgresContainer extends PostgreSQLContainer<SharedPostgresContainer> {
+
+        private static final String IMAGE = "postgres:17.5-alpine";
+
+        private static final SharedPostgresContainer INSTANCE = new SharedPostgresContainer();
+
+        private SharedPostgresContainer() {
+            super(IMAGE);
+            withDatabaseName("ingresoTPI135");
+            withInitScript("ingresoTPI135_init.sql");
+            withUsername("postgres");
+            withPassword("abc123");
+        }
+
+        static SharedPostgresContainer getInstance() {
+            return INSTANCE;
+        }
+    }
+
     @Container
-    protected static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17.5-alpine")
-            .withDatabaseName("ingresoTPI135")
-            .withInitScript("ingresoTPI135_init.sql")
-            .withUsername("postgres")
-            .withPassword("abc123");
+    protected static SharedPostgresContainer postgres = SharedPostgresContainer.getInstance();
 
     @BeforeAll
     static void inicializarConfiguracionDocker() {
