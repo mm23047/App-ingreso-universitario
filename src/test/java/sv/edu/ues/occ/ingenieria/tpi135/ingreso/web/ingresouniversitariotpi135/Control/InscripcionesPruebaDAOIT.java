@@ -1,6 +1,5 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control;
 
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -11,9 +10,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,9 +18,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
-
-    // UUID de la inscripción creada en testCrear — compartido entre tests
-    private UUID idCreado;
 
     public InscripcionesPruebaDAOIT() {
     }
@@ -38,14 +32,18 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
     public void testCount() {
         assertTrue(postgres.isRunning());
 
-        InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
 
-        int resultado = cut.count();
+            int resultado = cut.count();
 
-        // BD recién iniciada con init.sql  2 inscripciones
-        assertTrue(resultado > 0);
-        assertEquals(2, resultado);
+            // BD recién iniciada con init.sql  2 inscripciones
+            assertTrue(resultado > 0);
+            assertEquals(2, resultado);
+
+            return null;
+        });
     }
 
     @Test
@@ -53,15 +51,19 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
     public void testFindRange() {
         assertTrue(postgres.isRunning());
 
-        InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
 
-        List<InscripcionesPrueba> resultado = cut.findRange(0, 10);
+            List<InscripcionesPrueba> resultado = cut.findRange(0, 10);
 
-        // Aún no se ha insertado nada  sigue habiendo 2
-        assertNotNull(resultado);
-        assertFalse(resultado.isEmpty());
-        assertEquals(2, resultado.size());
+            // Aún no se ha insertado nada  sigue habiendo 2
+            assertNotNull(resultado);
+            assertFalse(resultado.isEmpty());
+            assertEquals(2, resultado.size());
+
+            return null;
+        });
     }
 
     @Test
@@ -69,30 +71,38 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
     public void testCrear() {
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
-        cut.em = em;
+        // Crear una inscripción temporal y verificar dentro de la misma transacción
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
 
-        // Usar aspirante y prueba existentes del init.sql que no generan conflicto
-        AspirantesDato aspirante = em.find(AspirantesDato.class,
+            // Usar aspirante y prueba existentes del init.sql que no generan conflicto
+            AspirantesDato aspirante = em.find(AspirantesDato.class,
                 UUID.fromString("e1000000-0000-0000-0000-000000000001"));
-        PruebasAdmision prueba = em.find(PruebasAdmision.class,
+            PruebasAdmision prueba = em.find(PruebasAdmision.class,
                 UUID.fromString("d1000000-0000-0000-0000-000000000002"));
 
-        InscripcionesPrueba nueva = new InscripcionesPrueba();
-        nueva.setIdAspirante(aspirante);
-        nueva.setIdPrueba(prueba);
-        nueva.setEstado("PENDIENTE");
+            InscripcionesPrueba nueva = new InscripcionesPrueba();
+            nueva.setIdAspirante(aspirante);
+            nueva.setIdPrueba(prueba);
+            nueva.setEstado("PENDIENTE");
 
-        em.getTransaction().begin();
-        cut.crear(nueva);
-        em.getTransaction().commit();
+            cut.crear(nueva);
 
-        // Guardar el UUID para que testLeer, testActualizar y testEliminar lo usen
-        idCreado = nueva.getId();
+            assertNotNull(nueva.getId());
+            assertEquals(3, cut.count());
 
-        assertNotNull(idCreado);
-        assertEquals(3, cut.count());
+            return null;
+        });
+
+        // Verificar que después del rollback implícito la BD queda con 2 inscripciones
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
+
+            assertEquals(2, cut.count());
+            return null;
+        });
     }
 
     @Test
@@ -100,15 +110,19 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
     public void testLeer() {
         assertTrue(postgres.isRunning());
 
-        InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
 
-        UUID idExistente = UUID.fromString("09000000-0000-0000-0000-000000000001");
-        InscripcionesPrueba resultado = cut.leer(idExistente);
+            UUID idExistente = UUID.fromString("09000000-0000-0000-0000-000000000001");
+            InscripcionesPrueba resultado = cut.leer(idExistente);
 
-        assertNotNull(resultado);
-        assertEquals(idExistente, resultado.getId());
-        assertEquals("INSCRITO", resultado.getEstado());
+            assertNotNull(resultado);
+            assertEquals(idExistente, resultado.getId());
+            assertEquals("INSCRITO", resultado.getEstado());
+
+            return null;
+        });
     }
 
     @Test
@@ -116,25 +130,25 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
     public void testActualizar() {
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
-        cut.em = em;
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
 
-        UUID idExistente = UUID.fromString("09000000-0000-0000-0000-000000000001");
-        InscripcionesPrueba inscripcion = cut.leer(idExistente);
-        inscripcion.setEstado("PROCESADO");
+            UUID idExistente = UUID.fromString("09000000-0000-0000-0000-000000000001");
+            InscripcionesPrueba inscripcion = cut.leer(idExistente);
+            inscripcion.setEstado("PROCESADO");
 
-        em.getTransaction().begin();
-        InscripcionesPrueba resultado = cut.actualizar(inscripcion);
-        em.getTransaction().commit();
+            InscripcionesPrueba resultado = cut.actualizar(inscripcion);
 
-        assertNotNull(resultado);
-        assertEquals("PROCESADO", resultado.getEstado());
+            assertNotNull(resultado);
+            assertEquals("PROCESADO", resultado.getEstado());
 
-        // Limpiar cache de primer nivel para forzar consulta real a BD
-        em.clear();
-        InscripcionesPrueba verificacion = cut.leer(idExistente);
-        assertEquals("PROCESADO", verificacion.getEstado());
+            // Dentro de la misma transacción el cambio es visible
+            InscripcionesPrueba verificacion = cut.leer(idExistente);
+            assertEquals("PROCESADO", verificacion.getEstado());
+
+            return null;
+        });
     }
 
     @Test
@@ -142,20 +156,28 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
     public void testEliminar() {
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
-        cut.em = em;
+        // Crear y eliminar una inscripción temporal dentro de una única transacción
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
 
-        // Eliminar la inscripción creada en testCrear (sin hijos en otras tablas)
-        InscripcionesPrueba inscripcion = cut.leer(idCreado);
-        assertNotNull(inscripcion);
+            AspirantesDato aspirante = em.find(AspirantesDato.class,
+                    UUID.fromString("e1000000-0000-0000-0000-000000000001"));
+            PruebasAdmision prueba = em.find(PruebasAdmision.class,
+                    UUID.fromString("d1000000-0000-0000-0000-000000000002"));
 
-        em.getTransaction().begin();
-        cut.eliminar(inscripcion);
-        em.getTransaction().commit();
+            InscripcionesPrueba nueva = new InscripcionesPrueba();
+            nueva.setIdAspirante(aspirante);
+            nueva.setIdPrueba(prueba);
+            nueva.setEstado("PENDIENTE");
 
-        // Vuelve a los 2 registros originales del init.sql
-        assertEquals(2, cut.count());
-        assertNull(cut.leer(idCreado));
+            cut.crear(nueva);
+            assertEquals(3, cut.count());
+
+            cut.eliminar(nueva);
+            assertEquals(2, cut.count());
+
+            return null;
+        });
     }
 }

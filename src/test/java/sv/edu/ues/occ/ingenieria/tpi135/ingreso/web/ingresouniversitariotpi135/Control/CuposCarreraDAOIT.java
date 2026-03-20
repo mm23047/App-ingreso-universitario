@@ -1,6 +1,5 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control;
 
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -13,9 +12,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -28,9 +25,6 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
     private static final UUID ID_PRUEBA_2026  = UUID.fromString("d1000000-0000-0000-0000-000000000001");
     private static final UUID ID_ETAPA_FINAL  = UUID.fromString("c1000000-0000-0000-0000-000000000003");
     private static final UUID ID_ETAPA_1      = UUID.fromString("c1000000-0000-0000-0000-000000000001");
-
-    // ID del cupo creado en testCrear — compartido entre tests
-    private CuposCarreraId idCreado;
 
     public CuposCarreraDAOIT() {
     }
@@ -45,14 +39,18 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
     public void testCount() {
         assertTrue(postgres.isRunning());
 
-        CuposCarreraDAO cut = new CuposCarreraDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            CuposCarreraDAO cut = new CuposCarreraDAO();
+            cut.em = em;
 
-        int resultado = cut.count();
+            int resultado = cut.count();
 
-        // BD recién iniciada con init.sql  3 cupos: ICS=50, ISI=60, ICC=45
-        assertTrue(resultado > 0);
-        assertEquals(3, resultado);
+            // BD recién iniciada con init.sql  3 cupos: ICS=50, ISI=60, ICC=45
+            assertTrue(resultado > 0);
+            assertEquals(3, resultado);
+
+            return null;
+        });
     }
 
     @Test
@@ -60,15 +58,19 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
     public void testFindRange() {
         assertTrue(postgres.isRunning());
 
-        CuposCarreraDAO cut = new CuposCarreraDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            CuposCarreraDAO cut = new CuposCarreraDAO();
+            cut.em = em;
 
-        List<CuposCarrera> resultado = cut.findRange(0, 10);
+            List<CuposCarrera> resultado = cut.findRange(0, 10);
 
-        // Aún no se ha insertado nada  sigue habiendo 3
-        assertNotNull(resultado);
-        assertFalse(resultado.isEmpty());
-        assertEquals(3, resultado.size());
+            // Aún no se ha insertado nada  sigue habiendo 3
+            assertNotNull(resultado);
+            assertFalse(resultado.isEmpty());
+            assertEquals(3, resultado.size());
+
+            return null;
+        });
     }
 
     @Test
@@ -76,35 +78,44 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
     public void testCrear() {
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        CuposCarreraDAO cut = new CuposCarreraDAO();
-        cut.em = em;
+        // Crear un cupo temporal y verificarlo dentro de la misma transacción
+        ejecutarEnTransaccion(em -> {
+            CuposCarreraDAO cut = new CuposCarreraDAO();
+            cut.em = em;
 
-        // MAT aún no tiene cupos asignados en el init.sql  combinación única
-        PruebasAdmision prueba  = em.find(PruebasAdmision.class, ID_PRUEBA_2026);
-        CatalogoCarrera carrera = em.find(CatalogoCarrera.class, "MAT");
-        EtapasAdmision  etapa   = em.find(EtapasAdmision.class, ID_ETAPA_1);
+            // MAT aún no tiene cupos asignados en el init.sql  combinación única
+            PruebasAdmision prueba  = em.find(PruebasAdmision.class, ID_PRUEBA_2026);
+            CatalogoCarrera carrera = em.find(CatalogoCarrera.class, "MAT");
+            EtapasAdmision  etapa   = em.find(EtapasAdmision.class, ID_ETAPA_1);
 
-        CuposCarreraId clave = new CuposCarreraId();
-        clave.setIdPrueba(ID_PRUEBA_2026);
-        clave.setIdCarrera("MAT");
-        clave.setIdEtapa(ID_ETAPA_1);
+            CuposCarreraId clave = new CuposCarreraId();
+            clave.setIdPrueba(ID_PRUEBA_2026);
+            clave.setIdCarrera("MAT");
+            clave.setIdEtapa(ID_ETAPA_1);
 
-        CuposCarrera nuevo = new CuposCarrera();
-        nuevo.setId(clave);
-        nuevo.setIdPrueba(prueba);
-        nuevo.setIdCarrera(carrera);
-        nuevo.setIdEtapa(etapa);
-        nuevo.setCupos(30);
+            CuposCarrera nuevo = new CuposCarrera();
+            nuevo.setId(clave);
+            nuevo.setIdPrueba(prueba);
+            nuevo.setIdCarrera(carrera);
+            nuevo.setIdEtapa(etapa);
+            nuevo.setCupos(30);
 
-        em.getTransaction().begin();
-        cut.crear(nuevo);
-        em.getTransaction().commit();
+            cut.crear(nuevo);
 
-        // Guardar el ID para que testLeer, testActualizar y testEliminar lo usen
-        idCreado = nuevo.getId();
+            // Dentro de la transacción el registro es visible
+            assertEquals(4, cut.count());
 
-        assertEquals(4, cut.count());
+            return null;
+        });
+
+        // Verificar que, tras el rollback implícito, la BD vuelve a 3 registros
+        ejecutarEnTransaccion(em -> {
+            CuposCarreraDAO cut = new CuposCarreraDAO();
+            cut.em = em;
+
+            assertEquals(3, cut.count());
+            return null;
+        });
     }
 
     @Test
@@ -112,22 +123,26 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
     public void testLeer() {
         assertTrue(postgres.isRunning());
 
-        CuposCarreraDAO cut = new CuposCarreraDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            CuposCarreraDAO cut = new CuposCarreraDAO();
+            cut.em = em;
 
-        // Leer el registro ICS del init.sql: prueba 2026, carrera ICS, etapa final, cupos=50
-        CuposCarreraId clave = new CuposCarreraId();
-        clave.setIdPrueba(ID_PRUEBA_2026);
-        clave.setIdCarrera("ICS");
-        clave.setIdEtapa(ID_ETAPA_FINAL);
+            // Leer el registro ICS del init.sql: prueba 2026, carrera ICS, etapa final, cupos=50
+            CuposCarreraId clave = new CuposCarreraId();
+            clave.setIdPrueba(ID_PRUEBA_2026);
+            clave.setIdCarrera("ICS");
+            clave.setIdEtapa(ID_ETAPA_FINAL);
 
-        CuposCarrera resultado = cut.leer(clave);
+            CuposCarrera resultado = cut.leer(clave);
 
-        assertNotNull(resultado);
-        assertEquals("ICS", resultado.getId().getIdCarrera());
-        assertEquals(ID_PRUEBA_2026, resultado.getId().getIdPrueba());
-        assertEquals(ID_ETAPA_FINAL, resultado.getId().getIdEtapa());
-        assertEquals(50, resultado.getCupos());
+            assertNotNull(resultado);
+            assertEquals("ICS", resultado.getId().getIdCarrera());
+            assertEquals(ID_PRUEBA_2026, resultado.getId().getIdPrueba());
+            assertEquals(ID_ETAPA_FINAL, resultado.getId().getIdEtapa());
+            assertEquals(50, resultado.getCupos());
+
+            return null;
+        });
     }
 
     @Test
@@ -135,30 +150,30 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
     public void testActualizar() {
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        CuposCarreraDAO cut = new CuposCarreraDAO();
-        cut.em = em;
+        ejecutarEnTransaccion(em -> {
+            CuposCarreraDAO cut = new CuposCarreraDAO();
+            cut.em = em;
 
-        // Leer ISI (cupos=60) y cambiar a 75
-        CuposCarreraId clave = new CuposCarreraId();
-        clave.setIdPrueba(ID_PRUEBA_2026);
-        clave.setIdCarrera("ISI");
-        clave.setIdEtapa(ID_ETAPA_FINAL);
+            // Leer ISI (cupos=60) y cambiar a 75
+            CuposCarreraId clave = new CuposCarreraId();
+            clave.setIdPrueba(ID_PRUEBA_2026);
+            clave.setIdCarrera("ISI");
+            clave.setIdEtapa(ID_ETAPA_FINAL);
 
-        CuposCarrera cupo = cut.leer(clave);
-        cupo.setCupos(75);
+            CuposCarrera cupo = cut.leer(clave);
+            cupo.setCupos(75);
 
-        em.getTransaction().begin();
-        CuposCarrera resultado = cut.actualizar(cupo);
-        em.getTransaction().commit();
+            CuposCarrera resultado = cut.actualizar(cupo);
 
-        assertNotNull(resultado);
-        assertEquals(75, resultado.getCupos());
+            assertNotNull(resultado);
+            assertEquals(75, resultado.getCupos());
 
-        // Limpiar cache y verificar que el cambio persiste en BD
-        em.clear();
-        CuposCarrera verificacion = cut.leer(clave);
-        assertEquals(75, verificacion.getCupos());
+            // Dentro de la misma transacción el cambio es visible
+            CuposCarrera verificacion = cut.leer(clave);
+            assertEquals(75, verificacion.getCupos());
+
+            return null;
+        });
     }
 
     @Test
@@ -166,20 +181,36 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
     public void testEliminar() {
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        CuposCarreraDAO cut = new CuposCarreraDAO();
-        cut.em = em;
+        // Crear y eliminar un cupo temporal dentro de una única transacción
+        ejecutarEnTransaccion(em -> {
+            CuposCarreraDAO cut = new CuposCarreraDAO();
+            cut.em = em;
 
-        // Eliminar el cupo creado en testCrear
-        CuposCarrera cupo = cut.leer(idCreado);
-        assertNotNull(cupo);
+            PruebasAdmision prueba  = em.find(PruebasAdmision.class, ID_PRUEBA_2026);
+            CatalogoCarrera carrera = em.find(CatalogoCarrera.class, "MAT");
+            EtapasAdmision  etapa   = em.find(EtapasAdmision.class, ID_ETAPA_1);
 
-        em.getTransaction().begin();
-        cut.eliminar(cupo);
-        em.getTransaction().commit();
+            CuposCarreraId clave = new CuposCarreraId();
+            clave.setIdPrueba(ID_PRUEBA_2026);
+            clave.setIdCarrera("MAT");
+            clave.setIdEtapa(ID_ETAPA_1);
 
-        // Vuelve a los 3 registros originales del init.sql
-        assertEquals(3, cut.count());
-        assertNull(cut.leer(idCreado));
+            CuposCarrera cupo = new CuposCarrera();
+            cupo.setId(clave);
+            cupo.setIdPrueba(prueba);
+            cupo.setIdCarrera(carrera);
+            cupo.setIdEtapa(etapa);
+            cupo.setCupos(30);
+
+            // Crear
+            cut.crear(cupo);
+            assertEquals(4, cut.count());
+
+            // Eliminar
+            cut.eliminar(cupo);
+            assertEquals(3, cut.count());
+
+            return null;
+        });
     }
 }

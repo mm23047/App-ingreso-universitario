@@ -1,6 +1,5 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control;
 
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -12,9 +11,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,9 +19,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class CarrerasElegidaDAOIT extends AbstractBaseIT {
-
-    // ID de la carrera elegida creada en testCrear — compartido entre tests
-    private CarrerasElegidaId idCreado;
 
     public CarrerasElegidaDAOIT() {
     }
@@ -39,14 +33,18 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
     public void testCount() {
         assertTrue(postgres.isRunning());
 
-        CarrerasElegidaDAO cut = new CarrerasElegidaDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            CarrerasElegidaDAO cut = new CarrerasElegidaDAO();
+            cut.em = em;
 
-        int resultado = cut.count();
+            int resultado = cut.count();
 
-        // BD recién iniciada con init.sql  4 carreras elegidas
-        assertTrue(resultado > 0);
-        assertEquals(4, resultado);
+            // BD recién iniciada con init.sql  4 carreras elegidas
+            assertTrue(resultado > 0);
+            assertEquals(4, resultado);
+
+            return null;
+        });
     }
 
     @Test
@@ -54,15 +52,19 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
     public void testFindRange() {
         assertTrue(postgres.isRunning());
 
-        CarrerasElegidaDAO cut = new CarrerasElegidaDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            CarrerasElegidaDAO cut = new CarrerasElegidaDAO();
+            cut.em = em;
 
-        List<CarrerasElegida> resultado = cut.findRange(0, 10);
+            List<CarrerasElegida> resultado = cut.findRange(0, 10);
 
-        // Aún no se ha insertado nada  sigue habiendo 4
-        assertNotNull(resultado);
-        assertFalse(resultado.isEmpty());
-        assertEquals(4, resultado.size());
+            // Aún no se ha insertado nada  sigue habiendo 4
+            assertNotNull(resultado);
+            assertFalse(resultado.isEmpty());
+            assertEquals(4, resultado.size());
+
+            return null;
+        });
     }
 
     @Test
@@ -70,34 +72,42 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
     public void testCrear() {
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        CarrerasElegidaDAO cut = new CarrerasElegidaDAO();
-        cut.em = em;
+        // Crear una carrera elegida temporal y verificar dentro de la misma transacción
+        ejecutarEnTransaccion(em -> {
+            CarrerasElegidaDAO cut = new CarrerasElegidaDAO();
+            cut.em = em;
 
-        // Usar una combinacion inscripcion+carrera que no existe en el init.sql
-        // inscripcion 001 ya tiene ICS y ISI → usamos MAT (existe en catalogo)
-        UUID idInscripcion = UUID.fromString("09000000-0000-0000-0000-000000000001");
-        InscripcionesPrueba inscripcion = em.find(InscripcionesPrueba.class, idInscripcion);
-        CatalogoCarrera carrera = em.find(CatalogoCarrera.class, "MAT");
+            // Usar una combinacion inscripcion+carrera que no existe en el init.sql
+            // inscripcion 001 ya tiene ICS y ISI → usamos MAT (existe en catalogo)
+            UUID idInscripcion = UUID.fromString("09000000-0000-0000-0000-000000000001");
+            InscripcionesPrueba inscripcion = em.find(InscripcionesPrueba.class, idInscripcion);
+            CatalogoCarrera carrera = em.find(CatalogoCarrera.class, "MAT");
 
-        CarrerasElegidaId clave = new CarrerasElegidaId();
-        clave.setIdInscripcion(idInscripcion);
-        clave.setIdCarrera("MAT");
+            CarrerasElegidaId clave = new CarrerasElegidaId();
+            clave.setIdInscripcion(idInscripcion);
+            clave.setIdCarrera("MAT");
 
-        CarrerasElegida nueva = new CarrerasElegida();
-        nueva.setId(clave);
-        nueva.setIdInscripcion(inscripcion);
-        nueva.setIdCarrera(carrera);
-        nueva.setPrioridad((short) 3);
+            CarrerasElegida nueva = new CarrerasElegida();
+            nueva.setId(clave);
+            nueva.setIdInscripcion(inscripcion);
+            nueva.setIdCarrera(carrera);
+            nueva.setPrioridad((short) 3);
 
-        em.getTransaction().begin();
-        cut.crear(nueva);
-        em.getTransaction().commit();
+            cut.crear(nueva);
 
-        // Guardar el ID para que testLeer, testActualizar y testEliminar lo usen
-        idCreado = nueva.getId();
+            assertEquals(5, cut.count());
 
-        assertEquals(5, cut.count());
+            return null;
+        });
+
+        // Verificar que después del rollback implícito la BD queda con 4 registros
+        ejecutarEnTransaccion(em -> {
+            CarrerasElegidaDAO cut = new CarrerasElegidaDAO();
+            cut.em = em;
+
+            assertEquals(4, cut.count());
+            return null;
+        });
     }
 
     @Test
@@ -105,21 +115,25 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
     public void testLeer() {
         assertTrue(postgres.isRunning());
 
-        CarrerasElegidaDAO cut = new CarrerasElegidaDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            CarrerasElegidaDAO cut = new CarrerasElegidaDAO();
+            cut.em = em;
 
-        // Leer la primera carrera elegida del init.sql: inscripcion 001 → ICS, prioridad 1
-        CarrerasElegidaId clave = new CarrerasElegidaId();
-        clave.setIdInscripcion(UUID.fromString("09000000-0000-0000-0000-000000000001"));
-        clave.setIdCarrera("ICS");
+            // Leer la primera carrera elegida del init.sql: inscripcion 001 → ICS, prioridad 1
+            CarrerasElegidaId clave = new CarrerasElegidaId();
+            clave.setIdInscripcion(UUID.fromString("09000000-0000-0000-0000-000000000001"));
+            clave.setIdCarrera("ICS");
 
-        CarrerasElegida resultado = cut.leer(clave);
+            CarrerasElegida resultado = cut.leer(clave);
 
-        assertNotNull(resultado);
-        assertEquals("ICS", resultado.getId().getIdCarrera());
-        assertEquals(UUID.fromString("09000000-0000-0000-0000-000000000001"),
-                resultado.getId().getIdInscripcion());
-        assertEquals((short) 1, resultado.getPrioridad());
+            assertNotNull(resultado);
+            assertEquals("ICS", resultado.getId().getIdCarrera());
+            assertEquals(UUID.fromString("09000000-0000-0000-0000-000000000001"),
+                    resultado.getId().getIdInscripcion());
+            assertEquals((short) 1, resultado.getPrioridad());
+
+            return null;
+        });
     }
 
     @Test
@@ -127,29 +141,29 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
     public void testActualizar() {
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        CarrerasElegidaDAO cut = new CarrerasElegidaDAO();
-        cut.em = em;
+        ejecutarEnTransaccion(em -> {
+            CarrerasElegidaDAO cut = new CarrerasElegidaDAO();
+            cut.em = em;
 
-        // Leer inscripcion 001 → ISI, prioridad 2 → cambiar prioridad a 5
-        CarrerasElegidaId clave = new CarrerasElegidaId();
-        clave.setIdInscripcion(UUID.fromString("09000000-0000-0000-0000-000000000001"));
-        clave.setIdCarrera("ISI");
+            // Leer inscripcion 001 → ISI, prioridad 2 → cambiar prioridad a 5
+            CarrerasElegidaId clave = new CarrerasElegidaId();
+            clave.setIdInscripcion(UUID.fromString("09000000-0000-0000-0000-000000000001"));
+            clave.setIdCarrera("ISI");
 
-        CarrerasElegida elegida = cut.leer(clave);
-        elegida.setPrioridad((short) 5);
+            CarrerasElegida elegida = cut.leer(clave);
+            elegida.setPrioridad((short) 5);
 
-        em.getTransaction().begin();
-        CarrerasElegida resultado = cut.actualizar(elegida);
-        em.getTransaction().commit();
+            CarrerasElegida resultado = cut.actualizar(elegida);
 
-        assertNotNull(resultado);
-        assertEquals((short) 5, resultado.getPrioridad());
+            assertNotNull(resultado);
+            assertEquals((short) 5, resultado.getPrioridad());
 
-        // Limpiar cache de primer nivel y verificar que el cambio persiste en BD
-        em.clear();
-        CarrerasElegida verificacion = cut.leer(clave);
-        assertEquals((short) 5, verificacion.getPrioridad());
+            // Dentro de la misma transacción el cambio es visible
+            CarrerasElegida verificacion = cut.leer(clave);
+            assertEquals((short) 5, verificacion.getPrioridad());
+
+            return null;
+        });
     }
 
     @Test
@@ -157,20 +171,32 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
     public void testEliminar() {
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        CarrerasElegidaDAO cut = new CarrerasElegidaDAO();
-        cut.em = em;
+        // Crear y eliminar una carrera elegida temporal dentro de una única transacción
+        ejecutarEnTransaccion(em -> {
+            CarrerasElegidaDAO cut = new CarrerasElegidaDAO();
+            cut.em = em;
 
-        // Eliminar la carrera elegida creada en testCrear
-        CarrerasElegida elegida = cut.leer(idCreado);
-        assertNotNull(elegida);
+            UUID idInscripcion = UUID.fromString("09000000-0000-0000-0000-000000000001");
+            InscripcionesPrueba inscripcion = em.find(InscripcionesPrueba.class, idInscripcion);
+            CatalogoCarrera carrera = em.find(CatalogoCarrera.class, "MAT");
 
-        em.getTransaction().begin();
-        cut.eliminar(elegida);
-        em.getTransaction().commit();
+            CarrerasElegidaId clave = new CarrerasElegidaId();
+            clave.setIdInscripcion(idInscripcion);
+            clave.setIdCarrera("MAT");
 
-        // Vuelve a los 4 registros originales del init.sql
-        assertEquals(4, cut.count());
-        assertNull(cut.leer(idCreado));
+            CarrerasElegida nueva = new CarrerasElegida();
+            nueva.setId(clave);
+            nueva.setIdInscripcion(inscripcion);
+            nueva.setIdCarrera(carrera);
+            nueva.setPrioridad((short) 3);
+
+            cut.crear(nueva);
+            assertEquals(5, cut.count());
+
+            cut.eliminar(nueva);
+            assertEquals(4, cut.count());
+
+            return null;
+        });
     }
 }

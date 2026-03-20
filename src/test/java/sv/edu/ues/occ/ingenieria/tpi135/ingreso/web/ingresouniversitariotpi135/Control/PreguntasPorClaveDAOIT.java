@@ -1,6 +1,5 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control;
 
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -12,9 +11,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClave;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClaveId;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,9 +26,6 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
     private static final UUID ID_PREGUNTA_1 = UUID.fromString("f1000000-0000-0000-0000-000000000001");
     private static final UUID ID_PREGUNTA_3 = UUID.fromString("f1000000-0000-0000-0000-000000000003");
 
-    // ID creado en testCrear — compartido entre tests
-    private PreguntasPorClaveId idCreado;
-
     public PreguntasPorClaveDAOIT() {
     }
 
@@ -45,14 +39,18 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
     public void testCount() {
         assertTrue(postgres.isRunning());
 
-        PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
+            cut.em = em;
 
-        int resultado = cut.count();
+            int resultado = cut.count();
 
-        // BD recién iniciada con init.sql  4 registros: Clave A→{pregunta1, pregunta2}, Clave B→{pregunta3, pregunta4}
-        assertTrue(resultado > 0);
-        assertEquals(4, resultado);
+            // BD recién iniciada con init.sql  4 registros: Clave A→{pregunta1, pregunta2}, Clave B→{pregunta3, pregunta4}
+            assertTrue(resultado > 0);
+            assertEquals(4, resultado);
+
+            return null;
+        });
     }
 
     @Test
@@ -60,15 +58,19 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
     public void testFindRange() {
         assertTrue(postgres.isRunning());
 
-        PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
+            cut.em = em;
 
-        List<PreguntasPorClave> resultado = cut.findRange(0, 10);
+            List<PreguntasPorClave> resultado = cut.findRange(0, 10);
 
-        // Aún no se ha insertado nada  sigue habiendo 4
-        assertNotNull(resultado);
-        assertFalse(resultado.isEmpty());
-        assertEquals(4, resultado.size());
+            // Aún no se ha insertado nada  sigue habiendo 4
+            assertNotNull(resultado);
+            assertFalse(resultado.isEmpty());
+            assertEquals(4, resultado.size());
+
+            return null;
+        });
     }
 
     @Test
@@ -76,32 +78,40 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
     public void testCrear() {
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
-        cut.em = em;
+        // Crear un registro temporal de PreguntasPorClave y verificar dentro de la misma transacción
+        ejecutarEnTransaccion(em -> {
+            PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
+            cut.em = em;
 
-        // Clave A solo tiene pregunta1 y pregunta2 en el init.sql
-        //  (Clave_A, pregunta3) es una combinación nueva sin conflicto de clave primaria
-        ClavesExaman clave    = em.find(ClavesExaman.class, ID_CLAVE_A);
-        BancoPregunta pregunta = em.find(BancoPregunta.class, ID_PREGUNTA_3);
+            // Clave A solo tiene pregunta1 y pregunta2 en el init.sql
+            //  (Clave_A, pregunta3) es una combinación nueva sin conflicto de clave primaria
+            ClavesExaman clave    = em.find(ClavesExaman.class, ID_CLAVE_A);
+            BancoPregunta pregunta = em.find(BancoPregunta.class, ID_PREGUNTA_3);
 
-        PreguntasPorClaveId id = new PreguntasPorClaveId();
-        id.setIdClave(ID_CLAVE_A);
-        id.setIdPregunta(ID_PREGUNTA_3);
+            PreguntasPorClaveId id = new PreguntasPorClaveId();
+            id.setIdClave(ID_CLAVE_A);
+            id.setIdPregunta(ID_PREGUNTA_3);
 
-        PreguntasPorClave nuevo = new PreguntasPorClave();
-        nuevo.setId(id);
-        nuevo.setIdClave(clave);
-        nuevo.setIdPregunta(pregunta);
+            PreguntasPorClave nuevo = new PreguntasPorClave();
+            nuevo.setId(id);
+            nuevo.setIdClave(clave);
+            nuevo.setIdPregunta(pregunta);
 
-        em.getTransaction().begin();
-        cut.crear(nuevo);
-        em.getTransaction().commit();
+            cut.crear(nuevo);
 
-        // Guardar el ID para que testLeer, testActualizar y testEliminar lo usen
-        idCreado = nuevo.getId();
+            assertEquals(5, cut.count());
 
-        assertEquals(5, cut.count());
+            return null;
+        });
+
+        // Verificar que después del rollback implícito la BD queda con 4 registros
+        ejecutarEnTransaccion(em -> {
+            PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
+            cut.em = em;
+
+            assertEquals(4, cut.count());
+            return null;
+        });
     }
 
     @Test
@@ -109,19 +119,23 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
     public void testLeer() {
         assertTrue(postgres.isRunning());
 
-        PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
+            cut.em = em;
 
-        // Leer Clave A + Pregunta 1 — primer registro del init.sql
-        PreguntasPorClaveId id = new PreguntasPorClaveId();
-        id.setIdClave(ID_CLAVE_A);
-        id.setIdPregunta(ID_PREGUNTA_1);
+            // Leer Clave A + Pregunta 1 — primer registro del init.sql
+            PreguntasPorClaveId id = new PreguntasPorClaveId();
+            id.setIdClave(ID_CLAVE_A);
+            id.setIdPregunta(ID_PREGUNTA_1);
 
-        PreguntasPorClave resultado = cut.leer(id);
+            PreguntasPorClave resultado = cut.leer(id);
 
-        assertNotNull(resultado);
-        assertEquals(ID_CLAVE_A,    resultado.getId().getIdClave());
-        assertEquals(ID_PREGUNTA_1, resultado.getId().getIdPregunta());
+            assertNotNull(resultado);
+            assertEquals(ID_CLAVE_A,    resultado.getId().getIdClave());
+            assertEquals(ID_PREGUNTA_1, resultado.getId().getIdPregunta());
+
+            return null;
+        });
     }
 
     @Test
@@ -129,30 +143,32 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
     public void testActualizar() {
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
-        cut.em = em;
+        ejecutarEnTransaccion(em -> {
+            PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
+            cut.em = em;
 
-        // PreguntasPorClave es una tabla de unión pura: solo tiene los dos UUIDs de la clave
-        // compuesta y no posee columnas mutables adicionales.
-        // Se verifica que actualizar() no lanza excepción y devuelve el mismo registro intacto.
-        PreguntasPorClaveId id = new PreguntasPorClaveId();
-        id.setIdClave(ID_CLAVE_B);
-        id.setIdPregunta(ID_PREGUNTA_3);
+            // PreguntasPorClave es una tabla de unión pura: solo tiene los dos UUIDs de la clave
+            // compuesta y no posee columnas mutables adicionales.
+            // Se verifica que actualizar() no lanza excepción y devuelve el mismo registro intacto.
+            PreguntasPorClaveId id = new PreguntasPorClaveId();
+            id.setIdClave(ID_CLAVE_B);
+            id.setIdPregunta(ID_PREGUNTA_3);
 
-        PreguntasPorClave registro = cut.leer(id);
-        assertNotNull(registro);
+            PreguntasPorClave registro = cut.leer(id);
+            assertNotNull(registro);
 
-        em.getTransaction().begin();
-        PreguntasPorClave resultado = cut.actualizar(registro);
-        em.getTransaction().commit();
+            PreguntasPorClave resultado = cut.actualizar(registro);
 
-        // No hay campos que cambien; se verifica que la operación es idempotente
-        assertNotNull(resultado);
-        assertEquals(ID_CLAVE_B,    resultado.getId().getIdClave());
-        assertEquals(ID_PREGUNTA_3, resultado.getId().getIdPregunta());
-        // testCrear ya insertó uno nuevo → el conteo en este punto es 5
-        assertEquals(5, cut.count());
+            // No hay campos que cambien; se verifica que la operación es idempotente
+            assertNotNull(resultado);
+            assertEquals(ID_CLAVE_B,    resultado.getId().getIdClave());
+            assertEquals(ID_PREGUNTA_3, resultado.getId().getIdPregunta());
+
+            // El conteo se mantiene en 4 dentro de la transacción
+            assertEquals(4, cut.count());
+
+            return null;
+        });
     }
 
     @Test
@@ -160,20 +176,30 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
     public void testEliminar() {
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
-        cut.em = em;
+        // Crear y eliminar un registro temporal de PreguntasPorClave dentro de una única transacción
+        ejecutarEnTransaccion(em -> {
+            PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
+            cut.em = em;
 
-        // Eliminar el registro creado en testCrear
-        PreguntasPorClave registro = cut.leer(idCreado);
-        assertNotNull(registro);
+            ClavesExaman clave    = em.find(ClavesExaman.class, ID_CLAVE_A);
+            BancoPregunta pregunta = em.find(BancoPregunta.class, ID_PREGUNTA_3);
 
-        em.getTransaction().begin();
-        cut.eliminar(registro);
-        em.getTransaction().commit();
+            PreguntasPorClaveId id = new PreguntasPorClaveId();
+            id.setIdClave(ID_CLAVE_A);
+            id.setIdPregunta(ID_PREGUNTA_3);
 
-        // Vuelve a los 4 registros originales del init.sql
-        assertEquals(4, cut.count());
-        assertNull(cut.leer(idCreado));
+            PreguntasPorClave nuevo = new PreguntasPorClave();
+            nuevo.setId(id);
+            nuevo.setIdClave(clave);
+            nuevo.setIdPregunta(pregunta);
+
+            cut.crear(nuevo);
+            assertEquals(5, cut.count());
+
+            cut.eliminar(nuevo);
+            assertEquals(4, cut.count());
+
+            return null;
+        });
     }
 }
