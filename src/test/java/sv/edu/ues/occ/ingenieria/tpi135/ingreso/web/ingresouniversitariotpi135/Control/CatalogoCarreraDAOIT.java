@@ -1,134 +1,187 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control;
 
-import jakarta.persistence.EntityManager;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+
 public class CatalogoCarreraDAOIT extends AbstractBaseIT {
 
-    //Creamos el ID tipo String
-    private static String idCatalogo;
 
 
     public CatalogoCarreraDAOIT() {
     }
 
     @Test
-    @Order(1)
     public void testCount(){
         System.out.println("CatalogoCarreraDAOIT.count()");
         assertTrue(postgres.isRunning());
 
-        CatalogoCarreraDAO cut = new CatalogoCarreraDAO();
-        cut.em=emf.createEntityManager();
+        ejecutarEnTransaccion(em ->{
 
-        int resultado = cut.count();
+            CatalogoCarreraDAO cut = new CatalogoCarreraDAO();
+            cut.em=em;
 
-        assertTrue(resultado>=0);
+            int resultado = cut.count();
+
+            assertTrue(resultado>=0);
+            assertEquals(resultado,4);
+            return null;
+        });
+
 
     }
 
     @Test
-    @Order(2)
     public void testFindRange(){
         System.out.println("CatalogoCarreraDAOIT.findRange()");
-        CatalogoCarreraDAO cut= new CatalogoCarreraDAO();
+        assertTrue(postgres.isRunning());
 
-        cut.em=emf.createEntityManager();
-        List<CatalogoCarrera> resultado = cut.findRange(0,5);
-        assertNotNull(resultado);
+        ejecutarEnTransaccion(em->{
+
+            CatalogoCarreraDAO cut= new CatalogoCarreraDAO();
+            cut.em=em;
+
+            List<CatalogoCarrera> resultado = cut.findRange(0,5);
+
+            assertNotNull(resultado);
+            assertFalse(resultado.isEmpty());
+            assertEquals(resultado.size(),4);
+            System.out.println("Mi resultado del test FindRange: "+resultado);
+
+            return null;
+        });
+
+
     }
 
     @Test
-    @Order(3)
     public void testCrear(){
 
         System.out.println("CatalogoCarreraDAOIT.create()");
-        EntityManager em = emf.createEntityManager();
-        CatalogoCarreraDAO cut = new CatalogoCarreraDAO();
-        cut.em=em;
-        CatalogoCarrera nuevaCarrera = new CatalogoCarrera();
 
-        //EL ID se debe de generar manualmente para poder identificar de mejor la carrera
-        nuevaCarrera.setIdCarrera("INGSO-98");
-        nuevaCarrera.setNombre("Ingenieria en Sistemas Informaticos") ;
+        assertTrue(postgres.isRunning());
 
-        //Abrimos transaccion
-        cut.em.getTransaction().begin();
-        cut.crear(nuevaCarrera);
-        cut.em.getTransaction().commit();
+        ejecutarEnTransaccion(em ->{
 
-        //Guardamos el ID para las siguientes pruebsa
-        idCatalogo = nuevaCarrera.getIdCarrera();
+            CatalogoCarreraDAO cut = new CatalogoCarreraDAO();
+            cut.em=em;
 
-        assertNotNull(idCatalogo);
+            CatalogoCarrera nuevaCarrera = new CatalogoCarrera();
+
+            //EL ID se debe de generar manualmente para poder identificar de mejor manera la carrera
+            nuevaCarrera.setIdCarrera("INGSO-98");
+            nuevaCarrera.setNombre("Ingenieria en Sistemas Informaticos") ;
+
+            //Creamos sin abrir o cerrar transacciones
+            cut.crear(nuevaCarrera);
+
+            //Verificar que hay un dato mas
+            assertEquals(5, cut.count());
+            System.out.println("Mi resultado del test Crear: "+cut.count());
+
+            return null;
+        } );
+
+        //Verificar el rollback debe de quedar limpia la BD
+        ejecutarEnTransaccion(em->{
+
+            CatalogoCarreraDAO cut= new CatalogoCarreraDAO();
+            cut.em=em;
+            //Deben de existir solamente 4 datos en la BD
+            assertEquals(cut.count(),4);
+
+            return null;
+        });
+
+
 
     }
     @Test
-    @Order(4)
     public void testLeer(){
         System.out.println("CatalogoCarreraDAOIT.leer()");
-        CatalogoCarreraDAO cut = new CatalogoCarreraDAO();
-        cut.em = emf.createEntityManager();
+        assertTrue(postgres.isRunning());
 
-        CatalogoCarrera resultado = cut.leer(idCatalogo);
+        ejecutarEnTransaccion(em->{
 
-        assertNotNull(resultado, "El ID del catalogo no puede ser nulo porque ya debe de existir");
-        assertEquals("INGSO-98",resultado.getIdCarrera() );
-        assertEquals("Ingenieria en Sistemas Informaticos", resultado.getNombre() );
+            CatalogoCarreraDAO cut = new CatalogoCarreraDAO();
+            cut.em = em;
+
+            //TOmar una carrera que ya existe en la D
+            CatalogoCarrera CarrerExistente = cut.findRange(0,1).get(0);
+
+            //Probar el metodo leer con la carrera que existe
+            CatalogoCarrera resultado = cut.leer(CarrerExistente.getIdCarrera());
+
+            assertNotNull(resultado, "El ID del catalogo no puede ser nulo porque ya debe de existir");
+            assertEquals(CarrerExistente.getIdCarrera(),resultado.getIdCarrera() );
+            assertEquals(CarrerExistente.getNombre(), resultado.getNombre() );
+
+            return null;
+        });
+
+
 
     }
     @Test
-    @Order(5)
     public void testActualizar(){
         System.out.println("CatalogoCarreraDAOIT.actualizar()");
-        EntityManager em = emf.createEntityManager();
-        CatalogoCarreraDAO cut = new CatalogoCarreraDAO();
-        cut.em=em;
+        assertTrue(postgres.isRunning());
 
-        //Leemos la carrera que existe actualmente
-        CatalogoCarrera catalogoCarrera = cut.leer(idCatalogo);
-        assertNotNull(catalogoCarrera);
+        ejecutarEnTransaccion(em ->{
 
-        //Cambiamos el nombre
-        catalogoCarrera.setNombre("Ingenieria en Sistemas Informaticos - 2025");
+            CatalogoCarreraDAO cut = new CatalogoCarreraDAO();
+            cut.em=em;
 
-        //Guardamos cambios
-        em.getTransaction().begin();
-        CatalogoCarrera resultado=cut.actualizar(catalogoCarrera);
-        em.getTransaction().commit();
+            //Leemos la carrera que existe en la BD
+            CatalogoCarrera catalogoCarrera = cut.findRange(0,2).get(0);
+            assertNotNull(catalogoCarrera);
 
-        //Verificamos cambios
-        assertEquals("Ingenieria en Sistemas Informaticos - 2025", resultado.getNombre());
+            //Cambiamos el nombre
+            catalogoCarrera.setNombre("Ingenieria NOMBRE Modificada - 2026");
+
+            //Guardamos cambios
+            CatalogoCarrera resultado=cut.actualizar(catalogoCarrera);
+
+            //Verificamos cambios
+            assertEquals("Ingenieria NOMBRE Modificada - 2026", resultado.getNombre());
+
+            return null;
+        });
+        
 
     }
 
     @Test
-    @Order(6)
     public void testEliminar(){
         System.out.println("CatalogoCarreraDAOIT.eliminar()");
-        EntityManager em = emf.createEntityManager();
-        CatalogoCarreraDAO cut = new CatalogoCarreraDAO();
-        cut.em=em;
+        assertTrue(postgres.isRunning());
 
-        CatalogoCarrera carrera = cut.leer(idCatalogo);
-        assertNotNull(carrera);
+        ejecutarEnTransaccion(em ->{
 
-        em.getTransaction().begin();
-        cut.eliminar(carrera);
-        em.getTransaction().commit();
+            CatalogoCarreraDAO cut = new CatalogoCarreraDAO();
+            cut.em=em;
 
-        //Verficar que ya no existe el registro
+            //Creamos un dato TEMPORAL
+            CatalogoCarrera carreraTemporal = new  CatalogoCarrera();
+            carreraTemporal.setIdCarrera("INGSO-98");
+            carreraTemporal.setNombre("Ingenieria en Sistemas Informaticos");
+            cut.crear(carreraTemporal);
 
-        assertNull(cut.leer(idCatalogo), "El registro no debe de existir y su retorno debe ser NULO");
-        System.out.println(cut.leer(idCatalogo) + " No existe el registro");
+            //Deben de existir 5 carreras
+            assertEquals(5, cut.count());
+
+            //Eliminamos la carrera temporal
+            cut.eliminar(carreraTemporal);
+
+            //Verficar que ya no existe el registro
+            assertEquals(4, cut.count());
+            System.out.println(cut.leer("INGSO-98") + " No existe el registro");
+
+            return null;
+        });
 
 
     }

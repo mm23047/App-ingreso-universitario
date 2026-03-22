@@ -1,150 +1,181 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control;
 
-import jakarta.persistence.EntityManager;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExaman;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class TurnosExamanDAOIT extends AbstractBaseIT {
 
-    //ID utilizado para el CRUD
-    private static UUID idTurnosExamanActual;
 
     public TurnosExamanDAOIT() {
     }
 
     @Test
-    @Order(1)
     public void testCount() {
-        System.out.println("TEST DAOIT COUNT");
+        System.out.println("TEST TurnosExaman DAOIT COUNT");
         assertTrue(postgres.isRunning());
 
-        TurnosExamanDAO cut = new TurnosExamanDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            TurnosExamanDAO cut = new TurnosExamanDAO();
+            cut.em = em;
 
-        int resultado = cut.count();
-        assertEquals(2, resultado);
+            int resultado = cut.count();
+
+            //Hay 2 registros semilla en la bd
+            assertEquals(2, resultado);
+
+            return null;
+        });
     }
 
     @Test
-    @Order(2)
     public void testFindRange() {
-        System.out.println("TEST Turnos de examenes DAOIT FIND RANGE");
+        System.out.println("TEST TurnosExaman DAOIT FIND RANGE");
+        assertTrue(postgres.isRunning());
 
+        ejecutarEnTransaccion(em -> {
+            TurnosExamanDAO cut = new TurnosExamanDAO();
+            cut.em = em;
 
-        TurnosExamanDAO cut = new TurnosExamanDAO();
-        cut.em = emf.createEntityManager();
+            List<TurnosExaman> resultado = cut.findRange(0, 5);
 
-        List<TurnosExaman> resultado = cut.findRange(0, 5);
-        assertNotNull(resultado);
-        System.out.println("RESULTADO: " + resultado.size());
-        assertEquals(2, resultado.size());
+            assertNotNull(resultado);
+            assertEquals(2, resultado.size());
 
+            return null;
+        });
     }
 
     @Test
-    @Order(3)
     public void testCrear() {
-        System.out.println("TEST Turnos de examenes DAOIT CREAR");
-        TurnosExamanDAO cut = new TurnosExamanDAO();
-        EntityManager em = emf.createEntityManager();
-        cut.em = em;
+        System.out.println("TEST TurnosExaman DAOIT CREAR");
+        assertTrue(postgres.isRunning());
 
-        PruebasAdmision pruebasAdmision = em.createQuery("SELECT p FROM PruebasAdmision p", PruebasAdmision.class)
-                .setMaxResults(1)
-                .getSingleResult();
-        assertNotNull(pruebasAdmision);
+        ejecutarEnTransaccion(em -> {
+            TurnosExamanDAO cut = new TurnosExamanDAO();
+            cut.em = em;
 
-        TurnosExaman nuevoTurno = new TurnosExaman();
-        nuevoTurno.setNombreTurno("Turno de Matutino");
-        nuevoTurno.setIdPrueba(pruebasAdmision);
+            // Obtenemos una prueba de admisión existente para asignarla al turno
+            PruebasAdmision pruebasAdmision = em.createQuery("SELECT p FROM PruebasAdmision p", PruebasAdmision.class)
+                    .setMaxResults(1)
+                    .getSingleResult();
+            assertNotNull(pruebasAdmision);
 
-        nuevoTurno.setFecha(LocalDate.now());
-        nuevoTurno.setHoraInicio(LocalTime.now());
-        nuevoTurno.setHoraFin(LocalTime.now().plusHours(2));
+            TurnosExaman nuevoTurno = new TurnosExaman();
+            nuevoTurno.setNombreTurno("Turno Matutino");
+            nuevoTurno.setIdPrueba(pruebasAdmision);
+            nuevoTurno.setFecha(LocalDate.now());
+            nuevoTurno.setHoraInicio(LocalTime.now());
+            nuevoTurno.setHoraFin(LocalTime.now().plusHours(2));
 
-        //guardamos el nuevo turno
-        em.getTransaction().begin();
-        cut.crear(nuevoTurno);
-        em.getTransaction().commit();
+            // Creamos el nuevo turno
+            cut.crear(nuevoTurno);
 
-        assertNotNull(nuevoTurno.getId());
-        idTurnosExamanActual = nuevoTurno.getId();
-        System.out.println("ID del nuevo turno creado: " + idTurnosExamanActual);
+            assertNotNull(nuevoTurno.getId());
+            // Sube a 3 en esta transacción
+            assertEquals(3, cut.count());
 
+            return null;
+        });
+
+        // Verificamos el rollback
+        ejecutarEnTransaccion(em -> {
+            TurnosExamanDAO cut = new TurnosExamanDAO();
+            cut.em = em;
+            // Vuelve a 2
+            assertEquals(2, cut.count());
+            return null;
+        });
     }
 
     @Test
-    @Order(4)
     public void testLeer() {
-        System.out.println("TEST Turnos de examenes DAOIT LEER");
-        TurnosExamanDAO cut = new TurnosExamanDAO();
-        cut.em = emf.createEntityManager();
+        System.out.println("TEST TurnosExaman DAOIT LEER");
+        assertTrue(postgres.isRunning());
 
-        TurnosExaman resultado = cut.leer(idTurnosExamanActual);
+        ejecutarEnTransaccion(em -> {
+            TurnosExamanDAO cut = new TurnosExamanDAO();
+            cut.em = em;
 
-        System.out.println("RESULTADO: " + resultado.toString());
-        assertNotNull(resultado, "El ID del turno de examen no puede ser nulo porque ya debe de existir");
-        assertEquals("Turno de Matutino", resultado.getNombreTurno());
+            // Obtenemos un turno que ya exista en la Bd
+            TurnosExaman turnoExistente = cut.findRange(0, 1).get(0);
 
+            TurnosExaman resultado = cut.leer(turnoExistente.getId());
+
+            assertNotNull(resultado, "El ID del turno de examen no puede ser nulo");
+            assertEquals(turnoExistente.getId(), resultado.getId());
+            assertEquals(turnoExistente.getNombreTurno(), resultado.getNombreTurno());
+
+            return null;
+        });
     }
 
     @Test
-    @Order(5)
     public void testActualizar() {
-        System.out.println("TEST Turnos de examenes DAOIT ACTUALIZAR");
-        TurnosExamanDAO cut = new TurnosExamanDAO();
-        EntityManager em = emf.createEntityManager();
-        cut.em = em;
+        System.out.println("TEST TurnosExaman DAOIT ACTUALIZAR");
+        assertTrue(postgres.isRunning());
 
-        TurnosExaman turnoExistente = cut.leer(idTurnosExamanActual);
-        assertNotNull(turnoExistente, "El turno de examen a actualizar no existe");
+        ejecutarEnTransaccion(em -> {
+            TurnosExamanDAO cut = new TurnosExamanDAO();
+            cut.em = em;
 
-        turnoExistente.setNombreTurno("Turno de Vespertino");
+            // Leemos un turno de la Bd
+            TurnosExaman turnoExistente = cut.findRange(0, 1).get(0);
+            assertNotNull(turnoExistente, "El turno de examen a actualizar no existe");
 
-        em.getTransaction().begin();
-        cut.actualizar(turnoExistente);
-        em.getTransaction().commit();
+            // Modificamos
+            turnoExistente.setNombreTurno("Turno Vespertino Modificado");
 
-        TurnosExaman turnoActualizado = cut.leer(idTurnosExamanActual);
-        assertNotNull(turnoActualizado, "El turno de examen actualizado no puede ser nulo");
-        if (turnoActualizado != null) {
-            assertEquals("Turno de Vespertino", turnoActualizado.getNombreTurno());
-            System.out.println("Turno de examen actualizado correctamente: " + turnoActualizado.getNombreTurno());
-        }
+            TurnosExaman turnoActualizado = cut.actualizar(turnoExistente);
+
+            assertNotNull(turnoActualizado);
+            assertEquals("Turno Vespertino Modificado", turnoActualizado.getNombreTurno());
+
+            return null;
+        });
     }
 
     @Test
-    @Order(6)
     public void testEliminar() {
-        System.out.println("TEST Turnos de examenes DAOIT ELIMINAR");
-        TurnosExamanDAO cut = new TurnosExamanDAO();
-        EntityManager em = emf.createEntityManager();
-        cut.em = em;
+        System.out.println("TEST TurnosExaman DAOIT ELIMINAR");
+        assertTrue(postgres.isRunning());
 
-        TurnosExaman turnoExistente = cut.leer(idTurnosExamanActual);
-        assertNotNull(turnoExistente, "El turno de examen a eliminar no existe");
+        ejecutarEnTransaccion(em -> {
+            TurnosExamanDAO cut = new TurnosExamanDAO();
+            cut.em = em;
 
-        em.getTransaction().begin();
-        cut.eliminar(turnoExistente);
-        em.getTransaction().commit();
+            // Necesitamos una Prueba de Admision para poder crear el turno temporal
+            PruebasAdmision pruebasAdmision = em.createQuery("SELECT p FROM PruebasAdmision p", PruebasAdmision.class)
+                    .setMaxResults(1)
+                    .getSingleResult();
 
-        TurnosExaman turnoEliminado = cut.leer(idTurnosExamanActual);
-        assertNull(turnoEliminado, "El turno de examen debería haber sido eliminado y no debe existir");
-        if (turnoEliminado == null) {
-            System.out.println("Turno de examen eliminado correctamente, no se encontró en la base de datos.");
-        } else {
-            System.out.println("Error: El turno de examen aún existe después de intentar eliminarlo.");
-        }
+            // Creamos el dato temporal
+            TurnosExaman turnoTemporal = new TurnosExaman();
+            turnoTemporal.setNombreTurno("Turno Temporal a Eliminar");
+            turnoTemporal.setIdPrueba(pruebasAdmision);
+            turnoTemporal.setFecha(LocalDate.now());
+            turnoTemporal.setHoraInicio(LocalTime.now());
+            turnoTemporal.setHoraFin(LocalTime.now().plusHours(2));
+
+            cut.crear(turnoTemporal);
+
+            // Verificamos que se creó correctamente
+            assertEquals(3, cut.count());
+
+            // Lo eliminamos
+            cut.eliminar(turnoTemporal);
+
+            //Verificamos que bajó a 2 y que la base devuelve null al buscarlo
+            assertEquals(2, cut.count());
+            assertNull(cut.leer(turnoTemporal.getId()), "El turno debería retornar null al haber sido borrado");
+
+            System.out.println("Dato eliminado: "+ cut.leer(turnoTemporal.getId()));
+            return null;
+        });
     }
 }

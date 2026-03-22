@@ -1,138 +1,170 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control;
 
-import jakarta.persistence.EntityManager;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
 import java.util.List;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+
 public class PruebasAdmisionDAOIT extends AbstractBaseIT {
 
-    //ID utilizado para el CRUD
-    private static UUID idPruebasAdmisionActual;
 
     public PruebasAdmisionDAOIT() {
     }
 
     @Test
-    @Order(1)
     public void testCount() {
-        System.out.println("TEST DAOIT COUNT");
+        System.out.println("TEST PruebasAdmision DAOIT COUNT");
         assertTrue(postgres.isRunning());
 
-        PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
+            cut.em = em;
 
-        int Resultado = cut.count();
+            int resultado = cut.count();
 
-        //Tenemos 2 registros en la base de datos
-        assertEquals(2, Resultado);
+            // Tenemos 2 registros iniciales en la BD
+            assertEquals(2, resultado);
+            return null;
+        });
     }
 
     @Test
-    @Order(2)
     public void testFindRange() {
         System.out.println("TEST PruebasAdmision DAOIT FIND RANGE");
+        assertTrue(postgres.isRunning());
 
-        PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
+            cut.em = em;
 
-        List<PruebasAdmision> resultado = cut.findRange(0, 2);
-        System.out.println("RESULTADO: " + resultado);
-        assertNotNull(resultado);
+            List<PruebasAdmision> resultado = cut.findRange(0, 2);
+
+            assertNotNull(resultado);
+            assertFalse(resultado.isEmpty());
+            assertEquals(2, resultado.size());
+
+            return null;
+        });
     }
 
     @Test
-    @Order(3)
     public void testCrear() {
         System.out.println("TEST PruebasAdmision DAOIT CREAR");
-        PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
-        EntityManager em = emf.createEntityManager();
-        cut.em = em;
+        assertTrue(postgres.isRunning());
 
-        PruebasAdmision nuevo = new PruebasAdmision();
-        nuevo.setNombrePrueba("PRUEBA DE ADMISION 2025");
-        nuevo.setAnio(2025);
-        nuevo.setActiva(false);
+        ejecutarEnTransaccion(em -> {
+            PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
+            cut.em = em;
 
-        em.getTransaction().begin();
-        cut.crear(nuevo);
-        em.getTransaction().commit();
+            PruebasAdmision nuevo = new PruebasAdmision();
+            nuevo.setNombrePrueba("PRUEBA DE ADMISION 2027");
+            nuevo.setAnio(2027);
+            nuevo.setActiva(false);
 
-        assertNotNull(nuevo.getId());
-        idPruebasAdmisionActual = nuevo.getId();
-        System.out.println(nuevo.getId());
+            cut.crear(nuevo);
+
+            // Verificamos que se sumó una prueba en esta transacción
+            assertEquals(3, cut.count());
+            assertNotNull(nuevo.getId());
+            //Para verificar por consola
+            System.out.println("NUmeor de registros actaules: "+cut.count());
+            return null;
+        });
+        //Verificar el rollback: no debemos ensuciar la BD
+        ejecutarEnTransaccion(em -> {
+            PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
+            cut.em = em;
+            assertEquals(2, cut.count());
+            return null;
+        });
     }
 
     @Test
-    @Order(4)
     public void testLeer() {
-
         System.out.println("TEST PruebasAdmision DAOIT LEER");
-        PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
-        cut.em = emf.createEntityManager();
+        assertTrue(postgres.isRunning());
 
-        PruebasAdmision resultado = cut.leer(idPruebasAdmisionActual);
+        ejecutarEnTransaccion(em -> {
+            PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
+            cut.em = em;
 
-        System.out.println("RESULTADO: " + resultado.toString());
-        assertNotNull(resultado, "El ID de la prueba de admisión no puede ser nulo porque ya debe de existir");
-        assertEquals("PRUEBA DE ADMISION 2025", resultado.getNombrePrueba());
+            //Ler el primer registro que viene de la BD
+            PruebasAdmision pruebaExistente = cut.findRange(0, 1).get(0);
 
+            //Probar método leer
+            PruebasAdmision resultado = cut.leer(pruebaExistente.getId());
+
+            assertNotNull(resultado, "El ID de la prueba no puede ser nulo porque ya existe");
+            assertEquals(pruebaExistente.getId(), resultado.getId());
+            assertEquals(pruebaExistente.getNombrePrueba(), resultado.getNombrePrueba());
+
+            return null;
+        });
     }
 
     @Test
-    @Order(5)
     public void testActualizar() {
-        System.out.println("TEST PruebasAdmision DAOIT UPDATE");
-        PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
-        EntityManager em = emf.createEntityManager();
-        cut.em = em;
+        System.out.println("TEST PruebasAdmision DAOIT ACTUALIZAR");
+        assertTrue(postgres.isRunning());
 
-        PruebasAdmision pruebaActualizada = cut.leer(idPruebasAdmisionActual);
-        assertNotNull(pruebaActualizada, "No se encontró la prueba de admisión con el ID proporcionado para actualizar");
+        ejecutarEnTransaccion(em -> {
+            PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
+            cut.em = em;
 
-        pruebaActualizada.setNombrePrueba("PRUEBA DE ADMISION 2026");
-        pruebaActualizada.setActiva(true);
-        pruebaActualizada.setAnio(2026);
+            // Tomamos una prueba existente
+            PruebasAdmision pruebaActualizada = cut.findRange(0, 1).get(0);
+            assertNotNull(pruebaActualizada);
 
-        em.getTransaction().begin();
-        PruebasAdmision resultado = cut.actualizar(pruebaActualizada);
-        em.getTransaction().commit();
+            // Modificamos sus datos
+            pruebaActualizada.setNombrePrueba("PRUEBA MODIFICADA ST");
+            pruebaActualizada.setActiva(true);
+            pruebaActualizada.setAnio(2030);
 
-        assertNotNull(resultado, "No se encontró la prueba de admisión después de la actualización");
-        assertTrue(resultado.getActiva(), "La prueba de admisión debería estar activa después de la actualización");
-        assertEquals(2026, resultado.getAnio(), "El año de la prueba de admisión debería ser 2026 después de la actualización");
-        System.out.println("Prueba actualizada: " + resultado);
+            // Guardamos los cambios
+            PruebasAdmision resultado = cut.actualizar(pruebaActualizada);
+
+            // Verificamos
+            assertNotNull(resultado);
+            assertTrue(resultado.getActiva());
+            assertEquals(2030, resultado.getAnio());
+            assertEquals("PRUEBA MODIFICADA ST", resultado.getNombrePrueba());
+
+            return null;
+        });
     }
 
-
     @Test
-    @Order(6)
     public void testEliminar() {
         System.out.println("TEST PruebasAdmision DAOIT ELIMINAR");
-        PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
-        EntityManager em = emf.createEntityManager();
-        cut.em = em;
+        assertTrue(postgres.isRunning());
 
-        PruebasAdmision pruebaAEliminar = cut.leer(idPruebasAdmisionActual);
-        assertNotNull(pruebaAEliminar, "No se encontró la prueba de admisión con el ID proporcionado para eliminar");
+        ejecutarEnTransaccion(em -> {
+            PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
+            cut.em = em;
 
-        em.getTransaction().begin();
-        cut.eliminar(pruebaAEliminar);
-        em.getTransaction().commit();
+            // Crear un dato temporal para eliminarlo
+            PruebasAdmision pruebaAEliminar = new PruebasAdmision();
+            pruebaAEliminar.setNombrePrueba("PRUEBA TEMPORAL PARA BORRAR");
+            pruebaAEliminar.setAnio(2099);
+            pruebaAEliminar.setActiva(false);
 
-        PruebasAdmision pruebaEliminada = cut.leer(idPruebasAdmisionActual);
-        assertNull(pruebaEliminada, "La prueba de admisión debería haber sido eliminada");
-        if (pruebaEliminada == null) {
-            System.out.println(pruebaEliminada + ": Prueba eliminada correctamente, no se encontró en la base de datos.");
-        }
+            cut.crear(pruebaAEliminar);
+
+            // Verificamos que se creó
+            assertEquals(3, cut.count());
+
+            //Eliminamos
+            cut.eliminar(pruebaAEliminar);
+
+            // Verificamos que bajó de nuevo a 2 y que el ID ya no existe
+            assertEquals(2, cut.count());
+            assertNull(cut.leer(pruebaAEliminar.getId()), "La prueba debería haber sido eliminada y retornar null");
+            //Verificamos en consola
+            System.out.println("Dato eliminado: "+ cut.leer(pruebaAEliminar.getId()));
+            return null;
+        });
     }
-
 
 }

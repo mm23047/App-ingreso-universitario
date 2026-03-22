@@ -1,149 +1,193 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control;
 
-import jakarta.persistence.EntityManager;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
+
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AreasConocimiento;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
 
 import java.util.List;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+
 public class BancoPreguntaDAOIT extends AbstractBaseIT {
 
-    //ID a utilizar para las pruebas
-    private static UUID ID_PRUEBA;
+
 
     public BancoPreguntaDAOIT() {
     }
 
     @Test
-    @Order(1)
     public void testCount() {
-        System.out.println("TEST DAOIT COUNT");
+        System.out.println("INICIANDO TEST COUNT");
         assertTrue(postgres.isRunning());
 
-        BancoPreguntaDAO cut = new BancoPreguntaDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
 
-        int resultado = cut.count();
-        System.out.println("RESULTADO COUNT: " + resultado);
-        assertEquals(4, resultado);
+            int resultado = cut.count();
+            System.out.println("Registros encontrados en BD: " + resultado);
+            assertEquals(4, resultado);
 
+            return null;
+        });
     }
 
     @Test
-    @Order(2)
     public void testFindRange() {
-        System.out.println("TEST DAOIT FIND RANGE");
+        System.out.println("INICIANDO TEST FIND RANGE");
+        assertTrue(postgres.isRunning());
 
-        BancoPreguntaDAO cut = new BancoPreguntaDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
 
-        List<BancoPregunta> resultado = cut.findRange(0, 10);
-        System.out.println("RESULTADO FIND RANGE: " + resultado);
-        assertEquals(4, resultado.size());
+            List<BancoPregunta> resultado = cut.findRange(0, 10);
+            System.out.println("Cantidad de preguntas obtenidas: " + resultado.size());
+
+            assertNotNull(resultado);
+            assertFalse(resultado.isEmpty());
+            assertEquals(4, resultado.size());
+
+            return null;
+        });
     }
 
     @Test
-    @Order(3)
     public void testCrear() {
-        System.out.println("TEST DAOIT CREAR");
+        System.out.println("INICIANDO TEST CREAR ");
+        assertTrue(postgres.isRunning());
 
-        BancoPreguntaDAO cut = new BancoPreguntaDAO();
-        EntityManager em = emf.createEntityManager();
-        cut.em = em;
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
 
-        AreasConocimiento area = em.createQuery("SELECT a FROM AreasConocimiento a", AreasConocimiento.class).setMaxResults(1).getSingleResult();
-        assertNotNull(area);
+            //Obtenemos un área existente para la llave foránea
+            AreasConocimiento area = em.createQuery("SELECT a FROM AreasConocimiento a", AreasConocimiento.class)
+                    .setMaxResults(1)
+                    .getSingleResult();
+            assertNotNull(area);
+            System.out.println(" Área de conocimiento asignada: " + area.getNombreArea());
 
+            //Creamos la pregunta
+            BancoPregunta nuevoBancoPregunta = new BancoPregunta();
+            nuevoBancoPregunta.setEnunciado("¿Cuál es la capital de Francia?");
+            nuevoBancoPregunta.setIdArea(area);
 
-        BancoPregunta nuevoBancoPregunta = new BancoPregunta();
+            cut.crear(nuevoBancoPregunta);
 
-        nuevoBancoPregunta.setEnunciado("¿Cuál es la capital de Francia?");
-        nuevoBancoPregunta.setIdArea(area);
+            //Verificamos que se creó en esta transacción
+            System.out.println("Pregunta creada con ID: " + nuevoBancoPregunta.getId());
+            int conteoActual = cut.count();
+            System.out.println("Conteo actual en transacción (Debe subir a 5): " + conteoActual);
 
-        em.getTransaction().begin();
-        cut.crear(nuevoBancoPregunta);
-        em.getTransaction().commit();
+            assertNotNull(nuevoBancoPregunta.getId());
+            assertEquals(5, conteoActual);
 
-        assertNotNull(nuevoBancoPregunta.getId());
-        ID_PRUEBA = nuevoBancoPregunta.getId();
-        System.out.println("RESULTADO CREADO: " + ID_PRUEBA);
+            return null;
+        });
 
+        // Verificamos el ROLLBACK
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
+            int conteoPostRollback = cut.count();
+            System.out.println("Conteo tras el ROLLBACK(Deben de ser 4): " + conteoPostRollback);
+            assertEquals(4, conteoPostRollback);
+            return null;
+        });
     }
 
 
     @Test
-    @Order(4)
     public void testLeer() {
-        System.out.println("TEST DAOIT LEER");
+        System.out.println("INICIANDO TEST LEER ");
+        assertTrue(postgres.isRunning());
 
-        BancoPreguntaDAO cut = new BancoPreguntaDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
 
-        BancoPregunta resultado = cut.leer(ID_PRUEBA);
-        assertNotNull(resultado);
-        System.out.println("RESULTADO LEER: " + resultado.getEnunciado());
-        assertEquals("¿Cuál es la capital de Francia?", resultado.getEnunciado());
+            // Tomamos una pregunta de la BD
+            BancoPregunta preguntaExistente = cut.findRange(0, 1).get(0);
+            System.out.println("Leer pregunta con ID existente: " + preguntaExistente.getId());
+
+            BancoPregunta resultado = cut.leer(preguntaExistente.getId());
+
+            assertNotNull(resultado);
+            System.out.println("RESULTADO LEER ENUNCIADO: " + resultado.getEnunciado());
+            assertEquals(preguntaExistente.getId(), resultado.getId());
+
+            return null;
+        });
     }
 
     @Test
-    @Order(5)
     public void testActualizar() {
-        System.out.println("TEST DAOIT ACTUALIZAR");
+        System.out.println("INICIANDO TEST ACTUALIZAR ");
+        assertTrue(postgres.isRunning());
 
-        BancoPreguntaDAO cut = new BancoPreguntaDAO();
-        EntityManager em = emf.createEntityManager();
-        cut.em = em;
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
 
-        BancoPregunta bancoPreguntaExistente = cut.leer(ID_PRUEBA);
-        assertNotNull(bancoPreguntaExistente);
+            // Leemos una de la BD
+            BancoPregunta bancoPreguntaExistente = cut.findRange(0, 1).get(0);
+            assertNotNull(bancoPreguntaExistente);
+            System.out.println("Enunciado original: " + bancoPreguntaExistente.getEnunciado());
 
-        bancoPreguntaExistente.setEnunciado("¿Cuál es la capital de España?");
+            // Modificamos
+            bancoPreguntaExistente.setEnunciado("¿Cuál es la capital de España? (MODIFICADO)");
 
-        em.getTransaction().begin();
-        cut.actualizar(bancoPreguntaExistente);
-        em.getTransaction().commit();
+            BancoPregunta resultado = cut.actualizar(bancoPreguntaExistente);
 
-        BancoPregunta resultado = cut.leer(ID_PRUEBA);
-        assertNotNull(resultado);
-        if (resultado != null) {
+            assertNotNull(resultado);
             System.out.println("RESULTADO ACTUALIZADO: " + resultado.getEnunciado());
-        } else {
-            System.out.println("No se encontró el banco de preguntas con ID: " + ID_PRUEBA);
-        }
+            assertEquals("¿Cuál es la capital de España? (MODIFICADO)", resultado.getEnunciado());
 
-        assertEquals("¿Cuál es la capital de España?", resultado.getEnunciado());
-
+            return null;
+        });
     }
 
     @Test
-    @Order(6)
     public void testEliminar() {
-        System.out.println("TEST DAOIT ELIMINAR");
-        BancoPreguntaDAO cut = new BancoPreguntaDAO();
-        EntityManager em = emf.createEntityManager();
-        cut.em = em;
+        System.out.println("INICIANDO TEST ELIMINAR ");
+        assertTrue(postgres.isRunning());
 
-        BancoPregunta bancoPreguntaExistente = cut.leer(ID_PRUEBA);
-        assertNotNull(bancoPreguntaExistente);
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
 
-        em.getTransaction().begin();
-        cut.eliminar(bancoPreguntaExistente);
-        em.getTransaction().commit();
+            // Obtenemos Área para la pregunta temporal
+            AreasConocimiento area = em.createQuery("SELECT a FROM AreasConocimiento a", AreasConocimiento.class)
+                    .setMaxResults(1)
+                    .getSingleResult();
 
-        BancoPregunta resultado = cut.leer(ID_PRUEBA);
-        assertNull(resultado);
-        if (resultado == null) {
-            System.out.println("Banco de preguntas eliminado correctamente, no se encontró en la base de datos.");
-        } else {
-            System.out.println("Error: El banco de preguntas aún existe en la base de datos después de intentar eliminarlo.");
-        }
-        System.out.println("RESULTADO ELIMINADO: " + resultado);
+            // Creamos dato temporal
+            BancoPregunta preguntaTemporal = new BancoPregunta();
+            preguntaTemporal.setEnunciado("Pregunta temporal a eliminar");
+            preguntaTemporal.setIdArea(area);
+
+            cut.crear(preguntaTemporal);
+            System.out.println("Pregunta temporal creada con ID: " + preguntaTemporal.getId());
+            System.out.println("Conteo antes de eliminar: " + cut.count());
+            // Sube a 5
+            assertEquals(5, cut.count());
+
+            // Eliminamos el dato temporal
+            cut.eliminar(preguntaTemporal);
+
+            // Verificamos que bajó a 4 y la base de datos devuelve null
+            int conteoFinal = cut.count();
+            System.out.println("Conteo después de eliminar (Debe ser 4): " + conteoFinal);
+            assertEquals(4, conteoFinal);
+
+            BancoPregunta resultadoLectura = cut.leer(preguntaTemporal.getId());
+            System.out.println("Intentando leer el ID borrado. Resultado obtenido: " + resultadoLectura);
+            assertNull(resultadoLectura, "La pregunta debería retornar null tras ser eliminada");
+
+            return null;
+        });
     }
 }
