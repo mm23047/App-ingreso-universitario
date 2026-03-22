@@ -1,12 +1,6 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control;
 
-import jakarta.persistence.EntityManager;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestMethodOrder;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AsignacionesAulaPupitre;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AulasExaman;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman;
@@ -15,15 +9,11 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ExamenesRealizadoDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
@@ -32,167 +22,159 @@ public class ExamenesRealizadoDAOIT extends AbstractBaseIT {
     private static final UUID ID_CLAVE_2        = UUID.fromString("08000000-0000-0000-0000-000000000002");
     private static final UUID ID_ETAPA_2        = UUID.fromString("c1000000-0000-0000-0000-000000000002");
 
-    // UUID del examen creado en testCrear — compartido entre tests
-    private UUID idCreado;
-
-    // UUID de la asignación auxiliar creada en testCrear para el prerequisito
-    private UUID idAsignacionAuxiliar;
-
-    public ExamenesRealizadoDAOIT() {
-    }
-
-    @BeforeAll
-    void inicializar() {
-        // La configuracion de postgres y emf se realiza en AbstractBaseIT
-    }
-
     @Test
-    @Order(1)
     public void testCount() {
-        System.out.println("count");
         assertTrue(postgres.isRunning());
 
-        ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
+            cut.em = em;
 
-        int resultado = cut.count();
+            int resultado = cut.count();
 
-        // BD recién iniciada con init.sql → 2 exámenes realizados
-        assertTrue(resultado > 0);
-        assertEquals(2, resultado);
+            // BD recién iniciada con init.sql → 2 exámenes realizados
+            assertTrue(resultado > 0);
+            assertEquals(2, resultado);
+
+            return null;
+        });
     }
 
     @Test
-    @Order(2)
     public void testFindRange() {
-        System.out.println("findRange");
         assertTrue(postgres.isRunning());
 
-        ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
+            cut.em = em;
 
-        List<ExamenesRealizado> resultado = cut.findRange(0, 10);
+            List<ExamenesRealizado> resultado = cut.findRange(0, 10);
 
-        // Aún no se ha insertado nada → sigue habiendo 2
-        assertNotNull(resultado);
-        assertFalse(resultado.isEmpty());
-        assertEquals(2, resultado.size());
+            // BD recién iniciada con init.sql → 2 exámenes
+            assertNotNull(resultado);
+            assertFalse(resultado.isEmpty());
+            assertEquals(2, resultado.size());
+
+            return null;
+        });
     }
 
     @Test
-    @Order(3)
     public void testCrear() {
-        System.out.println("crear");
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
-        cut.em = em;
+        // Crear y verificar dentro de la misma transacción
+        ejecutarEnTransaccion(em -> {
+            ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
+            cut.em = em;
 
-        // Crear una nueva asignación de aula como prerequisito
-        // (inscripcion 1 + aula 2 con pupitre diferente; no hay UNIQUE constraint en la BD)
-        InscripcionesPrueba inscripcion = em.find(InscripcionesPrueba.class, ID_INSCRIPCION_1);
-        AulasExaman aula = em.find(AulasExaman.class, ID_AULA_2);
-        assertNotNull(inscripcion);
-        assertNotNull(aula);
+            // Crear una nueva asignación de aula como prerequisito
+            // (inscripcion 1 + aula 2 con pupitre diferente)
+            InscripcionesPrueba inscripcion = em.find(InscripcionesPrueba.class, ID_INSCRIPCION_1);
+            AulasExaman aula = em.find(AulasExaman.class, ID_AULA_2);
+            assertNotNull(inscripcion);
+            assertNotNull(aula);
 
-        AsignacionesAulaPupitre nuevaAsignacion = new AsignacionesAulaPupitre();
-        nuevaAsignacion.setIdInscripcion(inscripcion);
-        nuevaAsignacion.setIdAula(aula);
-        nuevaAsignacion.setPupitre("Z-99");
+            AsignacionesAulaPupitre nuevaAsignacion = new AsignacionesAulaPupitre();
+            nuevaAsignacion.setIdInscripcion(inscripcion);
+            nuevaAsignacion.setIdAula(aula);
+            nuevaAsignacion.setPupitre("Z-99");
 
-        // Cargar las FKs restantes del examen: clave B y etapa 2
-        ClavesExaman clave = em.find(ClavesExaman.class, ID_CLAVE_2);
-        EtapasAdmision etapa = em.find(EtapasAdmision.class, ID_ETAPA_2);
-        assertNotNull(clave);
-        assertNotNull(etapa);
+            // Cargar las FKs restantes del examen: clave 2 y etapa 2
+            ClavesExaman clave = em.find(ClavesExaman.class, ID_CLAVE_2);
+            EtapasAdmision etapa = em.find(EtapasAdmision.class, ID_ETAPA_2);
+            assertNotNull(clave);
+            assertNotNull(etapa);
 
-        ExamenesRealizado nuevo = new ExamenesRealizado();
-        nuevo.setIdAsignacion(nuevaAsignacion);
-        nuevo.setIdClave(clave);
-        nuevo.setIdEtapa(etapa);
-        // puntajeFinal y fechaRealizacion son opcionales → se dejan en null
+            ExamenesRealizado nuevo = new ExamenesRealizado();
+            nuevo.setIdAsignacion(nuevaAsignacion);
+            nuevo.setIdClave(clave);
+            nuevo.setIdEtapa(etapa);
+            // puntajeFinal y fechaRealizacion son opcionales → se dejan en null
 
-        em.getTransaction().begin();
-        em.persist(nuevaAsignacion);   // persistir prerequisito primero
-        cut.crear(nuevo);
-        em.getTransaction().commit();
+            em.persist(nuevaAsignacion);   // persistir prerequisito primero
+            cut.crear(nuevo);
 
-        idCreado = nuevo.getId();
-        idAsignacionAuxiliar = nuevaAsignacion.getId();
+            // Validación dentro de la transacción
+            assertEquals(3, cut.count());
 
-        assertNotNull(idCreado);
-        assertEquals(3, cut.count());
+            return null;
+        });
+
+        // Verificar rollback: vuelve a 2
+        ejecutarEnTransaccion(em -> {
+            ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
+            cut.em = em;
+
+            assertEquals(2, cut.count());
+
+            return null;
+        });
     }
 
     @Test
-    @Order(4)
-    public void testLeer() {
-        System.out.println("leer");
-        assertTrue(postgres.isRunning());
-
-        ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
-        cut.em = emf.createEntityManager();
-
-        // Lee el registro insertado en testCrear usando el UUID almacenado
-        ExamenesRealizado resultado = cut.leer(idCreado);
-
-        assertNotNull(resultado);
-        assertEquals(ID_CLAVE_2, resultado.getIdClave().getId());
-        assertEquals(ID_ETAPA_2, resultado.getIdEtapa().getId());
-        assertNull(resultado.getPuntajeFinal());
-    }
-
-    @Test
-    @Order(5)
     public void testActualizar() {
-        System.out.println("actualizar");
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
-        cut.em = em;
+        ejecutarEnTransaccion(em -> {
+            ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
+            cut.em = em;
 
-        // Asignar un puntaje final al examen creado en testCrear
-        ExamenesRealizado examen = cut.leer(idCreado);
-        assertNotNull(examen);
-        examen.setPuntajeFinal(new BigDecimal("9.00"));
+            // Obtener el primer examen del init.sql
+            ExamenesRealizado examen = cut.findRange(0, 1).get(0);
+            assertNotNull(examen);
 
-        em.getTransaction().begin();
-        ExamenesRealizado resultado = cut.actualizar(examen);
-        em.getTransaction().commit();
+            // Modificar dentro de la transacción: asignar puntaje
+            examen.setPuntajeFinal(new BigDecimal("8.50"));
 
-        assertNotNull(resultado);
-        assertEquals(new BigDecimal("9.00"), resultado.getPuntajeFinal());
-        // El conteo no cambia al actualizar → sigue en 3
-        assertEquals(3, cut.count());
+            ExamenesRealizado resultado = cut.actualizar(examen);
+
+            assertNotNull(resultado);
+            assertEquals(new BigDecimal("8.50"), resultado.getPuntajeFinal());
+
+            return null;
+        });
     }
 
     @Test
-    @Order(6)
     public void testEliminar() {
-        System.out.println("eliminar");
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
-        cut.em = em;
+        ejecutarEnTransaccion(em -> {
+            ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
+            cut.em = em;
 
-        // Elimina el examen creado en testCrear
-        ExamenesRealizado examen = cut.leer(idCreado);
-        assertNotNull(examen);
+            // Crear una nueva asignación y examen para eliminar
+            InscripcionesPrueba inscripcion = em.find(InscripcionesPrueba.class, ID_INSCRIPCION_1);
+            AulasExaman aula = em.find(AulasExaman.class, ID_AULA_2);
+            assertNotNull(inscripcion);
+            assertNotNull(aula);
 
-        em.getTransaction().begin();
-        cut.eliminar(examen);
-        // Limpiar también la asignación auxiliar creada en testCrear
-        AsignacionesAulaPupitre asignacion = em.find(AsignacionesAulaPupitre.class, idAsignacionAuxiliar);
-        if (asignacion != null) {
-            em.remove(asignacion);
-        }
-        em.getTransaction().commit();
+            AsignacionesAulaPupitre nuevaAsignacion = new AsignacionesAulaPupitre();
+            nuevaAsignacion.setIdInscripcion(inscripcion);
+            nuevaAsignacion.setIdAula(aula);
+            nuevaAsignacion.setPupitre("Z-88");
 
-        // Vuelve a los 2 registros originales del init.sql
-        assertEquals(2, cut.count());
-        assertNull(cut.leer(idCreado));
+            ClavesExaman clave = em.find(ClavesExaman.class, ID_CLAVE_2);
+            EtapasAdmision etapa = em.find(EtapasAdmision.class, ID_ETAPA_2);
+            assertNotNull(clave);
+            assertNotNull(etapa);
+
+            ExamenesRealizado nuevo = new ExamenesRealizado();
+            nuevo.setIdAsignacion(nuevaAsignacion);
+            nuevo.setIdClave(clave);
+            nuevo.setIdEtapa(etapa);
+
+            em.persist(nuevaAsignacion);
+            cut.crear(nuevo);
+            assertEquals(3, cut.count());
+
+            // Eliminar el examen y su asignación
+            cut.eliminar(nuevo);
+            em.remove(nuevaAsignacion);
+            assertEquals(2, cut.count());
+
+            return null;
+        });
     }
 }

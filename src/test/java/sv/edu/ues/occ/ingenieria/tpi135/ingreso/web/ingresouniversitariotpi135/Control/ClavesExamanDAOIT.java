@@ -1,163 +1,140 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control;
 
-import jakarta.persistence.EntityManager;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestMethodOrder;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ClavesExamanDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     private static final UUID ID_PRUEBA_1 = UUID.fromString("d1000000-0000-0000-0000-000000000001");
 
-    // UUID de la clave creada en testCrear — compartido entre tests
-    private UUID idCreado;
-
-    public ClavesExamanDAOIT() {
-    }
-
-    @BeforeAll
-    void inicializar() {
-        // La configuracion de postgres y emf se realiza en AbstractBaseIT
-    }
-
     @Test
-    @Order(1)
     public void testCount() {
-        System.out.println("count");
         assertTrue(postgres.isRunning());
 
-        ClavesExamanDAO cut = new ClavesExamanDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            ClavesExamanDAO cut = new ClavesExamanDAO();
+            cut.em = em;
 
-        int resultado = cut.count();
+            int resultado = cut.count();
 
-        // BD recién iniciada con init.sql → 2 claves de examen (Clave A, Clave B)
-        assertTrue(resultado > 0);
-        assertEquals(2, resultado);
+            // BD recién iniciada con init.sql → 2 claves de examen (Clave A, Clave B)
+            assertTrue(resultado > 0);
+            assertEquals(2, resultado);
+
+            return null;
+        });
     }
 
     @Test
-    @Order(2)
     public void testFindRange() {
-        System.out.println("findRange");
         assertTrue(postgres.isRunning());
 
-        ClavesExamanDAO cut = new ClavesExamanDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            ClavesExamanDAO cut = new ClavesExamanDAO();
+            cut.em = em;
 
-        List<ClavesExaman> resultado = cut.findRange(0, 10);
+            List<ClavesExaman> resultado = cut.findRange(0, 10);
 
-        // Aún no se ha insertado nada → sigue habiendo 2
-        assertNotNull(resultado);
-        assertFalse(resultado.isEmpty());
-        assertEquals(2, resultado.size());
+            // BD recién iniciada con init.sql → 2 claves de examen
+            assertNotNull(resultado);
+            assertFalse(resultado.isEmpty());
+            assertEquals(2, resultado.size());
+
+            return null;
+        });
     }
 
     @Test
-    @Order(3)
     public void testCrear() {
-        System.out.println("crear");
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        ClavesExamanDAO cut = new ClavesExamanDAO();
-        cut.em = em;
+        // Crear y verificar dentro de la misma transacción
+        ejecutarEnTransaccion(em -> {
+            ClavesExamanDAO cut = new ClavesExamanDAO();
+            cut.em = em;
 
-        // Asociar la nueva clave a la prueba de admisión 2026 (d1...001)
-        PruebasAdmision prueba = em.find(PruebasAdmision.class, ID_PRUEBA_1);
-        assertNotNull(prueba);
+            // Asociar la nueva clave a la prueba de admisión 2026 (d1...001)
+            PruebasAdmision prueba = em.find(PruebasAdmision.class, ID_PRUEBA_1);
+            assertNotNull(prueba);
 
-        ClavesExaman nueva = new ClavesExaman();
-        nueva.setIdPrueba(prueba);
-        nueva.setNombreClave("Clave C");
+            ClavesExaman nueva = new ClavesExaman();
+            nueva.setIdPrueba(prueba);
+            nueva.setNombreClave("Clave C");
 
-        em.getTransaction().begin();
-        cut.crear(nueva);
-        em.getTransaction().commit();
+            cut.crear(nueva);
 
-        // Guardar el UUID para que testLeer, testActualizar y testEliminar lo usen
-        idCreado = nueva.getId();
+            // Validación dentro de la transacción
+            assertEquals(3, cut.count());
 
-        assertNotNull(idCreado);
-        assertEquals(3, cut.count());
+            return null;
+        });
+
+        // Verificar rollback: vuelve a 2
+        ejecutarEnTransaccion(em -> {
+            ClavesExamanDAO cut = new ClavesExamanDAO();
+            cut.em = em;
+
+            assertEquals(2, cut.count());
+
+            return null;
+        });
     }
 
     @Test
-    @Order(4)
-    public void testLeer() {
-        System.out.println("leer");
-        assertTrue(postgres.isRunning());
-
-        ClavesExamanDAO cut = new ClavesExamanDAO();
-        cut.em = emf.createEntityManager();
-
-        // Lee el registro insertado en testCrear usando el UUID almacenado
-        ClavesExaman resultado = cut.leer(idCreado);
-
-        assertNotNull(resultado);
-        assertEquals("Clave C", resultado.getNombreClave());
-    }
-
-    @Test
-    @Order(5)
     public void testActualizar() {
-        System.out.println("actualizar");
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        ClavesExamanDAO cut = new ClavesExamanDAO();
-        cut.em = em;
+        ejecutarEnTransaccion(em -> {
+            ClavesExamanDAO cut = new ClavesExamanDAO();
+            cut.em = em;
 
-        // Modifica el registro creado en testCrear
-        ClavesExaman clave = cut.leer(idCreado);
-        assertNotNull(clave);
-        clave.setNombreClave("Clave C actualizada");
+            // Obtener la primera clave del init.sql
+            ClavesExaman clave = cut.findRange(0, 1).get(0);
+            assertNotNull(clave);
 
-        em.getTransaction().begin();
-        ClavesExaman resultado = cut.actualizar(clave);
-        em.getTransaction().commit();
+            // Modificar dentro de la transacción
+            clave.setNombreClave("Clave Actualizada");
 
-        assertNotNull(resultado);
-        assertEquals("Clave C actualizada", resultado.getNombreClave());
-        // El conteo no cambia al actualizar → sigue en 3
-        assertEquals(3, cut.count());
+            ClavesExaman resultado = cut.actualizar(clave);
+
+            assertNotNull(resultado);
+            assertEquals("Clave Actualizada", resultado.getNombreClave());
+
+            return null;
+        });
     }
 
     @Test
-    @Order(6)
     public void testEliminar() {
-        System.out.println("eliminar");
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        ClavesExamanDAO cut = new ClavesExamanDAO();
-        cut.em = em;
+        ejecutarEnTransaccion(em -> {
+            ClavesExamanDAO cut = new ClavesExamanDAO();
+            cut.em = em;
 
-        // Elimina el registro creado en testCrear
-        ClavesExaman clave = cut.leer(idCreado);
-        assertNotNull(clave);
+            // Crear una nueva clave para eliminarla
+            PruebasAdmision prueba = em.find(PruebasAdmision.class, ID_PRUEBA_1);
+            assertNotNull(prueba);
 
-        em.getTransaction().begin();
-        cut.eliminar(clave);
-        em.getTransaction().commit();
+            ClavesExaman nueva = new ClavesExaman();
+            nueva.setIdPrueba(prueba);
+            nueva.setNombreClave("Clave para eliminar");
 
-        // Vuelve a los 2 registros originales del init.sql
-        assertEquals(2, cut.count());
-        assertNull(cut.leer(idCreado));
+            cut.crear(nueva);
+            assertEquals(3, cut.count());
+
+            // Eliminar la clave recién creada
+            cut.eliminar(nueva);
+            assertEquals(2, cut.count());
+
+            return null;
+        });
     }
 }

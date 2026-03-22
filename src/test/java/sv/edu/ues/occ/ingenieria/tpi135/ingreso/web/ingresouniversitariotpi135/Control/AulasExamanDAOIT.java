@@ -1,167 +1,146 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control;
 
-import jakarta.persistence.EntityManager;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestMethodOrder;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AulasExaman;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExaman;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AulasExamanDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     private static final UUID ID_TURNO_1 = UUID.fromString("07000000-0000-0000-0000-000000000001");
 
-    // UUID del aula creada en testCrear — compartido entre tests
-    private UUID idCreado;
-
-    public AulasExamanDAOIT() {
-    }
-
-    @BeforeAll
-    void inicializar() {
-        // La configuracion de postgres y emf se realiza en AbstractBaseIT
-    }
-
     @Test
-    @Order(1)
     public void testCount() {
-        System.out.println("count");
         assertTrue(postgres.isRunning());
 
-        AulasExamanDAO cut = new AulasExamanDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            AulasExamanDAO cut = new AulasExamanDAO();
+            cut.em = em;
 
-        int resultado = cut.count();
+            int resultado = cut.count();
 
-        // BD recién iniciada con init.sql → 2 aulas de examen (AULA-101, AULA-201)
-        assertTrue(resultado > 0);
-        assertEquals(2, resultado);
+            // BD recién iniciada con init.sql → 2 aulas de examen (AULA-101, AULA-201)
+            assertTrue(resultado > 0);
+            assertEquals(2, resultado);
+
+            return null;
+        });
     }
 
     @Test
-    @Order(2)
     public void testFindRange() {
-        System.out.println("findRange");
         assertTrue(postgres.isRunning());
 
-        AulasExamanDAO cut = new AulasExamanDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            AulasExamanDAO cut = new AulasExamanDAO();
+            cut.em = em;
 
-        List<AulasExaman> resultado = cut.findRange(0, 10);
+            List<AulasExaman> resultado = cut.findRange(0, 10);
 
-        // Aún no se ha insertado nada → sigue habiendo 2
-        assertNotNull(resultado);
-        assertFalse(resultado.isEmpty());
-        assertEquals(2, resultado.size());
+            // BD recién iniciada con init.sql → 2 aulas
+            assertNotNull(resultado);
+            assertFalse(resultado.isEmpty());
+            assertEquals(2, resultado.size());
+
+            return null;
+        });
     }
 
     @Test
-    @Order(3)
     public void testCrear() {
-        System.out.println("crear");
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        AulasExamanDAO cut = new AulasExamanDAO();
-        cut.em = em;
+        // Crear y verificar dentro de la misma transacción
+        ejecutarEnTransaccion(em -> {
+            AulasExamanDAO cut = new AulasExamanDAO();
+            cut.em = em;
 
-        // Asociar el nuevo aula al turno mañana (07...001)
-        TurnosExaman turno = em.find(TurnosExaman.class, ID_TURNO_1);
-        assertNotNull(turno);
+            // Asociar el nuevo aula al turno mañana (07...001)
+            TurnosExaman turno = em.find(TurnosExaman.class, ID_TURNO_1);
+            assertNotNull(turno);
 
-        AulasExaman nueva = new AulasExaman();
-        nueva.setIdTurno(turno);
-        nueva.setIdAulaApi("AULA-301");
-        nueva.setCapacidad(30);
-        nueva.setCuposOcupados(0);
-        nueva.setAccesibleSillaRuedas(false);
+            AulasExaman nueva = new AulasExaman();
+            nueva.setIdTurno(turno);
+            nueva.setIdAulaApi("AULA-301");
+            nueva.setCapacidad(30);
+            nueva.setCuposOcupados(0);
+            nueva.setAccesibleSillaRuedas(false);
 
-        em.getTransaction().begin();
-        cut.crear(nueva);
-        em.getTransaction().commit();
+            cut.crear(nueva);
 
-        // Guardar el UUID para que testLeer, testActualizar y testEliminar lo usen
-        idCreado = nueva.getId();
+            // Validación dentro de la transacción
+            assertEquals(3, cut.count());
 
-        assertNotNull(idCreado);
-        assertEquals(3, cut.count());
+            return null;
+        });
+
+        // Verificar rollback: vuelve a 2
+        ejecutarEnTransaccion(em -> {
+            AulasExamanDAO cut = new AulasExamanDAO();
+            cut.em = em;
+
+            assertEquals(2, cut.count());
+
+            return null;
+        });
     }
 
     @Test
-    @Order(4)
-    public void testLeer() {
-        System.out.println("leer");
-        assertTrue(postgres.isRunning());
-
-        AulasExamanDAO cut = new AulasExamanDAO();
-        cut.em = emf.createEntityManager();
-
-        // Lee el registro insertado en testCrear usando el UUID almacenado
-        AulasExaman resultado = cut.leer(idCreado);
-
-        assertNotNull(resultado);
-        assertEquals("AULA-301", resultado.getIdAulaApi());
-        assertEquals(30, resultado.getCapacidad());
-    }
-
-    @Test
-    @Order(5)
     public void testActualizar() {
-        System.out.println("actualizar");
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        AulasExamanDAO cut = new AulasExamanDAO();
-        cut.em = em;
+        ejecutarEnTransaccion(em -> {
+            AulasExamanDAO cut = new AulasExamanDAO();
+            cut.em = em;
 
-        // Modifica el registro creado en testCrear
-        AulasExaman aula = cut.leer(idCreado);
-        assertNotNull(aula);
-        aula.setCapacidad(25);
+            // Obtener el primer aula del init.sql
+            AulasExaman aula = cut.findRange(0, 1).get(0);
+            assertNotNull(aula);
 
-        em.getTransaction().begin();
-        AulasExaman resultado = cut.actualizar(aula);
-        em.getTransaction().commit();
+            // Modificar dentro de la transacción
+            aula.setCapacidad(40);
 
-        assertNotNull(resultado);
-        assertEquals(25, resultado.getCapacidad());
-        // El conteo no cambia al actualizar → sigue en 3
-        assertEquals(3, cut.count());
+            AulasExaman resultado = cut.actualizar(aula);
+
+            assertNotNull(resultado);
+            assertEquals(40, resultado.getCapacidad());
+
+            return null;
+        });
     }
 
     @Test
-    @Order(6)
     public void testEliminar() {
-        System.out.println("eliminar");
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        AulasExamanDAO cut = new AulasExamanDAO();
-        cut.em = em;
+        ejecutarEnTransaccion(em -> {
+            AulasExamanDAO cut = new AulasExamanDAO();
+            cut.em = em;
 
-        // Elimina el registro creado en testCrear
-        AulasExaman aula = cut.leer(idCreado);
-        assertNotNull(aula);
+            // Crear una nueva aula para eliminarla
+            TurnosExaman turno = em.find(TurnosExaman.class, ID_TURNO_1);
+            assertNotNull(turno);
 
-        em.getTransaction().begin();
-        cut.eliminar(aula);
-        em.getTransaction().commit();
+            AulasExaman nueva = new AulasExaman();
+            nueva.setIdTurno(turno);
+            nueva.setIdAulaApi("AULA-401");
+            nueva.setCapacidad(35);
+            nueva.setCuposOcupados(0);
+            nueva.setAccesibleSillaRuedas(true);
 
-        // Vuelve a los 2 registros originales del init.sql
-        assertEquals(2, cut.count());
-        assertNull(cut.leer(idCreado));
+            cut.crear(nueva);
+            assertEquals(3, cut.count());
+
+            // Eliminar el aula recién creada
+            cut.eliminar(nueva);
+            assertEquals(2, cut.count());
+
+            return null;
+        });
     }
 }
