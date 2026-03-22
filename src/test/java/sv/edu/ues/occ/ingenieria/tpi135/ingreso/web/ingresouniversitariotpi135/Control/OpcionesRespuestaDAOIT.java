@@ -1,166 +1,143 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control;
 
-import jakarta.persistence.EntityManager;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestMethodOrder;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.OpcionesRespuesta;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class OpcionesRespuestaDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     // f1...003 = "¿Cuántos planetas tiene el sistema solar?" — se usará para la nueva opción
     private static final UUID ID_PREGUNTA_3 = UUID.fromString("f1000000-0000-0000-0000-000000000003");
 
-    // UUID de la opción creada en testCrear — compartido entre tests
-    private UUID idCreado;
-
-    public OpcionesRespuestaDAOIT() {
-    }
-
-    @BeforeAll
-    void inicializar() {
-        // La configuracion de postgres y emf se realiza en AbstractBaseIT
-    }
-
     @Test
-    @Order(1)
     public void testCount() {
-        System.out.println("count");
         assertTrue(postgres.isRunning());
 
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+            cut.em = em;
 
-        int resultado = cut.count();
+            int resultado = cut.count();
 
-        // BD recién iniciada con init.sql → 10 opciones de respuesta en total
-        assertTrue(resultado > 0);
-        assertEquals(10, resultado);
+            // BD recién iniciada con init.sql → 10 opciones de respuesta en total
+            assertTrue(resultado > 0);
+            assertEquals(10, resultado);
+
+            return null;
+        });
     }
 
     @Test
-    @Order(2)
     public void testFindRange() {
-        System.out.println("findRange");
         assertTrue(postgres.isRunning());
 
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
-        cut.em = emf.createEntityManager();
+        ejecutarEnTransaccion(em -> {
+            OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+            cut.em = em;
 
-        List<OpcionesRespuesta> resultado = cut.findRange(0, 15);
+            List<OpcionesRespuesta> resultado = cut.findRange(0, 15);
 
-        // Aún no se ha insertado nada → sigue habiendo 10
-        assertNotNull(resultado);
-        assertFalse(resultado.isEmpty());
-        assertEquals(10, resultado.size());
+            // BD recién iniciada con init.sql → 10 opciones
+            assertNotNull(resultado);
+            assertFalse(resultado.isEmpty());
+            assertEquals(10, resultado.size());
+
+            return null;
+        });
     }
 
     @Test
-    @Order(3)
     public void testCrear() {
-        System.out.println("crear");
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
-        cut.em = em;
+        // Crear y verificar dentro de la misma transacción
+        ejecutarEnTransaccion(em -> {
+            OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+            cut.em = em;
 
-        // Agregar una nueva opción a la pregunta f1...003 ("¿Cuántos planetas...?")
-        BancoPregunta pregunta = em.find(BancoPregunta.class, ID_PREGUNTA_3);
-        assertNotNull(pregunta);
+            // Agregar una nueva opción a la pregunta f1...003 ("¿Cuántos planetas...?")
+            BancoPregunta pregunta = em.find(BancoPregunta.class, ID_PREGUNTA_3);
+            assertNotNull(pregunta);
 
-        OpcionesRespuesta nueva = new OpcionesRespuesta();
-        nueva.setIdPregunta(pregunta);
-        nueva.setTextoOpcion("9");
-        nueva.setEsCorrecta(false);
+            OpcionesRespuesta nueva = new OpcionesRespuesta();
+            nueva.setIdPregunta(pregunta);
+            nueva.setTextoOpcion("9");
+            nueva.setEsCorrecta(false);
 
-        em.getTransaction().begin();
-        cut.crear(nueva);
-        em.getTransaction().commit();
+            cut.crear(nueva);
 
-        // Guardar el UUID para que testLeer, testActualizar y testEliminar lo usen
-        idCreado = nueva.getId();
+            // Validación dentro de la transacción
+            assertEquals(11, cut.count());
 
-        assertNotNull(idCreado);
-        assertEquals(11, cut.count());
+            return null;
+        });
+
+        // Verificar rollback: vuelve a 10
+        ejecutarEnTransaccion(em -> {
+            OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+            cut.em = em;
+
+            assertEquals(10, cut.count());
+
+            return null;
+        });
     }
 
     @Test
-    @Order(4)
-    public void testLeer() {
-        System.out.println("leer");
-        assertTrue(postgres.isRunning());
-
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
-        cut.em = emf.createEntityManager();
-
-        // Lee el registro insertado en testCrear usando el UUID almacenado
-        OpcionesRespuesta resultado = cut.leer(idCreado);
-
-        assertNotNull(resultado);
-        assertEquals("9", resultado.getTextoOpcion());
-        assertFalse(resultado.getEsCorrecta());
-    }
-
-    @Test
-    @Order(5)
     public void testActualizar() {
-        System.out.println("actualizar");
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
-        cut.em = em;
+        ejecutarEnTransaccion(em -> {
+            OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+            cut.em = em;
 
-        // Modifica el registro creado en testCrear
-        OpcionesRespuesta opcion = cut.leer(idCreado);
-        assertNotNull(opcion);
-        opcion.setTextoOpcion("texto actualizado");
+            // Obtener la primera opción del init.sql
+            OpcionesRespuesta opcion = cut.findRange(0, 1).get(0);
+            assertNotNull(opcion);
 
-        em.getTransaction().begin();
-        OpcionesRespuesta resultado = cut.actualizar(opcion);
-        em.getTransaction().commit();
+            // Modificar dentro de la transacción
+            opcion.setTextoOpcion("Opción Actualizada");
 
-        assertNotNull(resultado);
-        assertEquals("texto actualizado", resultado.getTextoOpcion());
-        // El conteo no cambia al actualizar → sigue en 11
-        assertEquals(11, cut.count());
+            OpcionesRespuesta resultado = cut.actualizar(opcion);
+
+            assertNotNull(resultado);
+            assertEquals("Opción Actualizada", resultado.getTextoOpcion());
+
+            return null;
+        });
     }
 
     @Test
-    @Order(6)
     public void testEliminar() {
-        System.out.println("eliminar");
         assertTrue(postgres.isRunning());
 
-        EntityManager em = emf.createEntityManager();
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
-        cut.em = em;
+        ejecutarEnTransaccion(em -> {
+            OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+            cut.em = em;
 
-        // Elimina el registro creado en testCrear
-        OpcionesRespuesta opcion = cut.leer(idCreado);
-        assertNotNull(opcion);
+            // Crear una nueva opción para eliminarla
+            BancoPregunta pregunta = em.find(BancoPregunta.class, ID_PREGUNTA_3);
+            assertNotNull(pregunta);
 
-        em.getTransaction().begin();
-        cut.eliminar(opcion);
-        em.getTransaction().commit();
+            OpcionesRespuesta nueva = new OpcionesRespuesta();
+            nueva.setIdPregunta(pregunta);
+            nueva.setTextoOpcion("Opción para eliminar");
+            nueva.setEsCorrecta(false);
 
-        // Vuelve a los 10 registros originales del init.sql
-        assertEquals(10, cut.count());
-        assertNull(cut.leer(idCreado));
+            cut.crear(nueva);
+            assertEquals(11, cut.count());
+
+            // Eliminar la opción recién creada
+            cut.eliminar(nueva);
+            assertEquals(10, cut.count());
+
+            return null;
+        });
     }
 }
