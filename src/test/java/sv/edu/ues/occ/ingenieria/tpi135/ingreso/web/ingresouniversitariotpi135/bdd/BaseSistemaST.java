@@ -6,9 +6,6 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -28,6 +25,8 @@ public abstract class BaseSistemaST {
 
     protected static Client cliente;
     protected static String baseUrl;
+
+    private static boolean inicializado = false;
 
     protected static final Network red = Network.newNetwork();
 
@@ -56,18 +55,31 @@ public abstract class BaseSistemaST {
             .withCopyFileToContainer(war, "/opt/wlp/usr/servers/tpi135_2026/dropins/ingreso.war")
             .withExposedPorts(9080);
 
-    @BeforeAll
-    static void initSistema() {
-        Assertions.assertTrue(liberty.isRunning());
-        cliente = ClientBuilder.newClient();
-        baseUrl = String.format("http://localhost:%d/ingreso/resources/v1", liberty.getMappedPort(9080));
+    public static synchronized void init() {
+        if (!inicializado) {
+            try {
+                postgres.start();
+                liberty.start();
+
+                cliente = ClientBuilder.newClient();
+                baseUrl = String.format(
+                        "http://localhost:%d/ingreso/resources/v1",
+                        liberty.getMappedPort(9080)
+                );
+
+                inicializado = true;
+            } catch (Exception e) {
+                throw new RuntimeException("Error inicializando entorno de sistema", e);
+            }
+        }
     }
 
-    @AfterAll
-    static void cerrarCliente() {
-        if (cliente != null) {
-            cliente.close();
-        }
+    public static Client getClient() {
+        return cliente;
+    }
+
+    public static String getBaseUrl() {
+        return baseUrl;
     }
 
     protected WebTarget targetDe(String recurso) {

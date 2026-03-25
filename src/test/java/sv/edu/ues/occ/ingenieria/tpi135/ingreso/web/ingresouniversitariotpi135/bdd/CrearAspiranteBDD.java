@@ -4,19 +4,11 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
-import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Assertions;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.Network;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.lifecycle.Startables;
-import org.testcontainers.utility.MountableFile;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.UsuariosSistema;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
@@ -25,44 +17,13 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegidaId;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera;
 
-import java.nio.file.Paths;
-import java.util.List;
 import java.util.UUID;
-
-import static com.github.dockerjava.zerodep.shaded.org.apache.hc.core5.http.io.support.ClassicRequestBuilder.post;
 
 public class CrearAspiranteBDD {
 
 
-     static Client cliente;
+    static Client cliente;
     static WebTarget target;
-
-    static  Network red = Network.newNetwork();
-
-    static MountableFile war = MountableFile.forHostPath(
-            Paths.get("target/IngresoUniversitarioTPI135-1.0-SNAPSHOT.war").toAbsolutePath());
-
-    @Container
-    protected static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17.5-alpine")
-            .withDatabaseName("ingresoTPI135")
-            .withInitScript("ingresoTPI135_init.sql")
-            .withUsername("postgres")
-            .withPassword("abc123")
-            .withNetwork(red)
-            .withNetworkAliases("db")
-            .withExposedPorts(5432);
-
-    @Container
-    protected static final GenericContainer<?> liberty = new GenericContainer<>("ingresouniversitariotpi135-base:26.0.0.2")
-            .withNetwork(red)
-            .withEnv("PGSERVER", "db")
-            .withEnv("PGPORT", "5432")
-            .withEnv("PGDBNAME", "ingresoTPI135")
-            .withEnv("PGUSER", "postgres")
-            .withEnv("PGPASSWORD", "abc123")
-            .dependsOn(postgres)
-            .withCopyFileToContainer(war, "/opt/wlp/usr/servers/tpi135_2026/dropins/ingreso.war")
-            .withExposedPorts(9080);
       
       
         static AspirantesDato nuevo;
@@ -75,11 +36,11 @@ public class CrearAspiranteBDD {
 
     @Given("se tiene un servidor corriendo con la aplicacion desplegada")
     public void se_tiene_un_servidor_corriendo_con_la_aplicacion_desplegada() {
-        System.out.println("Arrancando openliberty");
-        Startables.deepStart(List.of(postgres, liberty)).join();
-        Assertions.assertTrue(liberty.isRunning());
-        cliente = ClientBuilder.newClient();
-        target = cliente.target(String.format("http://localhost:%d/ingreso/resources/v1", liberty.getMappedPort(9080)));
+        System.out.println("Arrancando entorno de sistema (singleton BaseSistemaST)");
+        BaseSistemaST.init();
+
+        cliente = BaseSistemaST.getClient();
+        target = cliente.target(BaseSistemaST.getBaseUrl());
 
     }
 
