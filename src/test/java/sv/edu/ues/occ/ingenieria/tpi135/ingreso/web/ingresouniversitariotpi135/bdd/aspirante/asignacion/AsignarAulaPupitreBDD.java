@@ -33,6 +33,51 @@ public class AsignarAulaPupitreBDD {
     private static final UUID ID_PRUEBA_SEMILLA = UUID.fromString("d1000000-0000-0000-0000-000000000001");
     private static final String ID_CARRERA_SEMILLA = "ICS";
 
+    // ===== Métodos auxiliares para reducir duplicación =====
+
+    /**
+     * Extrae UUID del header Location de una respuesta POST
+     */
+    private UUID extraerIdDelHeader(Response respuesta, String endpoint) {
+        String location = respuesta.getHeaderString("Location");
+        return UUID.fromString(location.split(endpoint + "/")[1]);
+    }
+
+    /**
+     * Realiza POST a un endpoint y retorna la respuesta
+     */
+    private Response hacerPost(String endpoint, Object entidad) {
+        return target
+                .path(endpoint)
+                .request(MediaType.APPLICATION_JSON)
+                .post(Entity.json(entidad));
+    }
+
+    /**
+     * Realiza GET a un endpoint por ID y retorna la respuesta
+     */
+    private Response hacerGet(String endpoint, UUID id) {
+        return target
+                .path(endpoint + "/{id}")
+                .resolveTemplate("id", id)
+                .request(MediaType.APPLICATION_JSON)
+                .get();
+    }
+
+    /**
+     * Obtiene una asignación y valida que exista
+     */
+    private AsignacionesAulaPupitre obtenerAsignacion(UUID id) {
+        Response respuesta = hacerGet("asignaciones_aula_pupitre", id);
+        Assertions.assertEquals(200, respuesta.getStatus());
+        AsignacionesAulaPupitre asignacion = respuesta.readEntity(AsignacionesAulaPupitre.class);
+        Assertions.assertNotNull(asignacion);
+        Assertions.assertEquals(id, asignacion.getId());
+        return asignacion;
+    }
+
+    // ===== Steps de Cucumber =====
+
     @Dado("se tiene un servidor corriendo con la aplicación desplegada")
     public void se_tiene_un_servidor_corriendo_con_la_aplicacion_desplegada() {
         System.out.println("Iniciando infraestructura singleton de pruebas BDD");
@@ -51,74 +96,46 @@ public class AsignarAulaPupitreBDD {
         nuevoAspirante.setNombres("Carlos");
         nuevoAspirante.setApellidos("López");
         nuevoAspirante.setDui("98765432-1");
-
         UsuariosSistema usuario = new UsuariosSistema();
         usuario.setId(ID_USUARIO);
         nuevoAspirante.setIdUsuario(usuario);
         nuevoAspirante.setUsaSillaRuedas(false);
 
-        Response respuestaAspirante = target
-                .path("aspirantes_datos")
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.json(nuevoAspirante));
-
+        Response respuestaAspirante = hacerPost("aspirantes_datos", nuevoAspirante);
         Assertions.assertEquals(201, respuestaAspirante.getStatus());
-        Assertions.assertTrue(respuestaAspirante.getHeaders().containsKey("Location"));
-
-        idAspirante = UUID.fromString(
-                respuestaAspirante.getHeaderString("Location").split("aspirantes_datos/")[1]
-        );
-        Assertions.assertNotNull(idAspirante);
+        idAspirante = extraerIdDelHeader(respuestaAspirante, "aspirantes_datos");
         System.out.println("Aspirante creado: " + idAspirante);
 
         // ===== 2. Crear inscripción a la prueba =====
         InscripcionesPrueba inscripcion = new InscripcionesPrueba();
-
         AspirantesDato aspiranteRef = new AspirantesDato();
         aspiranteRef.setId(idAspirante);
         inscripcion.setIdAspirante(aspiranteRef);
-
         PruebasAdmision pruebaRef = new PruebasAdmision();
         pruebaRef.setId(ID_PRUEBA_SEMILLA);
         inscripcion.setIdPrueba(pruebaRef);
-
         inscripcion.setEstado("INSCRITO");
 
-        Response respuestaInscripcion = target
-                .path("inscripciones_prueba")
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.json(inscripcion));
-
+        Response respuestaInscripcion = hacerPost("inscripciones_prueba", inscripcion);
         Assertions.assertEquals(201, respuestaInscripcion.getStatus());
-
-        idInscripcion = UUID.fromString(
-                respuestaInscripcion.getHeaderString("Location").split("inscripciones_prueba/")[1]
-        );
-        Assertions.assertNotNull(idInscripcion);
+        idInscripcion = extraerIdDelHeader(respuestaInscripcion, "inscripciones_prueba");
         System.out.println("Inscripción creada: " + idInscripcion);
 
         // ===== 3. Crear relación carrera elegida =====
         CarrerasElegidaId pk = new CarrerasElegidaId();
         pk.setIdInscripcion(idInscripcion);
         pk.setIdCarrera(ID_CARRERA_SEMILLA);
-
         CarrerasElegida carreraElegida = new CarrerasElegida();
         carreraElegida.setId(pk);
-
         InscripcionesPrueba inscripcionRef = new InscripcionesPrueba();
         inscripcionRef.setId(idInscripcion);
         carreraElegida.setIdInscripcion(inscripcionRef);
-
         CatalogoCarrera carreraRef = new CatalogoCarrera();
         carreraRef.setIdCarrera(ID_CARRERA_SEMILLA);
         carreraElegida.setIdCarrera(carreraRef);
         carreraElegida.setPrioridad((short) 1);
 
-        Response respuestaCarrera = target
-                .path("carreras_elegidas")
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.json(carreraElegida));
-
+        Response respuestaCarrera = hacerPost("carreras_elegidas", carreraElegida);
         Assertions.assertEquals(201, respuestaCarrera.getStatus());
         System.out.println("Carrera elegida asociada: " + ID_CARRERA_SEMILLA);
     }
@@ -130,51 +147,31 @@ public class AsignarAulaPupitreBDD {
         // ===== 1. Crear turno para la prueba semilla =====
         TurnosExaman nuevoTurno = new TurnosExaman();
         nuevoTurno.setNombreTurno("Turno Matutino Asignación");
-
         PruebasAdmision pruebaRef = new PruebasAdmision();
         pruebaRef.setId(ID_PRUEBA_SEMILLA);
         nuevoTurno.setIdPrueba(pruebaRef);
-
         nuevoTurno.setFecha(LocalDate.now());
         nuevoTurno.setHoraInicio(LocalTime.of(8, 0));
         nuevoTurno.setHoraFin(LocalTime.of(10, 0));
 
-        Response respuestaTurno = target
-                .path("turnos_examen")
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.json(nuevoTurno));
-
+        Response respuestaTurno = hacerPost("turnos_examen", nuevoTurno);
         Assertions.assertEquals(201, respuestaTurno.getStatus());
-
-        idTurno = UUID.fromString(
-                respuestaTurno.getHeaderString("Location").split("turnos_examen/")[1]
-        );
-        Assertions.assertNotNull(idTurno);
+        idTurno = extraerIdDelHeader(respuestaTurno, "turnos_examen");
         System.out.println("Turno creado: " + idTurno);
 
         // ===== 2. Crear aula de examen para ese turno =====
         AulasExaman nuevoAula = new AulasExaman();
-
         TurnosExaman turnoRef = new TurnosExaman();
         turnoRef.setId(idTurno);
         nuevoAula.setIdTurno(turnoRef);
-
         nuevoAula.setIdAulaApi("AULA-ASIGNACION-001");
         nuevoAula.setCapacidad(40);
         nuevoAula.setCuposOcupados(0);
         nuevoAula.setAccesibleSillaRuedas(false);
 
-        Response respuestaAula = target
-                .path("aulas_examen")
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.json(nuevoAula));
-
+        Response respuestaAula = hacerPost("aulas_examen", nuevoAula);
         Assertions.assertEquals(201, respuestaAula.getStatus());
-
-        idAula = UUID.fromString(
-                respuestaAula.getHeaderString("Location").split("aulas_examen/")[1]
-        );
-        Assertions.assertNotNull(idAula);
+        idAula = extraerIdDelHeader(respuestaAula, "aulas_examen");
         System.out.println("Aula creada: " + idAula);
     }
 
@@ -183,98 +180,52 @@ public class AsignarAulaPupitreBDD {
         System.out.println("Realizando asignación de aula y pupitre");
 
         AsignacionesAulaPupitre asignacion = new AsignacionesAulaPupitre();
-
         InscripcionesPrueba inscripcionRef = new InscripcionesPrueba();
         inscripcionRef.setId(idInscripcion);
         asignacion.setIdInscripcion(inscripcionRef);
-
         AulasExaman aulaRef = new AulasExaman();
         aulaRef.setId(idAula);
         asignacion.setIdAula(aulaRef);
-
         asignacion.setPupitre("Pupitre A-101");
 
-        Response respuestaAsignacion = target
-                .path("asignaciones_aula_pupitre")
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.json(asignacion));
-
+        Response respuestaAsignacion = hacerPost("asignaciones_aula_pupitre", asignacion);
         Assertions.assertEquals(201, respuestaAsignacion.getStatus());
-
-        idAsignacion = UUID.fromString(
-                respuestaAsignacion.getHeaderString("Location").split("asignaciones_aula_pupitre/")[1]
-        );
-        Assertions.assertNotNull(idAsignacion);
+        idAsignacion = extraerIdDelHeader(respuestaAsignacion, "asignaciones_aula_pupitre");
         System.out.println("Asignación creada: " + idAsignacion);
     }
 
     @Entonces("se registra la asignación de aula y pupitre para el aspirante")
     public void se_registra_la_asignacion_de_aula_y_pupitre_para_el_aspirante() {
         System.out.println("Verificando que se registró la asignación");
-
         Assertions.assertNotNull(idAsignacion);
-
-        Response respuesta = target
-                .path("asignaciones_aula_pupitre/{id}")
-                .resolveTemplate("id", idAsignacion)
-                .request(MediaType.APPLICATION_JSON)
-                .get();
-
-        Assertions.assertEquals(200, respuesta.getStatus());
-
-        AsignacionesAulaPupitre asignacionRegistrada = respuesta.readEntity(AsignacionesAulaPupitre.class);
-        Assertions.assertNotNull(asignacionRegistrada);
-        Assertions.assertEquals(idAsignacion, asignacionRegistrada.getId());
-
-        System.out.println("Asignación verificada: ID=" + asignacionRegistrada.getId());
+        AsignacionesAulaPupitre asignacion = obtenerAsignacion(idAsignacion);
+        System.out.println("Asignación verificada: ID=" + asignacion.getId());
     }
 
     @Entonces("puedo consultar la asignación de aula y pupitre del aspirante")
     public void puedo_consultar_la_asignacion_de_aula_y_pupitre_del_aspirante() {
-        System.out.println("Consultando asignation de aula y pupitre");
-
+        System.out.println("Consultando asignación de aula y pupitre");
         Assertions.assertNotNull(idAsignacion);
-
-        Response respuesta = target
-                .path("asignaciones_aula_pupitre/{id}")
-                .resolveTemplate("id", idAsignacion)
-                .request(MediaType.APPLICATION_JSON)
-                .get();
-
-        Assertions.assertEquals(200, respuesta.getStatus());
-
-        AsignacionesAulaPupitre asignacionConsultada = respuesta.readEntity(AsignacionesAulaPupitre.class);
-        Assertions.assertNotNull(asignacionConsultada);
-        Assertions.assertEquals(idAsignacion, asignacionConsultada.getId());
-        Assertions.assertNotNull(asignacionConsultada.getIdInscripcion());
-        Assertions.assertNotNull(asignacionConsultada.getIdAula());
-
+        AsignacionesAulaPupitre asignacion = obtenerAsignacion(idAsignacion);
+        Assertions.assertNotNull(asignacion.getIdInscripcion());
+        Assertions.assertNotNull(asignacion.getIdAula());
         System.out.println("Asignación consultada exitosamente");
     }
 
     @Entonces("la asignación muestra el aula y el pupitre asignados correctamente")
     public void la_asignacion_muestra_el_aula_y_el_pupitre_asignados_correctamente() {
         System.out.println("Verificando que aula y pupitre son correctos");
+        AsignacionesAulaPupitre asignacion = obtenerAsignacion(idAsignacion);
 
-        Response respuesta = target
-                .path("asignaciones_aula_pupitre/{id}")
-                .resolveTemplate("id", idAsignacion)
-                .request(MediaType.APPLICATION_JSON)
-                .get();
-
-        Assertions.assertEquals(200, respuesta.getStatus());
-
-        AsignacionesAulaPupitre asignacion = respuesta.readEntity(AsignacionesAulaPupitre.class);
-
-        // Verificar que la asignación tiene la inscripción correcta
+        // Validar inscripción
         Assertions.assertNotNull(asignacion.getIdInscripcion());
         Assertions.assertEquals(idInscripcion, asignacion.getIdInscripcion().getId());
 
-        // Verificar que la asignación tiene el aula correcta
+        // Validar aula
         Assertions.assertNotNull(asignacion.getIdAula());
         Assertions.assertEquals(idAula, asignacion.getIdAula().getId());
 
-        // Verificar que el pupitre asignado es correcto
+        // Validar pupitre
         Assertions.assertNotNull(asignacion.getPupitre());
         Assertions.assertEquals("Pupitre A-101", asignacion.getPupitre());
 
