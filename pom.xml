@@ -77,6 +77,14 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Soporte de tipos Java Time (LocalDate, LocalTime, etc.) para Jackson en el cliente de pruebas -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.17.0</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>eclipselink</artifactId>

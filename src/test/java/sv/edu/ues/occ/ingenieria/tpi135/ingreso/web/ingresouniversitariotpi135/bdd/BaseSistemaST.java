@@ -6,6 +6,7 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.glassfish.jersey.client.ClientConfig;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -61,7 +62,11 @@ public abstract class BaseSistemaST {
                 postgres.start();
                 liberty.start();
 
-                cliente = ClientBuilder.newClient();
+                // Configurar cliente Jersey y registrar el proveedor de ObjectMapper
+                ClientConfig config = new ClientConfig();
+                config.register(ProveedorJacksonTiempo.class);
+
+                cliente = ClientBuilder.newClient(config);
                 baseUrl = String.format(
                         "http://localhost:%d/ingreso/resources/v1",
                         liberty.getMappedPort(9080)
