@@ -8,7 +8,7 @@ import static io.cucumber.junit.platform.engine.Constants.GLUE_PROPERTY_NAME;
 
 @Suite
 @IncludeEngines("cucumber")
-@SelectPackages("bdd.aspirante.crear")
+@SelectPackages("bdd.aspirante")
 @ConfigurationParameter(key= GLUE_PROPERTY_NAME, value = "sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.bdd")
 public class LanzadorCucumberST {
 
