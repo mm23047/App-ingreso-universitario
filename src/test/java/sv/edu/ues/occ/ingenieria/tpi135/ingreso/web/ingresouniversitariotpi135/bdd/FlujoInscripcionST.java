@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import static sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.rest.server.RestHeaders.TOTAL_RECORDS;
 
 /**
@@ -22,7 +24,7 @@ import static sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariot
 public class FlujoInscripcionST extends BaseSistemaST {
 
     UUID idAspirantePrueba;
-    Integer idInscripcionPrueba;
+    UUID idInscripcionPrueba;
 
     @Test
     @Order(1)
@@ -30,9 +32,9 @@ public class FlujoInscripcionST extends BaseSistemaST {
         // TODO integrante 1: GET /aspirantes_datos?first=0&max=50
         System.out.println("listarAspirantesPaginado_debeRetornar200");
 
-        Response respuesta = targetDe("aspirantePrueba")
+        Response respuesta = targetDe("aspirantes_datos")
                 .queryParam("first", 0)
-                .queryParam("max", 30)
+                .queryParam("max", 50)
                 .request(MediaType.APPLICATION_JSON)
                 .get();
 
@@ -53,18 +55,24 @@ public class FlujoInscripcionST extends BaseSistemaST {
     void obtenerAspiranteExistentePorId_debeRetornar200() {
         // TODO integrante 1: GET /aspirantes_datos/{id}
         System.out.println("Orden 2\nobtenerAspiranteExistentePorId_debeRetornar200");
+        System.out.println("ID semilla utilizada: "+idAspirantePrueba.toString());
 
         Assertions.assertNotNull(idAspirantePrueba,"El ID del Aspirante prueba NO debe ser null");
 
-        Response respuesta = targetDe("Aspirante datos "+ idAspirantePrueba.toString())
+        Response respuesta = targetDe("Aspirante_datos/"+ idAspirantePrueba)
                 .request(MediaType.APPLICATION_JSON).get();
 
         Assertions.assertEquals(200, respuesta.getStatus(), "Debe de encontrar el ID  del Aspirante prueba con un 200");
 
+        Map<String, Object> aspirante = respuesta.readEntity(new  GenericType<Map<String, Object>>(){});
+
+        //COmparamos IDs
+        Assertions.assertEquals(idAspirantePrueba.toString(), aspirante.get("id").toString());
+
     }
 
     @Test
-    @Order(3)
+    @Order(3)*****
     void crearInscripcionValida_debeRetornar201YSerConsultable() {
         // TODO integrante 1: POST /inscripciones_prueba y luego GET por id
         System.out.println("Orden 3\ncrearInscripcionValida_debeRetornar201");
