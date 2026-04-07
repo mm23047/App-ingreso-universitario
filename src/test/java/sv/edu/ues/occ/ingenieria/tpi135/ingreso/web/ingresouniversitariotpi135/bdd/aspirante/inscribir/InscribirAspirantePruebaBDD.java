@@ -200,7 +200,7 @@ public class InscribirAspirantePruebaBDD {
         CarrerasElegida carreras = new CarrerasElegida();
         carreras.setId(carrerasElegida);
         carreras.setPrioridad((short) 1);
-cd
+
         // Resolvemos la llave foránea hacia el catálogo de carreras
         CatalogoCarrera catalogoCarrera = new CatalogoCarrera();
         catalogoCarrera.setIdCarrera(ID_CARRERA_SEMILLA);
