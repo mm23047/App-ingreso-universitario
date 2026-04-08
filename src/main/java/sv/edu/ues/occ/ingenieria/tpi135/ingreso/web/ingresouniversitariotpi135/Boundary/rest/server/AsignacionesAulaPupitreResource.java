@@ -12,6 +12,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AsignacionesAulaPupitre;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -25,9 +26,58 @@ public class AsignacionesAulaPupitreResource extends AbstractResource<Asignacion
     @Inject
     AsignacionesAulaPupitreDAO asignacionesAulaPupitreDAO;
 
+    @QueryParam("inscripcionId")
+    String inscripcionIdParam;
+
+    @QueryParam("aspiranteId")
+    String aspiranteIdParam;
+
     @Override
     protected IngresoDefaultDataAccess<AsignacionesAulaPupitre> getDAO() {
         return asignacionesAulaPupitreDAO;
+    }
+
+    @Override
+    @GET
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response findRange(
+            @DefaultValue("0")  @QueryParam("first") int first,
+            @DefaultValue("50") @QueryParam("max")   int max) {
+
+        try {
+
+            if (inscripcionIdParam != null && !inscripcionIdParam.isBlank()) {
+                try {
+                    UUID inscripcionId = UUID.fromString(inscripcionIdParam);
+                    List<AsignacionesAulaPupitre> list = asignacionesAulaPupitreDAO.findByInscripcionId(inscripcionId);
+                    return Response.ok(list).build();
+                } catch (IllegalArgumentException e) {
+                    return Response.status(422)
+                            .header(MISSING_PARAMETER, "inscripcionId must be a valid UUID")
+                            .build();
+                }
+            }
+
+            if (aspiranteIdParam != null && !aspiranteIdParam.isBlank()) {
+                try {
+                    UUID aspiranteId = UUID.fromString(aspiranteIdParam);
+                    List<AsignacionesAulaPupitre> list = asignacionesAulaPupitreDAO.findByAspiranteId(aspiranteId);
+                    return Response.ok(list).build();
+                } catch (IllegalArgumentException e) {
+                    return Response.status(422)
+                            .header(MISSING_PARAMETER, "aspiranteId must be a valid UUID")
+                            .build();
+                }
+            }
+
+            // Sin filtros: comportamiento paginado normal heredado
+            return super.findRange(first, max);
+
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(SERVER_EXCEPTION, "Cannot access db")
+                    .build();
+        }
     }
 
     @GET

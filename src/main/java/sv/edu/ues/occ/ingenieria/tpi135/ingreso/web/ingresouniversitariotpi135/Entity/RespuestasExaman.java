@@ -7,6 +7,12 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "respuestas_examen", schema = "public")
+@NamedQueries({
+        @NamedQuery(
+                name = "RespuestasExaman.findByExamenId",
+                query = "SELECT r FROM RespuestasExaman r WHERE r.idExamen.id = :idExamen"
+        )
+})
 public class RespuestasExaman {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

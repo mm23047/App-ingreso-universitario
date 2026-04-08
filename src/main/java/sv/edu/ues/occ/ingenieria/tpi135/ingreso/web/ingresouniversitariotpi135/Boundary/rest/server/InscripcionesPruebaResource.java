@@ -12,6 +12,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.InscripcionesPruebaDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -25,9 +26,58 @@ public class InscripcionesPruebaResource extends AbstractResource<InscripcionesP
     @Inject
     InscripcionesPruebaDAO inscripcionesPruebaDAO;
 
+    @QueryParam("aspiranteId")
+    String aspiranteIdParam;
+
+    @QueryParam("pruebaId")
+    String pruebaIdParam;
+
     @Override
     protected IngresoDefaultDataAccess<InscripcionesPrueba> getDAO() {
         return inscripcionesPruebaDAO;
+    }
+
+    @Override
+    @GET
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response findRange(
+            @DefaultValue("0")  @QueryParam("first") int first,
+            @DefaultValue("50") @QueryParam("max")   int max) {
+
+        try {
+
+            if (aspiranteIdParam != null && !aspiranteIdParam.isBlank()) {
+                try {
+                    UUID aspiranteId = UUID.fromString(aspiranteIdParam);
+                    List<InscripcionesPrueba> list = inscripcionesPruebaDAO.findByAspiranteId(aspiranteId);
+                    return Response.ok(list).build();
+                } catch (IllegalArgumentException e) {
+                    return Response.status(422)
+                            .header(MISSING_PARAMETER, "aspiranteId must be a valid UUID")
+                            .build();
+                }
+            }
+
+            if (pruebaIdParam != null && !pruebaIdParam.isBlank()) {
+                try {
+                    UUID pruebaId = UUID.fromString(pruebaIdParam);
+                    List<InscripcionesPrueba> list = inscripcionesPruebaDAO.findByPruebaId(pruebaId);
+                    return Response.ok(list).build();
+                } catch (IllegalArgumentException e) {
+                    return Response.status(422)
+                            .header(MISSING_PARAMETER, "pruebaId must be a valid UUID")
+                            .build();
+                }
+            }
+
+            // Sin filtros: comportamiento paginado normal heredado
+            return super.findRange(first, max);
+
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(SERVER_EXCEPTION, "Cannot access db")
+                    .build();
+        }
     }
 
     @GET

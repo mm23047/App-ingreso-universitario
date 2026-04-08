@@ -8,6 +8,16 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "asignaciones_aula_pupitre", schema = "public")
+@NamedQueries({
+    @NamedQuery(
+        name = "AsignacionesAulaPupitre.findByInscripcionId",
+        query = "SELECT a FROM AsignacionesAulaPupitre a WHERE a.idInscripcion.id = :idInscripcion"
+    ),
+    @NamedQuery(
+        name = "AsignacionesAulaPupitre.findByAspiranteId",
+        query = "SELECT a FROM AsignacionesAulaPupitre a JOIN a.idInscripcion i WHERE i.idAspirante.id = :idAspirante"
+    )
+})
 public class AsignacionesAulaPupitre {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

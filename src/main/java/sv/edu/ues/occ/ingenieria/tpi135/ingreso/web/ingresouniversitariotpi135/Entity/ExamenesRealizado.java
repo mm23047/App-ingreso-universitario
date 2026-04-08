@@ -10,6 +10,21 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "examenes_realizados", schema = "public")
+@NamedQueries({
+    @NamedQuery(
+        name = "ExamenesRealizado.findByAspiranteId",
+        query = "SELECT e FROM ExamenesRealizado e " +
+            "JOIN e.idAsignacion a " +
+            "JOIN a.idInscripcion i " +
+            "WHERE i.idAspirante.id = :aspiranteId"
+    ),
+    @NamedQuery(
+        name = "ExamenesRealizado.findByPruebaId",
+        query = "SELECT e FROM ExamenesRealizado e " +
+            "JOIN e.idClave c " +
+            "WHERE c.idPrueba.id = :pruebaId"
+    )
+})
 public class ExamenesRealizado {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
