@@ -188,4 +188,25 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
             return null;
         });
     }
+
+    @Test
+    @Order(7)
+    public void testFindByExamenId() {
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            RespuestasExamanDAO cut = new RespuestasExamanDAO();
+            cut.em = em;
+
+            List<RespuestasExaman> resultado = cut.findByExamenId(ID_EXAMEN_1);
+
+            assertNotNull(resultado);
+            assertFalse(resultado.isEmpty());
+            assertEquals(2, resultado.size());
+            assertTrue(resultado.stream()
+                    .allMatch(r -> r.getIdExamen() != null && ID_EXAMEN_1.equals(r.getIdExamen().getId())));
+
+            return null;
+        });
+    }
 }
