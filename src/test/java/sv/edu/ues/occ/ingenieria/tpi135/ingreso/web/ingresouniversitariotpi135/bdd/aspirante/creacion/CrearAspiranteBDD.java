@@ -34,8 +34,8 @@ public class CrearAspiranteBDD {
         private static final String ID_CARRERA_SEMILLA = "ICS";
 
 
-    @Given("se tiene un servidor corriendo con la aplicacion desplegada")
-    public void se_tiene_un_servidor_corriendo_con_la_aplicacion_desplegada() {
+    @Given("se tiene un servidor corriendo con la aplicacion desplegada para crear aspirantes")
+    public void se_tiene_un_servidor_corriendo_con_la_aplicacion_desplegada_para_crear_aspirantes() {
         System.out.println("Arrancando entorno de sistema (singleton BaseSistemaST)");
         BaseSistemaST.init();
 

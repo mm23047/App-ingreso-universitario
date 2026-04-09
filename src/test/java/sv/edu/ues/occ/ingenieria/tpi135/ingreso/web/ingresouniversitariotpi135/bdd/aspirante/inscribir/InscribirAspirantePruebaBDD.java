@@ -191,7 +191,7 @@ public class InscribirAspirantePruebaBDD {
 
         // ASOCIAR LA CARRERA A LA INSCRIPCIÓN
 
-        // Utilizamos la tabla intermedia
+        // Utilizamos la tabla intermedia (PK compuesta)
         CarrerasElegidaId carrerasElegida = new CarrerasElegidaId();
         carrerasElegida.setIdInscripcion(idInscripcion);
         carrerasElegida.setIdCarrera(ID_CARRERA_SEMILLA);
@@ -199,12 +199,18 @@ public class InscribirAspirantePruebaBDD {
         // Creamos la entidad principal de la carrera elegida y le asignamos su llave compuesta
         CarrerasElegida carreras = new CarrerasElegida();
         carreras.setId(carrerasElegida);
-        carreras.setPrioridad((short) 1);
+
+        // Resolvemos la relación hacia la inscripción
+        InscripcionesPrueba inscripcionRef = new InscripcionesPrueba();
+        inscripcionRef.setId(idInscripcion);
+        carreras.setIdInscripcion(inscripcionRef);
 
         // Resolvemos la llave foránea hacia el catálogo de carreras
         CatalogoCarrera catalogoCarrera = new CatalogoCarrera();
         catalogoCarrera.setIdCarrera(ID_CARRERA_SEMILLA);
         carreras.setIdCarrera(catalogoCarrera);
+
+        carreras.setPrioridad((short) 1);
 
         // Enviamos la petición POST para registrar la elección de carrera
         Response respuestaCarrera = hacerPost("carreras_elegidas", carreras);
