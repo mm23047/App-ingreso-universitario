@@ -49,6 +49,15 @@ class AsignacionesAulaPupitreResourceTest {
         entidad.setPupitre("A-01");
     }
 
+    /**
+     * Helper para setear campos privados usando reflection (para QueryParam)
+     */
+    private void setFieldValue(Object obj, String fieldName, String value) throws NoSuchFieldException, IllegalAccessException {
+        java.lang.reflect.Field field = obj.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(obj, value);
+    }
+
     // ==================== findRange (GET /) ====================
 
     @Test
@@ -104,6 +113,56 @@ class AsignacionesAulaPupitreResourceTest {
         Response response = resource.findRange(0, 10);
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
+    }
+
+    // ==================== findRange con filtros (inscripcionId, aspiranteId) ====================
+
+    @Test
+    void findRange_ConInscripcionIdValido_DebeRetornarRegistrosFiltrados() throws NoSuchFieldException, IllegalAccessException {
+        UUID inscripcionId = UUID.randomUUID();
+        setFieldValue(resource, "inscripcionIdParam", inscripcionId.toString());
+        
+        when(asignacionesAulaPupitreDAO.findByInscripcionId(inscripcionId))
+                .thenReturn(List.of(entidad));
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(200, response.getStatus());
+        verify(asignacionesAulaPupitreDAO).findByInscripcionId(inscripcionId);
+    }
+
+    @Test
+    void findRange_ConInscripcionIdInvalido_DebeRetornar422() throws NoSuchFieldException, IllegalAccessException {
+        setFieldValue(resource, "inscripcionIdParam", "invalid-uuid");
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+    }
+
+    @Test
+    void findRange_ConAspiranteIdValido_DebeRetornarRegistrosFiltrados() throws NoSuchFieldException, IllegalAccessException {
+        UUID aspiranteId = UUID.randomUUID();
+        setFieldValue(resource, "aspiranteIdParam", aspiranteId.toString());
+        
+        when(asignacionesAulaPupitreDAO.findByAspiranteId(aspiranteId))
+                .thenReturn(List.of(entidad));
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(200, response.getStatus());
+        verify(asignacionesAulaPupitreDAO).findByAspiranteId(aspiranteId);
+    }
+
+    @Test
+    void findRange_ConAspiranteIdInvalido_DebeRetornar422() throws NoSuchFieldException, IllegalAccessException {
+        setFieldValue(resource, "aspiranteIdParam", "not-a-uuid");
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
     }
 
     // ==================== findById (GET /{id}) ====================
