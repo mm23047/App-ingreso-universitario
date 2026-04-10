@@ -94,6 +94,113 @@ class InscripcionesPruebaResourceTest {
         Response response = resource.findRange(0, 10);
         assertEquals(500, response.getStatus());
     }
+    // ==================== Tests para nuevos filtros (AspiranteId y PruebaId) ====================
+
+    @Test
+    void findRange_ConAspiranteIdValido_DebeRetornar200() {
+        resource.aspiranteIdParam = testId.toString();
+        when(inscripcionesPruebaDAO.findByAspiranteId(testId)).thenReturn(List.of(entidad));
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(200, response.getStatus());
+        assertNotNull(response.getEntity());
+        verify(inscripcionesPruebaDAO).findByAspiranteId(testId);
+        // Aseguramos que no llame a los métodos de paginación normal
+        verify(inscripcionesPruebaDAO, never()).count();
+        verify(inscripcionesPruebaDAO, never()).findRange(anyInt(), anyInt());
+    }
+
+    @Test
+    void findRange_ConAspiranteIdInvalido_DebeRetornar422() {
+        resource.aspiranteIdParam = "texto-no-es-uuid";
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+        verifyNoInteractions(inscripcionesPruebaDAO);
+    }
+
+    @Test
+    void findRange_ConAspiranteIdValido_YExcepcionEnDAO_DebeRetornar500() {
+        resource.aspiranteIdParam = testId.toString();
+        when(inscripcionesPruebaDAO.findByAspiranteId(any())).thenThrow(new RuntimeException("BD error"));
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString("Server-exception"));
+    }
+
+    @Test
+    void findRange_ConPruebaIdValido_DebeRetornar200() {
+        resource.pruebaIdParam = testId.toString();
+        when(inscripcionesPruebaDAO.findByPruebaId(testId)).thenReturn(List.of(entidad));
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(200, response.getStatus());
+        assertNotNull(response.getEntity());
+        verify(inscripcionesPruebaDAO).findByPruebaId(testId);
+        verify(inscripcionesPruebaDAO, never()).count();
+        verify(inscripcionesPruebaDAO, never()).findRange(anyInt(), anyInt());
+    }
+
+    @Test
+    void findRange_ConPruebaIdInvalido_DebeRetornar422() {
+        resource.pruebaIdParam = "texto-no-es-uuid";
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+        verifyNoInteractions(inscripcionesPruebaDAO);
+    }
+
+    @Test
+    void findRange_ConPruebaIdValido_YExcepcionEnDAO_DebeRetornar500() {
+        resource.pruebaIdParam = testId.toString();
+        when(inscripcionesPruebaDAO.findByPruebaId(any())).thenThrow(new RuntimeException("BD error"));
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString("Server-exception"));
+    }
+    @Test
+    void findRange_ConAspiranteIdEnBlanco_DebeIgnorarFiltroYPagsinarNormal() {
+        // Asignamos una cadena con espacios (no es nulo, pero isBlank() será true)
+        resource.aspiranteIdParam = "   ";
+
+        // Mockeamos el comportamiento de paginación normal porque se saltará el 'if'
+        when(inscripcionesPruebaDAO.count()).thenReturn(1);
+        when(inscripcionesPruebaDAO.findRange(0, 10)).thenReturn(List.of(entidad));
+
+        Response response = resource.findRange(0, 10);
+
+        // Validamos que respondió bien y que usó la paginación normal, NO el filtro
+        assertEquals(200, response.getStatus());
+        verify(inscripcionesPruebaDAO, never()).findByAspiranteId(any());
+        verify(inscripcionesPruebaDAO).findRange(0, 10);
+    }
+
+    @Test
+    void findRange_ConPruebaIdEnBlanco_DebeIgnorarFiltroYPagsinarNormal() {
+        // Asignamos una cadena vacía (no es nulo, pero isBlank() será true)
+        resource.pruebaIdParam = "";
+
+        // Mockeamos el comportamiento de paginación normal
+        when(inscripcionesPruebaDAO.count()).thenReturn(1);
+        when(inscripcionesPruebaDAO.findRange(0, 10)).thenReturn(List.of(entidad));
+
+        Response response = resource.findRange(0, 10);
+
+        // Validamos que respondió bien y que usó la paginación normal, NO el filtro
+        assertEquals(200, response.getStatus());
+        verify(inscripcionesPruebaDAO, never()).findByPruebaId(any());
+        verify(inscripcionesPruebaDAO).findRange(0, 10);
+    }
 
     // ==================== findById (GET /{id}) ====================
 
