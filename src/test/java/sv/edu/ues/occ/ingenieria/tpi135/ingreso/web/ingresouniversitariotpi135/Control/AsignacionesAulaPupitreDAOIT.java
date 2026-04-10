@@ -3,18 +3,34 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 
 import org.junit.jupiter.api.Test;
 
+import jakarta.persistence.EntityManager;
+
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AsignacionesAulaPupitre;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AulasExaman;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class AsignacionesAulaPupitreDAOIT extends AbstractBaseIT {
 
-
     public AsignacionesAulaPupitreDAOIT() {
+    }
+
+    /**
+     * Obtiene datos relacionados necesarios para crear asignación (inscripción y aula)
+     */
+    private void obtenerYAsignarDatos(AsignacionesAulaPupitre asignacion, EntityManager em) {
+        InscripcionesPrueba inscripcion = em.createQuery("Select a from InscripcionesPrueba a", InscripcionesPrueba.class)
+                .setMaxResults(1)
+                .getSingleResult();
+        AulasExaman aula = em.createQuery("Select a from AulasExaman a", AulasExaman.class)
+                .setMaxResults(1)
+                .getSingleResult();
+        asignacion.setIdInscripcion(inscripcion);
+        asignacion.setIdAula(aula);
     }
 
     @Test
@@ -60,26 +76,11 @@ public class AsignacionesAulaPupitreDAOIT extends AbstractBaseIT {
             AsignacionesAulaPupitreDAO cut = new AsignacionesAulaPupitreDAO();
             cut.em = em;
 
-            //Necesitamos estos registros para poder guardar una nueva asignacion de pupitre
-            InscripcionesPrueba registroInscripcionesPrueba = em.createQuery("Select a from InscripcionesPrueba a", InscripcionesPrueba.class)
-                    .setMaxResults(1)
-                    .getSingleResult();
-            AulasExaman registroAulasExaman = em.createQuery("Select a from AulasExaman a", AulasExaman.class)
-                    .setMaxResults(1)
-                    .getSingleResult();
-
-            //Crear la entidad a insertar
             AsignacionesAulaPupitre asignacion = new AsignacionesAulaPupitre();
-
-            //Insertar datos necesarios para las relaciones
-            asignacion.setIdInscripcion(registroInscripcionesPrueba);
-            asignacion.setIdAula(registroAulasExaman);
             asignacion.setPupitre("Pupitre 1");
+            obtenerYAsignarDatos(asignacion, em);
 
-            //Persistir la entidad
             cut.crear(asignacion);
-
-            //Verificar que se creó el registro
             assertNotNull(asignacion.getId());
             assertEquals(3, cut.count());
             System.out.println("RESULTADO CREADO: " + asignacion.getId());
@@ -106,14 +107,9 @@ public class AsignacionesAulaPupitreDAOIT extends AbstractBaseIT {
             AsignacionesAulaPupitreDAO cut = new AsignacionesAulaPupitreDAO();
             cut.em = em;
 
-            //Leer un registro que ya exista en la BD
             AsignacionesAulaPupitre asignacionExistente = cut.findRange(0, 1).get(0);
-
             AsignacionesAulaPupitre resultado = cut.leer(asignacionExistente.getId());
             assertNotNull(resultado);
-
-            //Verificar que los datos leídos sean correctos
-            System.out.println("RESULTADO LEER: " + resultado.getPupitre());
             assertEquals(asignacionExistente.getId(), resultado.getId());
 
             return null;
@@ -129,24 +125,15 @@ public class AsignacionesAulaPupitreDAOIT extends AbstractBaseIT {
             AsignacionesAulaPupitreDAO cut = new AsignacionesAulaPupitreDAO();
             cut.em = em;
 
-            //Leer el registro existente
             AsignacionesAulaPupitre asignacionExistente = cut.findRange(0, 1).get(0);
             assertNotNull(asignacionExistente);
 
-            //Modificar los datos
             asignacionExistente.setPupitre("A-03");
-
-            //Persistir los cambios
             AsignacionesAulaPupitre resultadoActualizado = cut.actualizar(asignacionExistente);
-            assertNotNull(resultadoActualizado);
 
-            //Verificar que los datos actualizados sean correctos
-            if (resultadoActualizado != null) {
-                System.out.println("RESULTADO ACTUALIZADO: " + resultadoActualizado.getPupitre());
-                assertEquals("A-03", resultadoActualizado.getPupitre());
-            } else {
-                System.out.println("No se encontró la asignación tras actualizarla");
-            }
+            assertNotNull(resultadoActualizado);
+            assertEquals("A-03", resultadoActualizado.getPupitre());
+            System.out.println("RESULTADO ACTUALIZADO: " + resultadoActualizado.getPupitre());
 
             return null;
         });
@@ -161,38 +148,89 @@ public class AsignacionesAulaPupitreDAOIT extends AbstractBaseIT {
             AsignacionesAulaPupitreDAO cut = new AsignacionesAulaPupitreDAO();
             cut.em = em;
 
-            // Necesitamos las relaciones para crear el temporal
-            InscripcionesPrueba registroInscripcionesPrueba = em.createQuery("Select a from InscripcionesPrueba a", InscripcionesPrueba.class)
-                    .setMaxResults(1)
-                    .getSingleResult();
-            AulasExaman registroAulasExaman = em.createQuery("Select a from AulasExaman a", AulasExaman.class)
-                    .setMaxResults(1)
-                    .getSingleResult();
-
-            // Crear dato temporal
             AsignacionesAulaPupitre asignacionTemporal = new AsignacionesAulaPupitre();
-            asignacionTemporal.setIdInscripcion(registroInscripcionesPrueba);
-            asignacionTemporal.setIdAula(registroAulasExaman);
             asignacionTemporal.setPupitre("Pupitre Temporal");
+            obtenerYAsignarDatos(asignacionTemporal, em);
             cut.crear(asignacionTemporal);
 
-            // Eliminar el registro
+            // Eliminar y verificar
             cut.eliminar(asignacionTemporal);
-
-            // Verificar que el registro se eliminó correctamente
             AsignacionesAulaPupitre resultadoEliminado = cut.leer(asignacionTemporal.getId());
             assertNull(resultadoEliminado);
-
-            if (resultadoEliminado == null) {
-                System.out.println("RESULTADO ELIMINADO: " + resultadoEliminado);
-                System.out.println("Asignación eliminada correctamente, no se encontró en la base de datos.");
-            } else {
-                System.out.println("No se pudo eliminar la asignación con ID: " + asignacionTemporal.getId());
-            }
+            System.out.println("RESULTADO ELIMINADO: Asignación con ID " + asignacionTemporal.getId() + " eliminada correctamente");
 
             return null;
         });
     }
 
+    @Test
+    public void testFindByInscripcionId() {
+        System.out.println("TEST DAOIT FIND BY INSCRIPCION ID");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            AsignacionesAulaPupitreDAO cut = new AsignacionesAulaPupitreDAO();
+            cut.em = em;
+
+            // Obtener una inscripción existente para filtrar
+            InscripcionesPrueba inscripcion = em.createQuery("Select a from InscripcionesPrueba a", InscripcionesPrueba.class)
+                    .setMaxResults(1)
+                    .getSingleResult();
+
+            UUID inscripcionId = inscripcion.getId();
+
+            // Ejecutar método de filtro
+            List<AsignacionesAulaPupitre> resultado = cut.findByInscripcionId(inscripcionId);
+
+            // Validaciones básicas
+            assertNotNull(resultado);
+            assertFalse(resultado.isEmpty());
+            assertEquals(1, resultado.size());
+
+            // Validación de contenido: verificar que todos pertenecen a la inscripción buscada
+            assertTrue(resultado.stream()
+                    .allMatch(a -> a.getIdInscripcion() != null && inscripcionId.equals(a.getIdInscripcion().getId())));
+
+            System.out.println("RESULTADO FIND BY INSCRIPCION ID: " + resultado.size() + " registro(s) encontrado(s)");
+
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindByAspiranteId() {
+        System.out.println("TEST DAOIT FIND BY ASPIRANTE ID");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            AsignacionesAulaPupitreDAO cut = new AsignacionesAulaPupitreDAO();
+            cut.em = em;
+
+            // Obtener un aspirante existente a través de su inscripción
+            InscripcionesPrueba inscripcion = em.createQuery("Select a from InscripcionesPrueba a", InscripcionesPrueba.class)
+                    .setMaxResults(1)
+                    .getSingleResult();
+
+            UUID aspiranteId = inscripcion.getIdAspirante().getId();
+
+            // Ejecutar método de filtro
+            List<AsignacionesAulaPupitre> resultado = cut.findByAspiranteId(aspiranteId);
+
+            // Validaciones básicas
+            assertNotNull(resultado);
+            assertFalse(resultado.isEmpty());
+            assertEquals(1, resultado.size());
+
+            // Validación de contenido: verificar que todas las asignaciones pertenecen al aspirante buscado
+            assertTrue(resultado.stream()
+                    .allMatch(a -> a.getIdInscripcion() != null &&
+                            a.getIdInscripcion().getIdAspirante() != null &&
+                            aspiranteId.equals(a.getIdInscripcion().getIdAspirante().getId())));
+
+            System.out.println("RESULTADO FIND BY ASPIRANTE ID: " + resultado.size() + " registro(s) encontrado(s)");
+
+            return null;
+        });
+    }
 
 }
