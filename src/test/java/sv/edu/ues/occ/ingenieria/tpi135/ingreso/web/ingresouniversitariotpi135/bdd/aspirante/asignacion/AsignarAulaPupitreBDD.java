@@ -1,8 +1,8 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.bdd.aspirante.asignacion;
 
-import io.cucumber.java.es.Cuando;
-import io.cucumber.java.es.Dado;
-import io.cucumber.java.es.Entonces;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
@@ -78,7 +78,7 @@ public class AsignarAulaPupitreBDD {
 
     // ===== Steps de Cucumber =====
 
-    @Dado("se tiene un servidor corriendo con la aplicación desplegada")
+    @Given("se tiene un servidor corriendo con la aplicación desplegada")
     public void se_tiene_un_servidor_corriendo_con_la_aplicacion_desplegada() {
         System.out.println("Iniciando infraestructura singleton de pruebas BDD");
         BaseSistemaST.init();
@@ -87,7 +87,7 @@ public class AsignarAulaPupitreBDD {
         target = cliente.target(BaseSistemaST.getBaseUrl());
     }
 
-    @Dado("existe un aspirante inscrito en una prueba de admisión y turno específico")
+    @Given("existe un aspirante inscrito en una prueba de admisión y turno específico")
     public void existe_un_aspirante_inscrito_en_una_prueba_de_admision_y_turno_especifico() {
         System.out.println("Preparando aspirante inscrito en prueba y turno");
 
@@ -140,7 +140,7 @@ public class AsignarAulaPupitreBDD {
         System.out.println("Carrera elegida asociada: " + ID_CARRERA_SEMILLA);
     }
 
-    @Dado("existe un aula de examen con pupitres disponibles")
+    @Given("existe un aula de examen con pupitres disponibles")
     public void existe_un_aula_de_examen_con_pupitres_disponibles() {
         System.out.println("Preparando aula de examen con pupitres");
 
@@ -175,7 +175,7 @@ public class AsignarAulaPupitreBDD {
         System.out.println("Aula creada: " + idAula);
     }
 
-    @Cuando("asigno un aula y un pupitre al aspirante para esa prueba")
+    @When("asigno un aula y un pupitre al aspirante para esa prueba")
     public void asigno_un_aula_y_un_pupitre_al_aspirante_para_esa_prueba() {
         System.out.println("Realizando asignación de aula y pupitre");
 
@@ -194,7 +194,7 @@ public class AsignarAulaPupitreBDD {
         System.out.println("Asignación creada: " + idAsignacion);
     }
 
-    @Entonces("se registra la asignación de aula y pupitre para el aspirante")
+    @Then("se registra la asignación de aula y pupitre para el aspirante")
     public void se_registra_la_asignacion_de_aula_y_pupitre_para_el_aspirante() {
         System.out.println("Verificando que se registró la asignación");
         Assertions.assertNotNull(idAsignacion);
@@ -202,7 +202,7 @@ public class AsignarAulaPupitreBDD {
         System.out.println("Asignación verificada: ID=" + asignacion.getId());
     }
 
-    @Entonces("puedo consultar la asignación de aula y pupitre del aspirante")
+    @Then("puedo consultar la asignación de aula y pupitre del aspirante")
     public void puedo_consultar_la_asignacion_de_aula_y_pupitre_del_aspirante() {
         System.out.println("Consultando asignación de aula y pupitre");
         Assertions.assertNotNull(idAsignacion);
@@ -212,7 +212,7 @@ public class AsignarAulaPupitreBDD {
         System.out.println("Asignación consultada exitosamente");
     }
 
-    @Entonces("la asignación muestra el aula y el pupitre asignados correctamente")
+    @Then("la asignación muestra el aula y el pupitre asignados correctamente")
     public void la_asignacion_muestra_el_aula_y_el_pupitre_asignados_correctamente() {
         System.out.println("Verificando que aula y pupitre son correctos");
         AsignacionesAulaPupitre asignacion = obtenerAsignacion(idAsignacion);
