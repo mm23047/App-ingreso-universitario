@@ -28,27 +28,27 @@ public class InscripcionesPruebaDAO extends IngresoDefaultDataAccess<Inscripcion
 
     public List<InscripcionesPrueba> findByAspiranteId(UUID aspiranteId) {
         if (aspiranteId == null) {
-            throw new IllegalArgumentException("aspiranteId must not be null");
+            throw new IllegalArgumentException("aspiranteId NO debe ser null");
         }
         try {
             return em.createNamedQuery("InscripcionesPrueba.findByAspiranteId", InscripcionesPrueba.class)
                     .setParameter("idAspirante", aspiranteId)
                     .getResultList();
         } catch (Exception e) {
-            throw new IllegalStateException("Cannot access db", e);
+            throw new IllegalStateException("sin acceso a la BD", e);
         }
     }
 
     public List<InscripcionesPrueba> findByPruebaId(UUID pruebaId) {
         if (pruebaId == null) {
-            throw new IllegalArgumentException("pruebaId must not be null");
+            throw new IllegalArgumentException("pruebaId NO debe ser null");
         }
         try {
             return em.createNamedQuery("InscripcionesPrueba.findByPruebaId", InscripcionesPrueba.class)
                     .setParameter("idPrueba", pruebaId)
                     .getResultList();
         } catch (Exception e) {
-            throw new IllegalStateException("Cannot access db", e);
+            throw new IllegalStateException("sin acceso a la BD", e);
         }
     }
 

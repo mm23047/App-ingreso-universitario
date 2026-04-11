@@ -180,4 +180,74 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
             return null;
         });
     }
+
+    @Test
+    @Order(7)
+    public void testFindByAspiranteId() {
+        assertTrue(postgres.isRunning());
+        System.out.println("Test FindByAspiranteId");
+
+        ejecutarEnTransaccion(em ->{
+
+            //Camino FELIZ!!!
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
+            UUID idAspirante = UUID.fromString("09000000-0000-0000-0000-000000000001");
+
+            List<InscripcionesPrueba> resultado = cut.findByAspiranteId(idAspirante);
+            assertNotNull(resultado);
+            //FIN del camino FELIZ!!!
+
+            //Probas un ID NULL
+            IllegalArgumentException argumentException = assertThrows(IllegalArgumentException.class, () ->{
+                cut.findByAspiranteId(null);
+            });
+            assertEquals(argumentException.getMessage(), "aspiranteId NO debe ser null");
+
+            //Probando el CATCH
+            cut.em=null;
+            IllegalStateException illegalStateException = assertThrows(IllegalStateException.class, () ->{
+                cut.findByAspiranteId(idAspirante);
+            });
+            assertEquals(illegalStateException.getMessage(), "sin acceso a la BD");
+
+            return null;
+        });
+
+    }
+
+    @Test
+    @Order(8)
+    public void testFindByPruebaId() {
+        assertTrue(postgres.isRunning());
+        System.out.println("Test FindByPruebaId");
+
+        ejecutarEnTransaccion(em->{
+            //Probando el camino FELIZ!!!
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
+
+            UUID idPrueba = UUID.fromString("d1000000-0000-0000-0000-000000000002");
+            List<InscripcionesPrueba>  resultado = cut.findByPruebaId(idPrueba);
+            assertNotNull(resultado);
+            //FIN del camino FELIZ!!!
+
+            //Probas un ID NULL
+            IllegalArgumentException argumentException = assertThrows(IllegalArgumentException.class, () ->{
+                cut.findByPruebaId(null);
+            });
+            assertEquals(argumentException.getMessage(), "pruebaId NO debe ser null");
+
+            //Probando el CATCH
+            cut.em=null;
+            IllegalStateException illegalStateException = assertThrows(IllegalStateException.class, () ->{
+                cut.findByPruebaId(idPrueba);
+            });
+            assertEquals(illegalStateException.getMessage(), "sin acceso a la BD");
+
+
+            return null;
+        });
+    }
+
 }
