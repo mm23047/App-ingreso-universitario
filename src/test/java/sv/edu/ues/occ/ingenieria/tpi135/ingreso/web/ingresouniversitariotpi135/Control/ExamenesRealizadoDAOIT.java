@@ -177,4 +177,90 @@ public class ExamenesRealizadoDAOIT extends AbstractBaseIT {
             return null;
         });
     }
+
+            @Test
+            public void testFindByAspiranteId() {
+            assertTrue(postgres.isRunning());
+
+            ejecutarEnTransaccion(em -> {
+                ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
+                cut.em = em;
+
+                // Obtener un examen existente y derivar el aspirante asociado
+                ExamenesRealizado existente = em.createQuery(
+                    "SELECT e FROM ExamenesRealizado e JOIN e.idAsignacion a JOIN a.idInscripcion i",
+                    ExamenesRealizado.class)
+                    .setMaxResults(1)
+                    .getSingleResult();
+
+                UUID aspiranteId = existente.getIdAsignacion()
+                    .getIdInscripcion()
+                    .getIdAspirante()
+                    .getId();
+
+                // Camino feliz
+                List<ExamenesRealizado> resultado = cut.findByAspiranteId(aspiranteId);
+                assertNotNull(resultado);
+                assertFalse(resultado.isEmpty());
+                assertTrue(resultado.stream().allMatch(e -> e.getIdAsignacion() != null
+                    && e.getIdAsignacion().getIdInscripcion() != null
+                    && e.getIdAsignacion().getIdInscripcion().getIdAspirante() != null
+                    && aspiranteId.equals(e.getIdAsignacion().getIdInscripcion().getIdAspirante().getId())));
+
+                // Parámetro nulo
+                IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,
+                    () -> cut.findByAspiranteId(null));
+                assertEquals("aspiranteId must not be null", iae.getMessage());
+
+                // Error de acceso a BD (em nulo)
+                cut.em = null;
+                IllegalStateException ise = assertThrows(IllegalStateException.class,
+                    () -> cut.findByAspiranteId(aspiranteId));
+                assertEquals("Cannot access db", ise.getMessage());
+
+                return null;
+            });
+            }
+
+            @Test
+            public void testFindByPruebaId() {
+            assertTrue(postgres.isRunning());
+
+            ejecutarEnTransaccion(em -> {
+                ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
+                cut.em = em;
+
+                // Obtener un examen existente y derivar la prueba asociada
+                ExamenesRealizado existente = em.createQuery(
+                    "SELECT e FROM ExamenesRealizado e JOIN e.idClave c",
+                    ExamenesRealizado.class)
+                    .setMaxResults(1)
+                    .getSingleResult();
+
+                UUID pruebaId = existente.getIdClave()
+                    .getIdPrueba()
+                    .getId();
+
+                // Camino feliz
+                List<ExamenesRealizado> resultado = cut.findByPruebaId(pruebaId);
+                assertNotNull(resultado);
+                assertFalse(resultado.isEmpty());
+                assertTrue(resultado.stream().allMatch(e -> e.getIdClave() != null
+                    && e.getIdClave().getIdPrueba() != null
+                    && pruebaId.equals(e.getIdClave().getIdPrueba().getId())));
+
+                // Parámetro nulo
+                IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,
+                    () -> cut.findByPruebaId(null));
+                assertEquals("pruebaId must not be null", iae.getMessage());
+
+                // Error de acceso a BD (em nulo)
+                cut.em = null;
+                IllegalStateException ise = assertThrows(IllegalStateException.class,
+                    () -> cut.findByPruebaId(pruebaId));
+                assertEquals("Cannot access db", ise.getMessage());
+
+                return null;
+            });
+            }
 }

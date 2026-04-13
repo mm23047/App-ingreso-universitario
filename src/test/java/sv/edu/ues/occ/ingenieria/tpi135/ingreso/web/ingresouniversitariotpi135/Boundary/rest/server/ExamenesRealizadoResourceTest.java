@@ -96,6 +96,78 @@ class ExamenesRealizadoResourceTest {
         assertNotNull(response.getHeaderString("Server-exception"));
     }
 
+    @Test
+    void findRange_ConAspiranteIdValido_DebeRetornar200YListaFiltrada() {
+        UUID aspiranteId = UUID.randomUUID();
+        resource.aspiranteIdParam = aspiranteId.toString();
+
+        when(examenesRealizadoDAO.findByAspiranteId(any())).thenReturn(List.of(entidad));
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(200, response.getStatus());
+        @SuppressWarnings("unchecked")
+        List<ExamenesRealizado> cuerpo = (List<ExamenesRealizado>) response.getEntity();
+        assertNotNull(cuerpo);
+        assertEquals(1, cuerpo.size());
+        assertSame(entidad, cuerpo.get(0));
+        verify(examenesRealizadoDAO).findByAspiranteId(any());
+    }
+
+    @Test
+    void findRange_ConAspiranteIdInvalido_DebeRetornar422() {
+        resource.aspiranteIdParam = "no-es-uuid";
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+        verifyNoInteractions(examenesRealizadoDAO);
+    }
+
+    @Test
+    void findRange_ConPruebaIdValido_DebeRetornar200YListaFiltrada() {
+        UUID pruebaId = UUID.randomUUID();
+        resource.pruebaIdParam = pruebaId.toString();
+
+        when(examenesRealizadoDAO.findByPruebaId(any())).thenReturn(List.of(entidad));
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(200, response.getStatus());
+        @SuppressWarnings("unchecked")
+        List<ExamenesRealizado> cuerpo = (List<ExamenesRealizado>) response.getEntity();
+        assertNotNull(cuerpo);
+        assertEquals(1, cuerpo.size());
+        assertSame(entidad, cuerpo.get(0));
+        verify(examenesRealizadoDAO).findByPruebaId(any());
+    }
+
+    @Test
+    void findRange_ConPruebaIdInvalido_DebeRetornar422() {
+        resource.pruebaIdParam = "no-es-uuid";
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+        verifyNoInteractions(examenesRealizadoDAO);
+    }
+
+    @Test
+    void findRange_ConErrorEnDAOAlFiltrar_DebeRetornar500() {
+        UUID aspiranteId = UUID.randomUUID();
+        resource.aspiranteIdParam = aspiranteId.toString();
+
+        when(examenesRealizadoDAO.findByAspiranteId(any()))
+                .thenThrow(new IllegalStateException("Cannot access db"));
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(500, response.getStatus());
+        assertEquals("Cannot access db", response.getHeaderString("Server-exception"));
+    }
+
     // ==================== findById (GET /{id}) ====================
 
     @Test

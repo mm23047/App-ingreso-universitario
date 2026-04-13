@@ -193,6 +193,17 @@ public class AsignacionesAulaPupitreDAOIT extends AbstractBaseIT {
 
             System.out.println("RESULTADO FIND BY INSCRIPCION ID: " + resultado.size() + " registro(s) encontrado(s)");
 
+                // Parámetro nulo debe lanzar IllegalArgumentException
+                IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,
+                    () -> cut.findByInscripcionId(null));
+                assertEquals("inscripcionId must not be null", iae.getMessage());
+
+                // Error de acceso a BD (em nulo) debe envolver en IllegalStateException
+                cut.em = null;
+                IllegalStateException ise = assertThrows(IllegalStateException.class,
+                    () -> cut.findByInscripcionId(inscripcionId));
+                assertEquals("Cannot access db", ise.getMessage());
+
             return null;
         });
     }
@@ -228,6 +239,17 @@ public class AsignacionesAulaPupitreDAOIT extends AbstractBaseIT {
                             aspiranteId.equals(a.getIdInscripcion().getIdAspirante().getId())));
 
             System.out.println("RESULTADO FIND BY ASPIRANTE ID: " + resultado.size() + " registro(s) encontrado(s)");
+
+                // Parámetro nulo debe lanzar IllegalArgumentException
+                IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,
+                    () -> cut.findByAspiranteId(null));
+                assertEquals("aspiranteId must not be null", iae.getMessage());
+
+                // Error de acceso a BD (em nulo) debe envolver en IllegalStateException
+                cut.em = null;
+                IllegalStateException ise = assertThrows(IllegalStateException.class,
+                    () -> cut.findByAspiranteId(aspiranteId));
+                assertEquals("Cannot access db", ise.getMessage());
 
             return null;
         });

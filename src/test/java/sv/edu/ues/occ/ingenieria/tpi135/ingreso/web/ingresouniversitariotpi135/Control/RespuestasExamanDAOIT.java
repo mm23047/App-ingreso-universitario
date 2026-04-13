@@ -206,6 +206,17 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
             assertTrue(resultado.stream()
                     .allMatch(r -> r.getIdExamen() != null && ID_EXAMEN_1.equals(r.getIdExamen().getId())));
 
+            // Parámetro nulo debe lanzar IllegalArgumentException
+            IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,
+                () -> cut.findByExamenId(null));
+            assertEquals("examenId must not be null", iae.getMessage());
+
+            // Error de acceso a BD (em nulo) debe envolver en IllegalStateException
+            cut.em = null;
+            IllegalStateException ise = assertThrows(IllegalStateException.class,
+                () -> cut.findByExamenId(ID_EXAMEN_1));
+            assertEquals("Cannot access db", ise.getMessage());
+
             return null;
         });
     }
