@@ -24,6 +24,7 @@ public class InscripcionesPruebaResourceIT extends AbstractResourceIT {
     // UUIDs tomados del init.sql (mismos que en InscripcionesPruebaDAOIT)
     // id_inscripcion y id_aspirante son distintos en la BD
     private static final UUID ID_INSCRIPCION_1       = UUID.fromString("09000000-0000-0000-0000-000000000001");
+    private static final UUID ID_INSCRIPCION_2       = UUID.fromString("09000000-0000-0000-0000-000000000002");
     private static final UUID ID_ASPIRANTE_1         = UUID.fromString("e1000000-0000-0000-0000-000000000001");
     private static final UUID ID_ASPIRANTE_CREACION  = UUID.fromString("e1000000-0000-0000-0000-000000000001");
     private static final UUID ID_PRUEBA_1            = UUID.fromString("d1000000-0000-0000-0000-000000000001");
@@ -62,13 +63,23 @@ public class InscripcionesPruebaResourceIT extends AbstractResourceIT {
      */
     @Test
     void findRange_ConAspiranteIdValido_DebeRetornar200() {
-        Response response = get("inscripciones_prueba?aspiranteId=" + ID_ASPIRANTE_1);
+        Response response =
+                get("inscripciones_prueba?aspiranteId=" + ID_ASPIRANTE_1);
 
         assertEquals(200, response.getStatus());
 
-        InscripcionesPrueba[] arreglo = response.readEntity(InscripcionesPrueba[].class);
+        InscripcionesPrueba[] arreglo =
+                response.readEntity(InscripcionesPrueba[].class);
+
         assertNotNull(arreglo);
         assertTrue(arreglo.length >= 1);
+
+        // Con los datos iniciales del init.sql, el aspirante 1 solo tiene
+        // asociada la inscripcion ID_INSCRIPCION_1, por lo que el filtro
+        // por aspiranteId debe devolver precisamente esa inscripcion.
+        for (InscripcionesPrueba i : arreglo) {
+            assertEquals(ID_INSCRIPCION_1, i.getId());
+        }
     }
 
     /**
@@ -150,6 +161,24 @@ public class InscripcionesPruebaResourceIT extends AbstractResourceIT {
         InscripcionesPrueba[] arreglo = response.readEntity(InscripcionesPrueba[].class);
         assertNotNull(arreglo);
         assertTrue(arreglo.length >= 1);
+
+        // Con los datos iniciales del init.sql, la prueba 1 tiene
+        // asociadas las inscripciones 1 y 2. El filtro por pruebaId
+        // debe incluir al menos esas inscripciones.
+        boolean contieneInscripcion1 = false;
+        boolean contieneInscripcion2 = false;
+
+        for (InscripcionesPrueba i : arreglo) {
+            if (ID_INSCRIPCION_1.equals(i.getId())) {
+                contieneInscripcion1 = true;
+            }
+            if (ID_INSCRIPCION_2.equals(i.getId())) {
+                contieneInscripcion2 = true;
+            }
+        }
+
+        assertTrue(contieneInscripcion1);
+        assertTrue(contieneInscripcion2);
     }
 
     /**
