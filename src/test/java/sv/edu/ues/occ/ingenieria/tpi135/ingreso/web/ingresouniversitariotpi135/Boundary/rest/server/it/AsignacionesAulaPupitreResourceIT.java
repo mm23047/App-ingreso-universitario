@@ -154,17 +154,7 @@ public class AsignacionesAulaPupitreResourceIT extends AbstractResourceIT {
      */
     @Test
     void create_ConEntidadValida_DebeRetornar201_YPermitirConsultar() {
-        AsignacionesAulaPupitre nueva = new AsignacionesAulaPupitre();
-
-        InscripcionesPrueba inscripcion = new InscripcionesPrueba();
-        inscripcion.setId(ID_INSCRIPCION_1);
-        nueva.setIdInscripcion(inscripcion);
-
-        AulasExaman aula = new AulasExaman();
-        aula.setId(ID_AULA_1);
-        nueva.setIdAula(aula);
-
-        nueva.setPupitre("Z-99");
+        AsignacionesAulaPupitre nueva = crearAsignacion(ID_INSCRIPCION_1, ID_AULA_1, "Z-99");
 
         Response responseCreacion = post("asignaciones_aula_pupitre", nueva);
 
@@ -214,30 +204,10 @@ public class AsignacionesAulaPupitreResourceIT extends AbstractResourceIT {
     @Test
     void update_ConEntidadValida_DebeRetornar200_YPersistirCambios() {
         // Crear primero una asignacion temporal
-        AsignacionesAulaPupitre nueva = new AsignacionesAulaPupitre();
-        InscripcionesPrueba inscripcion = new InscripcionesPrueba();
-        inscripcion.setId(ID_INSCRIPCION_1);
-        nueva.setIdInscripcion(inscripcion);
-        AulasExaman aula = new AulasExaman();
-        aula.setId(ID_AULA_1);
-        nueva.setIdAula(aula);
-        nueva.setPupitre("Y-01");
-
-        Response responseCreacion = post("asignaciones_aula_pupitre", nueva);
-        assertEquals(201, responseCreacion.getStatus());
-        String location = responseCreacion.getHeaderString("Location");
-        assertNotNull(location);
-        UUID idCreado = UUID.fromString(location.substring(location.lastIndexOf('/') + 1));
+        UUID idCreado = crearAsignacionReal(ID_INSCRIPCION_1, ID_AULA_1, "Y-01");
 
         // Construir payload actualizado
-        AsignacionesAulaPupitre actualizada = new AsignacionesAulaPupitre();
-        InscripcionesPrueba inscripcion2 = new InscripcionesPrueba();
-        inscripcion2.setId(ID_INSCRIPCION_1);
-        actualizada.setIdInscripcion(inscripcion2);
-        AulasExaman aula2 = new AulasExaman();
-        aula2.setId(ID_AULA_1);
-        actualizada.setIdAula(aula2);
-        actualizada.setPupitre("Y-02");
+        AsignacionesAulaPupitre actualizada = crearAsignacion(ID_INSCRIPCION_1, ID_AULA_1, "Y-02");
 
         Response responseUpdate = put("asignaciones_aula_pupitre/" + idCreado, actualizada);
 
@@ -263,14 +233,7 @@ public class AsignacionesAulaPupitreResourceIT extends AbstractResourceIT {
     void update_ConIdInexistente_DebeRetornar404() {
         UUID idInexistente = UUID.fromString("ffffffff-0000-0000-0000-000000000000");
 
-        AsignacionesAulaPupitre payload = new AsignacionesAulaPupitre();
-        InscripcionesPrueba inscripcion = new InscripcionesPrueba();
-        inscripcion.setId(ID_INSCRIPCION_1);
-        payload.setIdInscripcion(inscripcion);
-        AulasExaman aula = new AulasExaman();
-        aula.setId(ID_AULA_1);
-        payload.setIdAula(aula);
-        payload.setPupitre("Y-99");
+        AsignacionesAulaPupitre payload = crearAsignacion(ID_INSCRIPCION_1, ID_AULA_1, "Y-99");
 
         Response response = put("asignaciones_aula_pupitre/" + idInexistente, payload);
 
@@ -285,20 +248,7 @@ public class AsignacionesAulaPupitreResourceIT extends AbstractResourceIT {
     @Test
     void delete_ConIdExistente_DebeRetornar204_YLuego404() {
         // Crear asignacion temporal
-        AsignacionesAulaPupitre nueva = new AsignacionesAulaPupitre();
-        InscripcionesPrueba inscripcion = new InscripcionesPrueba();
-        inscripcion.setId(ID_INSCRIPCION_1);
-        nueva.setIdInscripcion(inscripcion);
-        AulasExaman aula = new AulasExaman();
-        aula.setId(ID_AULA_1);
-        nueva.setIdAula(aula);
-        nueva.setPupitre("W-01");
-
-        Response responseCreacion = post("asignaciones_aula_pupitre", nueva);
-        assertEquals(201, responseCreacion.getStatus());
-        String location = responseCreacion.getHeaderString("Location");
-        assertNotNull(location);
-        UUID idCreado = UUID.fromString(location.substring(location.lastIndexOf('/') + 1));
+        UUID idCreado = crearAsignacionReal(ID_INSCRIPCION_1, ID_AULA_1, "W-01");
 
         Response responseDelete = delete("asignaciones_aula_pupitre/" + idCreado);
         assertEquals(204, responseDelete.getStatus());
@@ -320,5 +270,42 @@ public class AsignacionesAulaPupitreResourceIT extends AbstractResourceIT {
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
+    }
+
+    /**
+     * Construye una AsignacionesAulaPupitre coherente a partir de los ids de
+     * inscripcion y aula, y el valor de pupitre deseado.
+     */
+    private AsignacionesAulaPupitre crearAsignacion(UUID idInscripcion, UUID idAula, String pupitre) {
+        AsignacionesAulaPupitre asignacion = new AsignacionesAulaPupitre();
+
+        InscripcionesPrueba inscripcion = new InscripcionesPrueba();
+        inscripcion.setId(idInscripcion);
+        asignacion.setIdInscripcion(inscripcion);
+
+        AulasExaman aula = new AulasExaman();
+        aula.setId(idAula);
+        asignacion.setIdAula(aula);
+
+        asignacion.setPupitre(pupitre);
+        return asignacion;
+    }
+
+    /**
+     * Crea realmente una asignacion via el recurso REST de asignaciones,
+     * reutilizado por pruebas que solo necesitan una asignacion existente
+     * como precondicion. Encapsula el POST y la extraccion del UUID desde
+     * el header Location.
+     */
+    private UUID crearAsignacionReal(UUID idInscripcion, UUID idAula, String pupitre) {
+        AsignacionesAulaPupitre nueva = crearAsignacion(idInscripcion, idAula, pupitre);
+
+        Response responseCreacion = post("asignaciones_aula_pupitre", nueva);
+        assertEquals(201, responseCreacion.getStatus());
+        String location = responseCreacion.getHeaderString("Location");
+        assertNotNull(location);
+
+        String idString = location.substring(location.lastIndexOf('/') + 1);
+        return UUID.fromString(idString);
     }
 }

@@ -72,38 +72,10 @@ public class ProcesoAdmisionAspiranteResourceIT extends AbstractResourceIT {
     @Test
     void create_ConEntidadValida_DebeRetornar201_YPermitirConsultar() {
         // 1) Crear una inscripcion real para el aspirante1 y la prueba 2025
-        InscripcionesPrueba nuevaInscripcion = new InscripcionesPrueba();
-
-        AspirantesDato aspirante = new AspirantesDato();
-        aspirante.setId(ID_ASPIRANTE_1);
-        nuevaInscripcion.setIdAspirante(aspirante);
-
-        PruebasAdmision prueba = new PruebasAdmision();
-        prueba.setId(ID_PRUEBA_2025);
-        nuevaInscripcion.setIdPrueba(prueba);
-
-        nuevaInscripcion.setEstado("INSCRITO");
-
-        Response responseInscripcion = post("inscripciones_prueba", nuevaInscripcion);
-        assertEquals(201, responseInscripcion.getStatus());
-        String locationInscripcion = responseInscripcion.getHeaderString("Location");
-        assertNotNull(locationInscripcion);
-
-        String idInscripcionStr = locationInscripcion.substring(locationInscripcion.lastIndexOf('/') + 1);
-        UUID idInscripcionCreada = UUID.fromString(idInscripcionStr);
+        UUID idInscripcionCreada = crearInscripcionReal(ID_ASPIRANTE_1, ID_PRUEBA_2025, "INSCRITO");
 
         // 2) Crear el proceso de admision asociado a esa inscripcion
-        ProcesoAdmisionAspirante nuevoProceso = new ProcesoAdmisionAspirante();
-
-        InscripcionesPrueba refInscripcion = new InscripcionesPrueba();
-        refInscripcion.setId(idInscripcionCreada);
-        nuevoProceso.setInscripcionesPrueba(refInscripcion);
-
-        EtapasAdmision etapa1 = new EtapasAdmision();
-        etapa1.setId(ID_ETAPA_1);
-        nuevoProceso.setIdEtapaActual(etapa1);
-
-        nuevoProceso.setEstado("EN_PROCESO");
+        ProcesoAdmisionAspirante nuevoProceso = crearProcesoAdmision(idInscripcionCreada, ID_ETAPA_1, "EN_PROCESO");
 
         Response responseProceso = post("proceso_admision_aspirante", nuevoProceso);
 
@@ -159,37 +131,9 @@ public class ProcesoAdmisionAspiranteResourceIT extends AbstractResourceIT {
     @Test
     void update_CambioDeEstado_DeEnProcesoAAdmitido_DebePersistirse() {
         // 1) Crear una inscripcion y su proceso EN_PROCESO en etapa 1
-        InscripcionesPrueba nuevaInscripcion = new InscripcionesPrueba();
+        UUID idInscripcionCreada = crearInscripcionReal(ID_ASPIRANTE_1, ID_PRUEBA_2025, "INSCRITO");
 
-        AspirantesDato aspirante = new AspirantesDato();
-        aspirante.setId(ID_ASPIRANTE_1);
-        nuevaInscripcion.setIdAspirante(aspirante);
-
-        PruebasAdmision prueba = new PruebasAdmision();
-        prueba.setId(ID_PRUEBA_2025);
-        nuevaInscripcion.setIdPrueba(prueba);
-
-        nuevaInscripcion.setEstado("INSCRITO");
-
-        Response responseInscripcion = post("inscripciones_prueba", nuevaInscripcion);
-        assertEquals(201, responseInscripcion.getStatus());
-        String locationInscripcion = responseInscripcion.getHeaderString("Location");
-        assertNotNull(locationInscripcion);
-
-        String idInscripcionStr = locationInscripcion.substring(locationInscripcion.lastIndexOf('/') + 1);
-        UUID idInscripcionCreada = UUID.fromString(idInscripcionStr);
-
-        ProcesoAdmisionAspirante nuevoProceso = new ProcesoAdmisionAspirante();
-
-        InscripcionesPrueba refInscripcion = new InscripcionesPrueba();
-        refInscripcion.setId(idInscripcionCreada);
-        nuevoProceso.setInscripcionesPrueba(refInscripcion);
-
-        EtapasAdmision etapa1 = new EtapasAdmision();
-        etapa1.setId(ID_ETAPA_1);
-        nuevoProceso.setIdEtapaActual(etapa1);
-
-        nuevoProceso.setEstado("EN_PROCESO");
+        ProcesoAdmisionAspirante nuevoProceso = crearProcesoAdmision(idInscripcionCreada, ID_ETAPA_1, "EN_PROCESO");
 
         Response responseProceso = post("proceso_admision_aspirante", nuevoProceso);
         assertEquals(201, responseProceso.getStatus());
@@ -265,5 +209,51 @@ public class ProcesoAdmisionAspiranteResourceIT extends AbstractResourceIT {
         Response response = put("proceso_admision_aspirante/no-es-uuid", payload);
 
         assertEquals(404, response.getStatus());
+    }
+
+    /**
+     * Usado para crear una inscripcion real via el recurso REST de inscripciones,
+     * reutilizado por varios tests. Encapsula la construccion del payload, el POST
+     * y la extraccion del UUID desde el header Location.
+     */
+    private UUID crearInscripcionReal(UUID idAspirante, UUID idPrueba, String estado) {
+        InscripcionesPrueba nuevaInscripcion = new InscripcionesPrueba();
+
+        AspirantesDato aspirante = new AspirantesDato();
+        aspirante.setId(idAspirante);
+        nuevaInscripcion.setIdAspirante(aspirante);
+
+        PruebasAdmision prueba = new PruebasAdmision();
+        prueba.setId(idPrueba);
+        nuevaInscripcion.setIdPrueba(prueba);
+
+        nuevaInscripcion.setEstado(estado);
+
+        Response responseInscripcion = post("inscripciones_prueba", nuevaInscripcion);
+        assertEquals(201, responseInscripcion.getStatus());
+        String locationInscripcion = responseInscripcion.getHeaderString("Location");
+        assertNotNull(locationInscripcion);
+
+        String idInscripcionStr = locationInscripcion.substring(locationInscripcion.lastIndexOf('/') + 1);
+        return UUID.fromString(idInscripcionStr);
+    }
+
+    /**
+     * Usado para crear un ProcesoAdmisionAspirante coherente a partir del id
+     * de inscripcion, la etapa actual y el estado deseado.
+     */
+    private ProcesoAdmisionAspirante crearProcesoAdmision(UUID idInscripcion, UUID idEtapa, String estado) {
+        ProcesoAdmisionAspirante proceso = new ProcesoAdmisionAspirante();
+
+        InscripcionesPrueba refInscripcion = new InscripcionesPrueba();
+        refInscripcion.setId(idInscripcion);
+        proceso.setInscripcionesPrueba(refInscripcion);
+
+        EtapasAdmision etapa = new EtapasAdmision();
+        etapa.setId(idEtapa);
+        proceso.setIdEtapaActual(etapa);
+
+        proceso.setEstado(estado);
+        return proceso;
     }
 }

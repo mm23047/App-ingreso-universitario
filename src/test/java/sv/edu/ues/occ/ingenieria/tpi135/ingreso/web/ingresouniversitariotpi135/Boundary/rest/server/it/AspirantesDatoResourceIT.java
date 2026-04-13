@@ -89,15 +89,11 @@ public class AspirantesDatoResourceIT extends AbstractResourceIT {
      */
     @Test
     void create_ConEntidadValida_DebeRetornar201_YPermitirConsultar() {
-        AspirantesDato nuevo = new AspirantesDato();
-
-        UsuariosSistema usuario = new UsuariosSistema();
-        usuario.setId(ID_USUARIO_ADMIN);
-        nuevo.setIdUsuario(usuario);
-        nuevo.setNombres("Aspirante IT");
-        nuevo.setApellidos("Integracion");
-        nuevo.setDui("12345678-9");
-        nuevo.setUsaSillaRuedas(false);
+        AspirantesDato nuevo = crearAspirante(ID_USUARIO_ADMIN,
+            "Aspirante IT",
+            "Integracion",
+            "12345678-9",
+            false);
 
         Response responseCreacion = post("aspirantes_datos", nuevo);
 
@@ -143,30 +139,18 @@ public class AspirantesDatoResourceIT extends AbstractResourceIT {
     @Test
     void update_ConEntidadValida_DebeRetornar200() {
         // Crear primero un aspirante temporal
-        AspirantesDato nuevo = new AspirantesDato();
-        UsuariosSistema usuario = new UsuariosSistema();
-        usuario.setId(ID_USUARIO_ADMIN);
-        nuevo.setIdUsuario(usuario);
-        nuevo.setNombres("Para actualizar");
-        nuevo.setApellidos("Original");
-        nuevo.setDui("22222222-2");
-        nuevo.setUsaSillaRuedas(false);
-
-        Response responseCreacion = post("aspirantes_datos", nuevo);
-        assertEquals(201, responseCreacion.getStatus());
-        String location = responseCreacion.getHeaderString("Location");
-        assertNotNull(location);
-        UUID idCreado = UUID.fromString(location.substring(location.lastIndexOf('/') + 1));
+        UUID idCreado = crearAspiranteReal(ID_USUARIO_ADMIN,
+            "Para actualizar",
+            "Original",
+            "22222222-2",
+            false);
 
         // Construir payload actualizado
-        AspirantesDato actualizado = new AspirantesDato();
-        UsuariosSistema usuario2 = new UsuariosSistema();
-        usuario2.setId(ID_USUARIO_ADMIN);
-        actualizado.setIdUsuario(usuario2);
-        actualizado.setNombres("Actualizado");
-        actualizado.setApellidos("Integracion");
-        actualizado.setDui("22222222-2");
-        actualizado.setUsaSillaRuedas(true);
+        AspirantesDato actualizado = crearAspirante(ID_USUARIO_ADMIN,
+            "Actualizado",
+            "Integracion",
+            "22222222-2",
+            true);
 
         Response responseUpdate = put("aspirantes_datos/" + idCreado, actualizado);
 
@@ -193,20 +177,11 @@ public class AspirantesDatoResourceIT extends AbstractResourceIT {
     @Test
     void delete_ConIdExistente_DebeRetornar204_YLuego404() {
         // Crear aspirante temporal
-        AspirantesDato nuevo = new AspirantesDato();
-        UsuariosSistema usuario = new UsuariosSistema();
-        usuario.setId(ID_USUARIO_ADMIN);
-        nuevo.setIdUsuario(usuario);
-        nuevo.setNombres("Para eliminar");
-        nuevo.setApellidos("Temporal");
-        nuevo.setDui("33333333-3");
-        nuevo.setUsaSillaRuedas(false);
-
-        Response responseCreacion = post("aspirantes_datos", nuevo);
-        assertEquals(201, responseCreacion.getStatus());
-        String location = responseCreacion.getHeaderString("Location");
-        assertNotNull(location);
-        UUID idCreado = UUID.fromString(location.substring(location.lastIndexOf('/') + 1));
+        UUID idCreado = crearAspiranteReal(ID_USUARIO_ADMIN,
+            "Para eliminar",
+            "Temporal",
+            "33333333-3",
+            false);
 
         Response responseDelete = delete("aspirantes_datos/" + idCreado);
         assertEquals(204, responseDelete.getStatus());
@@ -214,5 +189,43 @@ public class AspirantesDatoResourceIT extends AbstractResourceIT {
         Response responseConsulta = get("aspirantes_datos/" + idCreado);
         assertEquals(404, responseConsulta.getStatus());
         assertNotNull(responseConsulta.getHeaderString("Not-found-id"));
+    }
+
+    /**
+     * Construye un AspirantesDato coherente a partir del usuario, los datos
+     * basicos y el indicador de uso de silla de ruedas.
+     */
+    private AspirantesDato crearAspirante(UUID idUsuario, String nombres, String apellidos,
+                                          String dui, boolean usaSillaRuedas) {
+        AspirantesDato aspirante = new AspirantesDato();
+
+        UsuariosSistema usuario = new UsuariosSistema();
+        usuario.setId(idUsuario);
+        aspirante.setIdUsuario(usuario);
+
+        aspirante.setNombres(nombres);
+        aspirante.setApellidos(apellidos);
+        aspirante.setDui(dui);
+        aspirante.setUsaSillaRuedas(usaSillaRuedas);
+
+        return aspirante;
+    }
+
+    /**
+     * Crea realmente un aspirante via el recurso REST, reutilizado por pruebas
+     * que solo necesitan un aspirante existente como precondicion. Encapsula
+     * el POST y la extraccion del UUID desde el header Location.
+     */
+    private UUID crearAspiranteReal(UUID idUsuario, String nombres, String apellidos,
+                                    String dui, boolean usaSillaRuedas) {
+        AspirantesDato nuevo = crearAspirante(idUsuario, nombres, apellidos, dui, usaSillaRuedas);
+
+        Response responseCreacion = post("aspirantes_datos", nuevo);
+        assertEquals(201, responseCreacion.getStatus());
+        String location = responseCreacion.getHeaderString("Location");
+        assertNotNull(location);
+
+        String idString = location.substring(location.lastIndexOf('/') + 1);
+        return UUID.fromString(idString);
     }
 }
