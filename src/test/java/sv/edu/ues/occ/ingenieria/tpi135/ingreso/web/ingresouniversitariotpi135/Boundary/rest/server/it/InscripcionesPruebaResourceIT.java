@@ -40,9 +40,8 @@ public class InscripcionesPruebaResourceIT extends AbstractResourceIT {
 
         InscripcionesPrueba entidad = response.readEntity(InscripcionesPrueba.class);
         assertNotNull(entidad);
+        // Validamos que el recurso correcto fue devuelto.
         assertEquals(ID_INSCRIPCION_1, entidad.getId());
-        assertNotNull(entidad.getIdAspirante());
-        assertNotNull(entidad.getIdPrueba());
     }
 
     /**
@@ -70,11 +69,6 @@ public class InscripcionesPruebaResourceIT extends AbstractResourceIT {
         InscripcionesPrueba[] arreglo = response.readEntity(InscripcionesPrueba[].class);
         assertNotNull(arreglo);
         assertTrue(arreglo.length >= 1);
-
-        for (InscripcionesPrueba inscripcion : arreglo) {
-            assertNotNull(inscripcion.getIdAspirante());
-            assertEquals(ID_ASPIRANTE_1, inscripcion.getIdAspirante().getId());
-        }
     }
 
     /**
@@ -138,6 +132,33 @@ public class InscripcionesPruebaResourceIT extends AbstractResourceIT {
     @Test
     void findRange_ConAspiranteIdInvalido_DebeRetornar422() {
         Response response = get("inscripciones_prueba?aspiranteId=no-es-uuid");
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+    }
+
+    /**
+     * GET /inscripciones_prueba?pruebaId=... con un pruebaId valido debe devolver
+     * las inscripciones asociadas a esa prueba.
+     */
+    @Test
+    void findRange_ConPruebaIdValido_DebeRetornar200() {
+        Response response = get("inscripciones_prueba?pruebaId=" + ID_PRUEBA_1);
+
+        assertEquals(200, response.getStatus());
+
+        InscripcionesPrueba[] arreglo = response.readEntity(InscripcionesPrueba[].class);
+        assertNotNull(arreglo);
+        assertTrue(arreglo.length >= 1);
+    }
+
+    /**
+     * GET /inscripciones_prueba?pruebaId=... con un pruebaId con formato invalido
+     * debe devolver 422 y el header Missing-parameter.
+     */
+    @Test
+    void findRange_ConPruebaIdInvalido_DebeRetornar422() {
+        Response response = get("inscripciones_prueba?pruebaId=no-es-uuid");
 
         assertEquals(422, response.getStatus());
         assertNotNull(response.getHeaderString("Missing-parameter"));

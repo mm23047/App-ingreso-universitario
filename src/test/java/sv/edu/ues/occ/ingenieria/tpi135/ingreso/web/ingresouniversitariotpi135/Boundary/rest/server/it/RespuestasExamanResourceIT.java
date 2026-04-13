@@ -91,6 +91,26 @@ public class RespuestasExamanResourceIT extends AbstractResourceIT {
     }
 
     /**
+     * GET /respuestas_examen sin filtros debe usar el comportamiento paginado heredado
+     * de AbstractResource, devolviendo al menos las respuestas iniciales y el header Total-records.
+     */
+    @Test
+    void findRange_SinFiltros_DebeRetornarListaYPaginacion() {
+        Response response = get("respuestas_examen?first=0&max=10");
+
+        assertEquals(200, response.getStatus());
+
+        RespuestasExaman[] arreglo = response.readEntity(RespuestasExaman[].class);
+        assertNotNull(arreglo);
+        assertTrue(arreglo.length > 0);
+
+        String totalHeader = response.getHeaderString("Total-records");
+        assertNotNull(totalHeader);
+        int total = Integer.parseInt(totalHeader);
+        assertTrue(total >= 4);
+    }
+
+    /**
      * POST /respuestas_examen con una entidad valida debe devolver 201 y permitir consultar luego el recurso creado.
      */
     @Test
@@ -128,5 +148,69 @@ public class RespuestasExamanResourceIT extends AbstractResourceIT {
         assertEquals(ID_EXAMEN_1, creada.getIdExamen().getId());
         assertNotNull(creada.getIdPregunta());
         assertEquals(ID_PREGUNTA_3, creada.getIdPregunta().getId());
+        assertNotNull(creada.getIdOpcionSeleccionada());
+    }
+
+    /**
+     * POST /respuestas_examen con una entidad invalida (sin examen) debe devolver 422.
+     */
+    @Test
+    void create_ConEntidadInvalida_SinExamen_DebeRetornar422() {
+        RespuestasExaman nueva = new RespuestasExaman();
+
+        BancoPregunta pregunta = new BancoPregunta();
+        pregunta.setId(ID_PREGUNTA_3);
+        nueva.setIdPregunta(pregunta);
+
+        OpcionesRespuesta opcion = new OpcionesRespuesta();
+        opcion.setId(ID_OPCION_7);
+        nueva.setIdOpcionSeleccionada(opcion);
+
+        Response response = post("respuestas_examen", nueva);
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+    }
+
+    /**
+     * POST /respuestas_examen con una entidad invalida (sin pregunta) debe devolver 422.
+     */
+    @Test
+    void create_ConEntidadInvalida_SinPregunta_DebeRetornar422() {
+        RespuestasExaman nueva = new RespuestasExaman();
+
+        ExamenesRealizado examen = new ExamenesRealizado();
+        examen.setId(ID_EXAMEN_1);
+        nueva.setIdExamen(examen);
+
+        OpcionesRespuesta opcion = new OpcionesRespuesta();
+        opcion.setId(ID_OPCION_7);
+        nueva.setIdOpcionSeleccionada(opcion);
+
+        Response response = post("respuestas_examen", nueva);
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+    }
+
+    /**
+     * POST /respuestas_examen con una entidad invalida (sin opcion seleccionada) debe devolver 422.
+     */
+    @Test
+    void create_ConEntidadInvalida_SinOpcion_DebeRetornar422() {
+        RespuestasExaman nueva = new RespuestasExaman();
+
+        ExamenesRealizado examen = new ExamenesRealizado();
+        examen.setId(ID_EXAMEN_1);
+        nueva.setIdExamen(examen);
+
+        BancoPregunta pregunta = new BancoPregunta();
+        pregunta.setId(ID_PREGUNTA_3);
+        nueva.setIdPregunta(pregunta);
+
+        Response response = post("respuestas_examen", nueva);
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
     }
 }

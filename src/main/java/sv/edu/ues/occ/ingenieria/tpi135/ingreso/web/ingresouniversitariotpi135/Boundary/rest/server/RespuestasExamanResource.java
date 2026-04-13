@@ -95,7 +95,8 @@ public class RespuestasExamanResource extends AbstractResource<RespuestasExaman>
         if (entity != null
                 && entity.getId() == null
                 && entity.getIdExamen() != null
-                && entity.getIdPregunta() != null) {
+                && entity.getIdPregunta() != null
+                && entity.getIdOpcionSeleccionada() != null) {
             try {
                 respuestasExamanDAO.crear(entity);
                 return Response.created(
@@ -110,7 +111,7 @@ public class RespuestasExamanResource extends AbstractResource<RespuestasExaman>
             }
         }
         return Response.status(422)
-                .header(MISSING_PARAMETER, "entity must not be null; id must be null; idExamen and idPregunta must not be null")
+                .header(MISSING_PARAMETER, "entity must not be null; id must be null; idExamen, idPregunta and idOpcionSeleccionada must not be null")
                 .build();
     }
 }

@@ -235,4 +235,35 @@ public class ProcesoAdmisionAspiranteResourceIT extends AbstractResourceIT {
         assertEquals(ID_ETAPA_FINAL, desdeBd.getIdEtapaActual().getId());
         assertEquals("ADMITIDO", desdeBd.getEstado());
     }
+
+    /**
+     * PUT /proceso_admision_aspirante/{id} con un id inexistente debe devolver 404
+     * y el header Not-found-id, sin intentar crear ni modificar registros.
+     */
+    @Test
+    void update_ConIdInexistente_DebeRetornar404() {
+        UUID idInexistente = UUID.fromString("ffffffff-0000-0000-0000-000000000000");
+
+        ProcesoAdmisionAspirante payload = new ProcesoAdmisionAspirante();
+        payload.setEstado("EN_PROCESO");
+
+        Response response = put("proceso_admision_aspirante/" + idInexistente, payload);
+
+        assertEquals(404, response.getStatus());
+        assertNotNull(response.getHeaderString("Not-found-id"));
+    }
+
+    /**
+     * PUT /proceso_admision_aspirante/no-es-uuid debe resultar en 404, ya que
+     * el runtime JAX-RS no puede convertir el path param a UUID y no invoca al recurso.
+     */
+    @Test
+    void update_ConIdInvalidoEnPath_DebeRetornar404() {
+        ProcesoAdmisionAspirante payload = new ProcesoAdmisionAspirante();
+        payload.setEstado("EN_PROCESO");
+
+        Response response = put("proceso_admision_aspirante/no-es-uuid", payload);
+
+        assertEquals(404, response.getStatus());
+    }
 }

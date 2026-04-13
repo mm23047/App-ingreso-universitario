@@ -11,6 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.RespuestasExamanDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExamenesRealizado;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.OpcionesRespuesta;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.RespuestasExaman;
 
 import java.net.URI;
@@ -208,6 +209,10 @@ class RespuestasExamanResourceTest {
         pregunta.setId(UUID.randomUUID());
         nueva.setIdPregunta(pregunta);
 
+        OpcionesRespuesta opcion = new OpcionesRespuesta();
+        opcion.setId(UUID.randomUUID());
+        nueva.setIdOpcionSeleccionada(opcion);
+
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
         when(uriBuilder.build()).thenReturn(URI.create("http://localhost/respuestas_examen/" + testId));
@@ -242,6 +247,10 @@ class RespuestasExamanResourceTest {
         pregunta.setId(UUID.randomUUID());
         nueva.setIdPregunta(pregunta);
 
+        OpcionesRespuesta opcion = new OpcionesRespuesta();
+        opcion.setId(UUID.randomUUID());
+        nueva.setIdOpcionSeleccionada(opcion);
+
         Response response = resource.create(nueva, uriInfo);
 
         assertEquals(422, response.getStatus());
@@ -254,6 +263,10 @@ class RespuestasExamanResourceTest {
         ExamenesRealizado examen = new ExamenesRealizado();
         examen.setId(examenId);
         nueva.setIdExamen(examen);
+
+        OpcionesRespuesta opcion = new OpcionesRespuesta();
+        opcion.setId(UUID.randomUUID());
+        nueva.setIdOpcionSeleccionada(opcion);
 
         Response response = resource.create(nueva, uriInfo);
 
@@ -272,6 +285,10 @@ class RespuestasExamanResourceTest {
         BancoPregunta pregunta = new BancoPregunta();
         pregunta.setId(UUID.randomUUID());
         nueva.setIdPregunta(pregunta);
+
+        OpcionesRespuesta opcion = new OpcionesRespuesta();
+        opcion.setId(UUID.randomUUID());
+        nueva.setIdOpcionSeleccionada(opcion);
 
         doThrow(new RuntimeException("Error de BD")).when(respuestasExamanDAO).crear(any());
 
