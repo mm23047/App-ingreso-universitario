@@ -10,8 +10,7 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.MountableFile;
 
 import java.nio.file.Paths;
@@ -21,7 +20,6 @@ import java.nio.file.Paths;
  * Centraliza infraestructura de Testcontainers y helpers HTTP para reutilizar
  * en clases ST separadas por feature/caso de uso.
  */
-@Testcontainers
 public abstract class BaseSistemaST {
 
     protected static Client cliente;
@@ -34,7 +32,6 @@ public abstract class BaseSistemaST {
     protected static final MountableFile war = MountableFile.forHostPath(
             Paths.get("target/IngresoUniversitarioTPI135-1.0-SNAPSHOT.war").toAbsolutePath());
 
-    @Container
     protected static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17.5-alpine")
             .withDatabaseName("ingresoTPI135")
             .withInitScript("ingresoTPI135_init.sql")
@@ -44,7 +41,6 @@ public abstract class BaseSistemaST {
             .withNetworkAliases("db")
             .withExposedPorts(5432);
 
-    @Container
     protected static final GenericContainer<?> liberty = new GenericContainer<>("ingresouniversitariotpi135-base:26.0.0.2")
             .withNetwork(red)
             .withEnv("PGSERVER", "db")
@@ -54,7 +50,8 @@ public abstract class BaseSistemaST {
             .withEnv("PGPASSWORD", "abc123")
             .dependsOn(postgres)
             .withCopyFileToContainer(war, "/opt/wlp/usr/servers/tpi135_2026/dropins/ingreso.war")
-            .withExposedPorts(9080);
+            .withExposedPorts(9080)
+            .waitingFor(Wait.forListeningPort());
 
     public static synchronized void init() {
         if (!inicializado) {
