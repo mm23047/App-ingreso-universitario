@@ -149,8 +149,8 @@ public class PruebasAdmisionResourceIT extends AbstractResourceIT {
     }
 
     /**
-     * POST /pruebas_admision con una entidad inválida (sin nombre)
-     * debe devolver 422.
+        * POST /pruebas_admision con una entidad inválida (sin nombre)
+        * debe devolver 422.
      */
     @Test
     void create_ConEntidadInvalida_SinNombre_DebeRetornar422() {
@@ -162,13 +162,13 @@ public class PruebasAdmisionResourceIT extends AbstractResourceIT {
         Response response = post("pruebas_admision", nueva);
 
         assertEquals(422, response.getStatus(),
-                "POST con entidad inválida debe retornar 422");
+            "POST con entidad inválida debe retornar 422");
         assertNotNull(response.getHeaderString("Missing-parameter"));
     }
 
     /**
-     * POST /pruebas_admision con una entidad inválida (sin año)
-     * debe devolver 422.
+        * POST /pruebas_admision con una entidad inválida (sin año)
+        * debe devolver 422.
      */
     @Test
     void create_ConEntidadInvalida_SinAnio_DebeRetornar422() {

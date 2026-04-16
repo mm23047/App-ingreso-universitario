@@ -58,7 +58,10 @@ public class PruebasAdmisionResource extends AbstractResource<PruebasAdmision> {
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
     public Response create(PruebasAdmision entity, @Context UriInfo uriInfo) {
-        if (entity != null && entity.getId() == null) {
+        if (entity != null
+            && entity.getId() == null
+            && entity.getNombrePrueba() != null
+            && entity.getAnio() != null) {
             try {
                 pruebasAdmisionDAO.crear(entity);
                 return Response.created(
@@ -73,7 +76,7 @@ public class PruebasAdmisionResource extends AbstractResource<PruebasAdmision> {
             }
         }
         return Response.status(422)
-                .header(MISSING_PARAMETER, "entity must not be null and entity.id must be null")
+                    .header(MISSING_PARAMETER, "entity must not be null; id must be null; nombrePrueba and anio must not be null")
                 .build();
     }
 
