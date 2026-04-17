@@ -113,6 +113,11 @@ public class CuposCarreraResource extends AbstractResource<CuposCarrera> {
                 CuposCarrera existing = cuposCarreraDAO.leer(pk);
                 if (existing != null) {
                     entity.setId(pk);
+                    // Preserve existing managed relations to avoid side effects when
+                    // request payload sends partial nested entities (only ids).
+                    entity.setIdPrueba(existing.getIdPrueba());
+                    entity.setIdCarrera(existing.getIdCarrera());
+                    entity.setIdEtapa(existing.getIdEtapa());
                     cuposCarreraDAO.actualizar(entity);
                     return Response.ok(entity).build();
                 }

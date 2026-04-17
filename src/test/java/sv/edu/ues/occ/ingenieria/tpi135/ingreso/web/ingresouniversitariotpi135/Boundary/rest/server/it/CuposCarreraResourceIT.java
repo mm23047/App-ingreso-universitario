@@ -4,6 +4,7 @@ import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.*;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -174,23 +175,69 @@ public class CuposCarreraResourceIT extends AbstractResourceIT {
         pk.setIdEtapa(idEtapa);
         entidad.setId(pk);
 
-        // Inicializamos los objetos relacionales SETEANDO SUS IDs para evadir el 422 del Resource
-        PruebasAdmision prueba = new PruebasAdmision();
-        prueba.setId(idPrueba);
-        entidad.setIdPrueba(prueba);
-
-        CatalogoCarrera carrera = new CatalogoCarrera();
-        carrera.setIdCarrera(idCarrera);
-        entidad.setIdCarrera(carrera);
-
-        EtapasAdmision etapa = new EtapasAdmision();
-        etapa.setId(idEtapa);
-        entidad.setIdEtapa(etapa);
+        // Usamos referencias completas para no contaminar el cache JPA con entidades parciales.
+        entidad.setIdPrueba(construirReferenciaPrueba(idPrueba));
+        entidad.setIdCarrera(construirReferenciaCarrera(idCarrera));
+        entidad.setIdEtapa(construirReferenciaEtapa(idEtapa));
 
         // Setear el valor nativo
         entidad.setCupos(cantidadCupos);
 
         return entidad;
+    }
+
+    private PruebasAdmision construirReferenciaPrueba(UUID idPrueba) {
+        PruebasAdmision prueba = new PruebasAdmision();
+        prueba.setId(idPrueba);
+
+        if (ID_PRUEBA_1.equals(idPrueba)) {
+            prueba.setNombrePrueba("Prueba de Admisión 2026 - Ciclo 01");
+            prueba.setAnio(2026);
+            prueba.setActiva(true);
+        }
+
+        return prueba;
+    }
+
+    private CatalogoCarrera construirReferenciaCarrera(String idCarrera) {
+        CatalogoCarrera carrera = new CatalogoCarrera();
+        carrera.setIdCarrera(idCarrera);
+
+        switch (idCarrera) {
+            case "ICS" -> carrera.setNombre("Ingeniería en Ciencias de la Computación");
+            case "ISI" -> carrera.setNombre("Ingeniería de Sistemas Informáticos");
+            case "ICC" -> carrera.setNombre("Ingeniería en Computación");
+            case "MAT" -> carrera.setNombre("Licenciatura en Matemáticas");
+            default -> {
+                // Para IDs inventados en pruebas negativas no se requiere metadata adicional.
+            }
+        }
+
+        return carrera;
+    }
+
+    private EtapasAdmision construirReferenciaEtapa(UUID idEtapa) {
+        EtapasAdmision etapa = new EtapasAdmision();
+        etapa.setId(idEtapa);
+
+        if (ID_ETAPA_1_MATEMATICAS.equals(idEtapa)) {
+            etapa.setNombre("Etapa 1 - Matemáticas");
+            etapa.setPuntajeMinimo(BigDecimal.valueOf(0.00));
+            etapa.setPuntajeMaximo(BigDecimal.valueOf(10.00));
+            etapa.setDescripcion("Evaluación de conocimientos matemáticos");
+        } else if (ID_ETAPA_2_CIENCIAS.equals(idEtapa)) {
+            etapa.setNombre("Etapa 2 - Ciencias");
+            etapa.setPuntajeMinimo(BigDecimal.valueOf(0.00));
+            etapa.setPuntajeMaximo(BigDecimal.valueOf(10.00));
+            etapa.setDescripcion("Evaluación de ciencias naturales");
+        } else if (ID_ETAPA_3_FINAL.equals(idEtapa)) {
+            etapa.setNombre("Etapa Final");
+            etapa.setPuntajeMinimo(BigDecimal.valueOf(5.00));
+            etapa.setPuntajeMaximo(BigDecimal.valueOf(10.00));
+            etapa.setDescripcion("Etapa final de selección");
+        }
+
+        return etapa;
     }
 
     /**
