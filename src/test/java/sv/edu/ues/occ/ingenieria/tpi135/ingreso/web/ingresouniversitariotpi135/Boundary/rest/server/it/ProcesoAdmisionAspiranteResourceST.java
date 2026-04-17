@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * - Validacion de reglas basicas de integridad (422 en payload invalido).
  * - Cambio de estado y etapa del proceso, verificando que persista en BD.
  */
-public class ProcesoAdmisionAspiranteResourceIT extends AbstractResourceIT {
+public class ProcesoAdmisionAspiranteResourceST extends AbstractResourceIT {
 
     // UUIDs tomados del init.sql (mismos que en ProcesoAdmisionAspiranteDAOIT)
     private static final UUID ID_PROCESO_1   = UUID.fromString("09000000-0000-0000-0000-000000000001");

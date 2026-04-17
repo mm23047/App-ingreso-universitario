@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * incluyendo filtros por prueba, validaciones de FK, y persistencia.
  * Recurso de acceso restringido (sensible) para administradores.
  */
-public class ClavesExamanResourceIT extends AbstractResourceIT {
+public class ClavesExamanResourceST extends AbstractResourceIT {
 
     // UUIDs de claves del init.sql
     private static final UUID ID_CLAVE_A = UUID.fromString("08000000-0000-0000-0000-000000000001");

@@ -8,7 +8,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class AreasConocimientoResourceIT extends AbstractResourceIT{
+public class AreasConocimientoResourceST extends AbstractResourceIT{
 
     //ID desde el script
     private static final UUID ID_AREA_1 = UUID.fromString("a1000000-0000-0000-0000-000000000001");

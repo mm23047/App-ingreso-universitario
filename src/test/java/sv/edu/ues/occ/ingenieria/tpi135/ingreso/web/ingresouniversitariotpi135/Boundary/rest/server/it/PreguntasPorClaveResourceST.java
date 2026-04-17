@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Valida el contrato HTTP de los endpoints de asignación de preguntas a claves,
  * incluyendo acceso por clave compuesta (idClave, idPregunta), filtros, y persistencia.
  */
-public class PreguntasPorClaveResourceIT extends AbstractResourceIT {
+public class PreguntasPorClaveResourceST extends AbstractResourceIT {
 
     // UUIDs de claves del init.sql
     private static final UUID ID_CLAVE_A = UUID.fromString("08000000-0000-0000-0000-000000000001");

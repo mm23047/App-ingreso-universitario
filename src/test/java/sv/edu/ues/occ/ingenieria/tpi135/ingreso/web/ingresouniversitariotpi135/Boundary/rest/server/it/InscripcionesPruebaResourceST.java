@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * - Validan el contrato REST (codigos HTTP, headers, cuerpo JSON) y la integracion
  *   con la base de datos inicializada por ingresoTPI135_init.sql.
  */
-public class InscripcionesPruebaResourceIT extends AbstractResourceIT {
+public class InscripcionesPruebaResourceST extends AbstractResourceIT {
 
     // UUIDs tomados del init.sql (mismos que en InscripcionesPruebaDAOIT)
     // id_inscripcion y id_aspirante son distintos en la BD
