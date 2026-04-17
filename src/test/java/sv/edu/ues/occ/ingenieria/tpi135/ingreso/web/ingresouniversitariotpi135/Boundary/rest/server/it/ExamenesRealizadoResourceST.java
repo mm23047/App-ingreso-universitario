@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * - Los filtros por aspiranteId y pruebaId funcionen de acuerdo a las relaciones de la BD.
  * - Se manejen correctamente los codigos 200, 404 y 422 en los casos mas relevantes.
  */
-public class ExamenesRealizadoResourceST extends AbstractResourceIT {
+public class ExamenesRealizadoResourceST extends AbstractResourceST {
 
     // UUIDs tomados del init.sql (mismos que en ExamenesRealizadoDAOIT y entidades relacionadas)
     private static final UUID ID_EXAMEN_1      = UUID.fromString("0d000000-0000-0000-0000-000000000001");

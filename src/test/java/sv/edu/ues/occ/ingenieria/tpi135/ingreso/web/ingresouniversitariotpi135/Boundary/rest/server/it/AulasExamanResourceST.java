@@ -9,7 +9,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class AulasExamanResourceST extends AbstractResourceIT{
+public class AulasExamanResourceST extends AbstractResourceST{
     // IDs semilla
     private static final UUID ID_AULA_1 = UUID.fromString("0a000000-0000-0000-0000-000000000001");
     private static final UUID ID_TURNO_1 = UUID.fromString("07000000-0000-0000-0000-000000000001");

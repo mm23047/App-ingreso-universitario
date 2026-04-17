@@ -6,7 +6,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class CatalogoCarreraResourceST extends AbstractResourceIT {
+public class CatalogoCarreraResourceST extends AbstractResourceST {
     //ID de Ingeniería en Ciencias de la Computación
     private static final String ID_CARRERA_1 = "ICS";
 

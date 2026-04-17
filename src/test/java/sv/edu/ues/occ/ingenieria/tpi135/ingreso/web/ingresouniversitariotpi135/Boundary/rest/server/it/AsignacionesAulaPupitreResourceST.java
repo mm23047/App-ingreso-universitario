@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * - Creacion, actualizacion y eliminacion de asignaciones respetando las FKs
  *   hacia inscripciones_prueba y aulas_examen iniciales definidas en ingresoTPI135_init.sql.
  */
-public class AsignacionesAulaPupitreResourceST extends AbstractResourceIT {
+public class AsignacionesAulaPupitreResourceST extends AbstractResourceST {
 
     // UUIDs tomados del init.sql (mismos que en AsignacionesAulaPupitreDAOIT y entidades relacionadas)
     private static final UUID ID_ASIGNACION_1  = UUID.fromString("0c000000-0000-0000-0000-000000000001");

@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Valida el contrato HTTP de los endpoints de turnos de examen,
  * incluyendo filtros por prueba, validaciones de FK, y persistencia.
  */
-public class TurnosExamanResourceST extends AbstractResourceIT {
+public class TurnosExamanResourceST extends AbstractResourceST {
 
     // UUIDs de turnos del init.sql
     private static final UUID ID_TURNO_MANANA = UUID.fromString("07000000-0000-0000-0000-000000000001");

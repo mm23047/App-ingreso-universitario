@@ -9,7 +9,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-public class CarrerasElegidaResourceST extends AbstractResourceIT{
+public class CarrerasElegidaResourceST extends AbstractResourceST{
     // IDs semilla desde el script
     private static final UUID ID_INSCRIPCION_1 = UUID.fromString("09000000-0000-0000-0000-000000000001");
     private static final UUID ID_INSCRIPCION_2 = UUID.fromString("09000000-0000-0000-0000-000000000002");

@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class CuposCarreraResourceST extends AbstractResourceIT {
+public class CuposCarreraResourceST extends AbstractResourceST {
 
     // IDs semilla
     private static final UUID ID_PRUEBA_1 = UUID.fromString("d1000000-0000-0000-0000-000000000001");

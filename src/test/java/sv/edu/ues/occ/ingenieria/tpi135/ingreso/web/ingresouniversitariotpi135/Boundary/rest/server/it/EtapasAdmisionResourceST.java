@@ -8,7 +8,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class EtapasAdmisionResourceST extends AbstractResourceIT{
+public class EtapasAdmisionResourceST extends AbstractResourceST{
 
     // ID semilla
     private static final UUID ID_ETAPA_1 = UUID.fromString("c1000000-0000-0000-0000-000000000001");

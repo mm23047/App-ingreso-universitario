@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Valida el contrato HTTP de los endpoints de opciones de respuesta,
  * incluyendo filtros por pregunta, validaciones de FK, y persistencia.
  */
-public class OpcionesRespuestaResourceST extends AbstractResourceIT {
+public class OpcionesRespuestaResourceST extends AbstractResourceST {
 
     // UUIDs de opciones del init.sql
     private static final UUID ID_OPCION_1 = UUID.fromString("0b000000-0000-0000-0000-000000000001");

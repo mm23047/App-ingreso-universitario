@@ -14,12 +14,12 @@ import static org.junit.jupiter.api.Assertions.*;
  * Pruebas de integracion REST para el recurso InscripcionesPruebaResource.
  *
  * Estas pruebas:
- * - Usan WAR real desplegada en Liberty (via BaseSistemaST / AbstractResourceIT).
+ * - Usan WAR real desplegada en Liberty (via BaseSistemaST / AbstractResourceST).
  * - Consumen endpoints reales via HTTP.
  * - Validan el contrato REST (codigos HTTP, headers, cuerpo JSON) y la integracion
  *   con la base de datos inicializada por ingresoTPI135_init.sql.
  */
-public class InscripcionesPruebaResourceST extends AbstractResourceIT {
+public class InscripcionesPruebaResourceST extends AbstractResourceST {
 
     // UUIDs tomados del init.sql (mismos que en InscripcionesPruebaDAOIT)
     // id_inscripcion y id_aspirante son distintos en la BD

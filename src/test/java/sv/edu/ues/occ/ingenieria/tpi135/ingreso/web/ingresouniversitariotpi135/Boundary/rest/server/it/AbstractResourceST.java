@@ -8,12 +8,12 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.b
  * Clase base para pruebas de integracion de Resources REST.
  *
  * Reutiliza la infraestructura de BaseSistemaST (PostgreSQL + Liberty + WAR desplegada
- * + cliente HTTP Jersey) y expone un punto comun para que las clases *ResourceIT puedan
+ * + cliente HTTP Jersey) y expone un punto comun para que las clases *ResourceST puedan
  * ejecutarse sobre el mismo entorno contenedorizado que las pruebas de sistema BDD,
  * pero sin depender de Cucumber.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public abstract class AbstractResourceIT extends BaseSistemaST {
+public abstract class AbstractResourceST extends BaseSistemaST {
 
     /**
      * Inicializa la infraestructura de contenedores (PostgreSQL + Liberty + cliente HTTP)

@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * incluyendo códigos de estado, headers y cuerpos JSON, con integración real
  * contra la base de datos inicializada por ingresoTPI135_init.sql.
  */
-public class PruebasAdmisionResourceST extends AbstractResourceIT {
+public class PruebasAdmisionResourceST extends AbstractResourceST {
 
     // UUIDs tomados del init.sql
     private static final UUID ID_PRUEBA_1 = UUID.fromString("d1000000-0000-0000-0000-000000000001");

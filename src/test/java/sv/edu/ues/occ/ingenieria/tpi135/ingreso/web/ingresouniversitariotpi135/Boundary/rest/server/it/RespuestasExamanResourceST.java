@@ -15,12 +15,12 @@ import static org.junit.jupiter.api.Assertions.*;
  * Pruebas de integracion REST para el recurso RespuestasExamanResource.
  *
  * Estas pruebas:
- * - Usan WAR real desplegada en Liberty (via BaseSistemaST / AbstractResourceIT).
+ * - Usan WAR real desplegada en Liberty (via BaseSistemaST / AbstractResourceST).
  * - Consumen endpoints reales via HTTP.
  * - Validan el contrato REST (codigos HTTP, headers, cuerpo JSON) y la integracion
  *   con la base de datos inicializada por ingresoTPI135_init.sql.
  */
-public class RespuestasExamanResourceST extends AbstractResourceIT {
+public class RespuestasExamanResourceST extends AbstractResourceST {
 
     // UUIDs tomados del init.sql (mismos que en RespuestasExamanDAOIT)
     private static final UUID ID_EXAMEN_1    = UUID.fromString("0d000000-0000-0000-0000-000000000001");
