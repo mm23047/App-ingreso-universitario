@@ -111,6 +111,16 @@ class UsuariosSistemaResourceTest {
     }
 
     @Test
+    void findById_ConExcepcionEnDAO_DebeRetornar500() {
+        when(usuariosSistemaDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.findById(testId);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString("Server-exception"));
+    }
+
+    @Test
     void create_ConEntidadValida_DebeRetornar201() {
         UsuariosSistema nuevo = new UsuariosSistema();
         nuevo.setNombreUsuario("jperez");
@@ -146,6 +156,22 @@ class UsuariosSistemaResourceTest {
     }
 
     @Test
+    void create_ConExcepcionEnDAO_DebeRetornar500() {
+        UsuariosSistema nuevo = new UsuariosSistema();
+        nuevo.setNombreUsuario("jperez");
+        nuevo.setCorreo("jperez@correo.com");
+        nuevo.setContrasenaHash("$2a$10$hash");
+        nuevo.setRol("ASPIRANTE");
+
+        doThrow(new RuntimeException("Error de BD")).when(usuariosSistemaDAO).crear(any());
+
+        Response response = resource.create(nuevo, uriInfo);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString("Server-exception"));
+    }
+
+    @Test
     void update_ConIdYEntidadValidos_DebeRetornar200() {
         when(usuariosSistemaDAO.leer(testId)).thenReturn(entidad);
 
@@ -170,6 +196,22 @@ class UsuariosSistemaResourceTest {
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
+    }
+
+    @Test
+    void update_ConExcepcionEnDAO_DebeRetornar500() {
+        when(usuariosSistemaDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
+
+        UsuariosSistema actualizada = new UsuariosSistema();
+        actualizada.setNombreUsuario("admin2");
+        actualizada.setCorreo("admin2@ues.edu.sv");
+        actualizada.setContrasenaHash("$2a$10$hash");
+        actualizada.setRol("ADMIN");
+
+        Response response = resource.update(testId, actualizada);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString("Server-exception"));
     }
 
     @Test
@@ -200,5 +242,24 @@ class UsuariosSistemaResourceTest {
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
         verify(usuariosSistemaDAO, never()).eliminar(any());
+    }
+
+    @Test
+    void delete_ConIdNulo_DebeRetornar422() {
+        Response response = resource.delete(null);
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+        verifyNoInteractions(usuariosSistemaDAO);
+    }
+
+    @Test
+    void delete_ConExcepcionEnDAO_DebeRetornar500() {
+        when(usuariosSistemaDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.delete(testId);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString("Server-exception"));
     }
 }

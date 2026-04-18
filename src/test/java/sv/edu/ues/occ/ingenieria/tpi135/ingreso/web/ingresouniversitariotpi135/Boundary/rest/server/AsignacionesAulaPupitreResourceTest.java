@@ -142,6 +142,20 @@ class AsignacionesAulaPupitreResourceTest {
     }
 
     @Test
+    void findRange_ConInscripcionIdValido_YExcepcionEnDAO_DebeRetornar500() throws NoSuchFieldException, IllegalAccessException {
+        UUID inscripcionId = UUID.randomUUID();
+        setFieldValue(resource, "inscripcionIdParam", inscripcionId.toString());
+
+        when(asignacionesAulaPupitreDAO.findByInscripcionId(inscripcionId))
+                .thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString("Server-exception"));
+    }
+
+    @Test
     void findRange_ConAspiranteIdValido_DebeRetornarRegistrosFiltrados() throws NoSuchFieldException, IllegalAccessException {
         UUID aspiranteId = UUID.randomUUID();
         setFieldValue(resource, "aspiranteIdParam", aspiranteId.toString());
