@@ -16,11 +16,11 @@ import org.testcontainers.utility.MountableFile;
 import java.nio.file.Paths;
 
 /**
- * Clase base para pruebas de sistema.
+ * Clase base para pruebas BDD.
  * Centraliza infraestructura de Testcontainers y helpers HTTP para reutilizar
- * en clases ST separadas por feature/caso de uso.
+ * en pruebas de sistema BDD y, si se desea, en pruebas ST que compartan el mismo entorno.
  */
-public abstract class BaseSistemaST {
+public abstract class BaseSistemaBDD {
 
     protected static Client cliente;
     protected static String baseUrl;
@@ -59,7 +59,6 @@ public abstract class BaseSistemaST {
                 postgres.start();
                 liberty.start();
 
-                // Configurar cliente Jersey y registrar el proveedor de ObjectMapper
                 ClientConfig config = new ClientConfig();
                 config.register(ProveedorJacksonTiempo.class);
 

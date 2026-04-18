@@ -16,7 +16,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegida;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegidaId;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.bdd.BaseSistemaST;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.bdd.BaseSistemaBDD;
 
 import java.util.UUID;
 
@@ -37,11 +37,11 @@ public class CrearAspiranteBDD {
 
     @Given("se tiene un servidor corriendo con la aplicacion desplegada para crear aspirantes")
     public void se_tiene_un_servidor_corriendo_con_la_aplicacion_desplegada_para_crear_aspirantes() {
-        System.out.println("Arrancando entorno de sistema (singleton BaseSistemaST)");
-        BaseSistemaST.init();
+        System.out.println("Arrancando entorno de sistema (singleton BaseSistemaBDD)");
+        BaseSistemaBDD.init();
 
-        cliente = BaseSistemaST.getClient();
-        target = cliente.target(BaseSistemaST.getBaseUrl());
+        cliente = BaseSistemaBDD.getClient();
+        target = cliente.target(BaseSistemaBDD.getBaseUrl());
 
     }
 

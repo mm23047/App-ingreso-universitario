@@ -11,7 +11,7 @@ import jakarta.ws.rs.core.Response;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.*;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.bdd.BaseSistemaST;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.bdd.BaseSistemaBDD;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -83,11 +83,11 @@ public class InscribirAspirantePruebaBDD {
      */
     @Given("se tiene un servidor corriendo con la aplicacion desplegada")
     public void se_tiene_un_servidor_corriendo_con_la_aplicacion_desplegada(){
-        System.out.println("Iniciando infraestructura (SINGLETON BaseSistemaST) para Inscribir Aspirante Prueba BDD");
-        BaseSistemaST.init();
+        System.out.println("Iniciando infraestructura (SINGLETON BaseSistemaBDD) para Inscribir Aspirante Prueba BDD");
+        BaseSistemaBDD.init();
 
-        cliente = BaseSistemaST.getClient();
-        target = cliente.target(BaseSistemaST.getBaseUrl());
+        cliente = BaseSistemaBDD.getClient();
+        target = cliente.target(BaseSistemaBDD.getBaseUrl());
 
     }
 

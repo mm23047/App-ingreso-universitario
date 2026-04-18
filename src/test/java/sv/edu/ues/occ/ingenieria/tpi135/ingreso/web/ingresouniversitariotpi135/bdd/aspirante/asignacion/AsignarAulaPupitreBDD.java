@@ -10,7 +10,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Assertions;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.*;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.bdd.BaseSistemaST;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.bdd.BaseSistemaBDD;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -81,10 +81,10 @@ public class AsignarAulaPupitreBDD {
     @Given("se tiene un servidor corriendo con la aplicación desplegada")
     public void se_tiene_un_servidor_corriendo_con_la_aplicacion_desplegada() {
         System.out.println("Iniciando infraestructura singleton de pruebas BDD");
-        BaseSistemaST.init();
+        BaseSistemaBDD.init();
 
-        cliente = BaseSistemaST.getClient();
-        target = cliente.target(BaseSistemaST.getBaseUrl());
+        cliente = BaseSistemaBDD.getClient();
+        target = cliente.target(BaseSistemaBDD.getBaseUrl());
     }
 
     @Given("existe un aspirante inscrito en una prueba de admisión y turno específico")

@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Pruebas de integracion REST para el recurso RespuestasExamanResource.
  *
  * Estas pruebas:
- * - Usan WAR real desplegada en Liberty (via BaseSistemaST / AbstractResourceST).
+* - Usan WAR real desplegada en Liberty (via BaseSistemaBDD / AbstractResourceST).
  * - Consumen endpoints reales via HTTP.
  * - Validan el contrato REST (codigos HTTP, headers, cuerpo JSON) y la integracion
  *   con la base de datos inicializada por ingresoTPI135_init.sql.

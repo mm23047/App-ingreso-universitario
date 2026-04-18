@@ -214,6 +214,42 @@
                 </plugins>
             </build>
         </profile>
+
+        <profile>
+            <id>bdd</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>3.5.4</version>
+
+                        <configuration>
+                            <includes>
+                                <include>**/*BDD.java</include>
+                            </includes>
+
+                            <excludes>
+                                <exclude>**/*ST.java</exclude>
+                                <exclude>**/*IT.java</exclude>
+                                <exclude>**/*Test.java</exclude>
+                            </excludes>
+
+                            <argLine>@{failsafe.jacoco.args}</argLine>
+                        </configuration>
+
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <build>

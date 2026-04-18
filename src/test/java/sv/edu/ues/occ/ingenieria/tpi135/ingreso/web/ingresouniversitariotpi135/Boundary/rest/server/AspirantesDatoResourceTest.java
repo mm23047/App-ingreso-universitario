@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.AspirantesDatoDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.UsuariosSistemaDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.UsuariosSistema;
 
@@ -25,20 +26,26 @@ import static org.mockito.Mockito.*;
 class AspirantesDatoResourceTest {
 
     @Mock private AspirantesDatoDAO aspirantesDatoDAO;
+    @Mock private UsuariosSistemaDAO usuariosSistemaDAO;
     @Mock private UriInfo uriInfo;
     @Mock private UriBuilder uriBuilder;
 
     private AspirantesDatoResource resource;
     private AspirantesDato entidad;
     private UUID testId;
+    private UUID usuarioId;
+    private UsuariosSistema usuario;
 
     @BeforeEach
     void setUp() {
         testId = UUID.randomUUID();
+        usuarioId = UUID.randomUUID();
         resource = new AspirantesDatoResource();
         resource.aspirantesDatoDAO = aspirantesDatoDAO;
+        resource.usuariosSistemaDAO = usuariosSistemaDAO;
 
-        UsuariosSistema usuario = new UsuariosSistema();
+        usuario = new UsuariosSistema();
+        usuario.setId(usuarioId);
 
         entidad = new AspirantesDato();
         entidad.setId(testId);
@@ -138,11 +145,15 @@ class AspirantesDatoResourceTest {
     @Test
     void create_ConEntidadValida_DebeRetornar201() {
         AspirantesDato nuevo = new AspirantesDato();
-        nuevo.setIdUsuario(new UsuariosSistema());
+        UsuariosSistema u = new UsuariosSistema();
+        u.setId(usuarioId);
+        nuevo.setIdUsuario(u);
         nuevo.setNombres("Maria");
         nuevo.setApellidos("García");
         nuevo.setDui("09876543-2");
         nuevo.setUsaSillaRuedas(false);
+
+        when(usuariosSistemaDAO.leer(usuarioId)).thenReturn(usuario);
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
         when(uriBuilder.build()).thenReturn(URI.create("http://localhost/aspirantes/1"));
@@ -150,7 +161,8 @@ class AspirantesDatoResourceTest {
         Response response = resource.create(nuevo, uriInfo);
 
         assertEquals(201, response.getStatus());
-        verify(aspirantesDatoDAO).crear(nuevo);
+        verify(usuariosSistemaDAO).leer(usuarioId);
+        verify(aspirantesDatoDAO).crear(any(AspirantesDato.class));
     }
 
     @Test
@@ -181,32 +193,40 @@ class AspirantesDatoResourceTest {
     @Test
     void create_SinNombres_DebeRetornar422() {
         AspirantesDato nuevo = new AspirantesDato();
-        nuevo.setIdUsuario(new UsuariosSistema());
+        UsuariosSistema u = new UsuariosSistema();
+        u.setId(usuarioId);
+        nuevo.setIdUsuario(u);
         nuevo.setApellidos("López");
         nuevo.setDui("11111111-1");
         Response response = resource.create(nuevo, uriInfo);
         assertEquals(422, response.getStatus());
-        verifyNoInteractions(aspirantesDatoDAO);
+        verifyNoInteractions(aspirantesDatoDAO, usuariosSistemaDAO);
     }
 
     @Test
     void create_SinDui_DebeRetornar422() {
         AspirantesDato nuevo = new AspirantesDato();
-        nuevo.setIdUsuario(new UsuariosSistema());
+        UsuariosSistema u = new UsuariosSistema();
+        u.setId(usuarioId);
+        nuevo.setIdUsuario(u);
         nuevo.setNombres("Carlos");
         nuevo.setApellidos("Mendez");
         Response response = resource.create(nuevo, uriInfo);
         assertEquals(422, response.getStatus());
-        verifyNoInteractions(aspirantesDatoDAO);
+        verifyNoInteractions(aspirantesDatoDAO, usuariosSistemaDAO);
     }
 
     @Test
     void create_ConExcepcionEnDAO_DebeRetornar500() {
         AspirantesDato nuevo = new AspirantesDato();
-        nuevo.setIdUsuario(new UsuariosSistema());
+        UsuariosSistema u = new UsuariosSistema();
+        u.setId(usuarioId);
+        nuevo.setIdUsuario(u);
         nuevo.setNombres("Pedro");
         nuevo.setApellidos("Martinez");
         nuevo.setDui("22222222-2");
+
+        when(usuariosSistemaDAO.leer(usuarioId)).thenReturn(usuario);
         doThrow(new RuntimeException("BD error")).when(aspirantesDatoDAO).crear(any());
         Response response = resource.create(nuevo, uriInfo);
         assertEquals(500, response.getStatus());
@@ -217,6 +237,7 @@ class AspirantesDatoResourceTest {
     @Test
     void update_ConIdYEntidadValidos_DebeRetornar200() {
         when(aspirantesDatoDAO.leer(testId)).thenReturn(entidad);
+        when(aspirantesDatoDAO.actualizar(any(AspirantesDato.class))).thenAnswer(inv -> inv.getArgument(0));
         AspirantesDato actualizado = new AspirantesDato();
         actualizado.setNombres("Juan Carlos");
         actualizado.setApellidos("Pérez López");
@@ -225,7 +246,7 @@ class AspirantesDatoResourceTest {
         Response response = resource.update(testId, actualizado);
 
         assertEquals(200, response.getStatus());
-        verify(aspirantesDatoDAO).actualizar(actualizado);
+        verify(aspirantesDatoDAO).actualizar(entidad);
     }
 
     @Test

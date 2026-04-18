@@ -10,7 +10,9 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.AspirantesDatoDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.UsuariosSistemaDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.UsuariosSistema;
 
 import java.util.UUID;
 
@@ -24,6 +26,9 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
 
     @Inject
     AspirantesDatoDAO aspirantesDatoDAO;
+
+    @Inject
+    UsuariosSistemaDAO usuariosSistemaDAO;
 
     @Override
     protected IngresoDefaultDataAccess<AspirantesDato> getDAO() {
@@ -60,14 +65,29 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
     public Response create(AspirantesDato entity, @Context UriInfo uriInfo) {
         if (entity != null && entity.getId() == null
                 && entity.getIdUsuario() != null
+            && entity.getIdUsuario().getId() != null
                 && entity.getNombres() != null
                 && entity.getApellidos() != null
                 && entity.getDui() != null) {
             try {
-                aspirantesDatoDAO.crear(entity);
+            UsuariosSistema usuario = usuariosSistemaDAO.leer(entity.getIdUsuario().getId());
+            if (usuario == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .header(NOT_FOUND_ID, "Record with id " + entity.getIdUsuario().getId() + " not found")
+                    .build();
+            }
+
+            AspirantesDato nuevo = new AspirantesDato();
+            nuevo.setIdUsuario(usuario);
+            nuevo.setNombres(entity.getNombres());
+            nuevo.setApellidos(entity.getApellidos());
+            nuevo.setDui(entity.getDui());
+            nuevo.setUsaSillaRuedas(entity.getUsaSillaRuedas());
+
+            aspirantesDatoDAO.crear(nuevo);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()
-                                .path(String.valueOf(entity.getId()))
+                    .path(String.valueOf(nuevo.getId()))
                                 .build())
                         .build();
             } catch (Exception ex) {
@@ -77,7 +97,7 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
             }
         }
         return Response.status(422)
-                .header(MISSING_PARAMETER, "entity must not be null; id must be null; idUsuario, nombres, apellidos, dui must not be null")
+            .header(MISSING_PARAMETER, "entity must not be null; id must be null; idUsuario.id, nombres, apellidos, dui must not be null")
                 .build();
     }
 
@@ -90,9 +110,31 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
             try {
                 AspirantesDato existing = aspirantesDatoDAO.leer(id);
                 if (existing != null) {
-                    entity.setId(id);
-                    aspirantesDatoDAO.actualizar(entity);
-                    return Response.ok(entity).build();
+                    if (entity.getIdUsuario() != null && entity.getIdUsuario().getId() != null) {
+                        UsuariosSistema usuario = usuariosSistemaDAO.leer(entity.getIdUsuario().getId());
+                        if (usuario == null) {
+                            return Response.status(Response.Status.NOT_FOUND)
+                                    .header(NOT_FOUND_ID, "Record with id " + entity.getIdUsuario().getId() + " not found")
+                                    .build();
+                        }
+                        existing.setIdUsuario(usuario);
+                    }
+
+                    if (entity.getNombres() != null) {
+                        existing.setNombres(entity.getNombres());
+                    }
+                    if (entity.getApellidos() != null) {
+                        existing.setApellidos(entity.getApellidos());
+                    }
+                    if (entity.getDui() != null) {
+                        existing.setDui(entity.getDui());
+                    }
+                    if (entity.getUsaSillaRuedas() != null) {
+                        existing.setUsaSillaRuedas(entity.getUsaSillaRuedas());
+                    }
+
+                    AspirantesDato actualizado = aspirantesDatoDAO.actualizar(existing);
+                    return Response.ok(actualizado).build();
                 }
                 return Response.status(Response.Status.NOT_FOUND)
                         .header(NOT_FOUND_ID, "Record with id " + id + " not found")
