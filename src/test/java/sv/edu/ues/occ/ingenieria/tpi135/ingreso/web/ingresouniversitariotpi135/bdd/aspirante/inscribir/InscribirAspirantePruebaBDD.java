@@ -34,6 +34,12 @@ public class InscribirAspirantePruebaBDD {
     static UUID idTurno;
     static UUID idInscripcion;
 
+    // Datos del turno creado (para asserts coherentes)
+    static String nombreTurno;
+    static LocalDate fechaTurno;
+    static LocalTime horaInicioTurno;
+    static LocalTime horaFinTurno;
+
     // Semillas estáticas
     private static final UUID ID_USUARIO = UUID.fromString("b1000000-0000-0000-0000-000000000001");
     private static final UUID ID_PRUEBA_SEMILLA = UUID.fromString("d1000000-0000-0000-0000-000000000001");
@@ -134,10 +140,15 @@ public class InscribirAspirantePruebaBDD {
         // Construir el objeto principal (INCSCRIPCION DE TURNO)
 
         TurnosExaman nuevoTurno = new TurnosExaman();
-        nuevoTurno.setNombreTurno("Turno MATUTINO");
-        nuevoTurno.setFecha(LocalDate.now().plusDays(10));
-        nuevoTurno.setHoraInicio(LocalTime.of(9,0));
-        nuevoTurno.setHoraFin(LocalTime.of(11,0));
+        nombreTurno = "Turno MATUTINO";
+        fechaTurno = LocalDate.now().plusDays(10);
+        horaInicioTurno = LocalTime.of(9,0);
+        horaFinTurno = LocalTime.of(11,0);
+
+        nuevoTurno.setNombreTurno(nombreTurno);
+        nuevoTurno.setFecha(fechaTurno);
+        nuevoTurno.setHoraInicio(horaInicioTurno);
+        nuevoTurno.setHoraFin(horaFinTurno);
 
         /**
          * Resolver llaves foráneas
@@ -246,23 +257,40 @@ public class InscribirAspirantePruebaBDD {
         Assertions.assertEquals(idAspirante, inscripcionesConsulatada.getIdAspirante().getId());
     }
 
-    @Then("la inscripcion muestra el turno de examen y la carrera elegida correctamente")
-    public void la_inscripcion_muestra_el_turno_de_examen_y_la_carrera_elegida_correctamente(){
-        System.out.println("La inscripcion muestra el turno de examen Y la carrera elegida por el aspirante");
+    @Then("el turno de examen existe y la carrera elegida queda registrada correctamente")
+    public void el_turno_de_examen_existe_y_la_carrera_elegida_queda_registrada_correctamente(){
+        System.out.println("Verificamos que el turno existe y que la carrera elegida quedó registrada");
 
-        // Consultamos el endpoint usando la llave compuesta (ID de la inscripción + ID de la carrera)
-        Response respuesta = target.path("carreras_elegidas/{idInscripcion}/{idCarrera}")
+        // 1) Verificar que el turno creado exista (la inscripción NO referencia turno en el modelo actual)
+        Assertions.assertNotNull(idTurno, "El ID del turno no deberia de ser null");
+        Response respTurno = hacerGet("turnos_examen", idTurno);
+        Assertions.assertEquals(200, respTurno.getStatus());
+        TurnosExaman turnoConsultado = respTurno.readEntity(TurnosExaman.class);
+        Assertions.assertNotNull(turnoConsultado);
+        Assertions.assertEquals(idTurno, turnoConsultado.getId());
+        Assertions.assertEquals(nombreTurno, turnoConsultado.getNombreTurno());
+        Assertions.assertEquals(fechaTurno, turnoConsultado.getFecha());
+        Assertions.assertEquals(horaInicioTurno, turnoConsultado.getHoraInicio());
+        Assertions.assertEquals(horaFinTurno, turnoConsultado.getHoraFin());
+
+        if (turnoConsultado.getIdPrueba() != null && turnoConsultado.getIdPrueba().getId() != null) {
+            Assertions.assertEquals(ID_PRUEBA_SEMILLA, turnoConsultado.getIdPrueba().getId());
+        }
+
+        // 2) Verificar que la carrera elegida se haya registrado para la inscripción (PK compuesta + prioridad)
+        Assertions.assertNotNull(idInscripcion, "El ID de la inscripcion no deberia de ser null");
+        Response respCarrera = target.path("carreras_elegidas/{idInscripcion}/{idCarrera}")
                 .resolveTemplate("idInscripcion", idInscripcion)
                 .resolveTemplate("idCarrera", ID_CARRERA_SEMILLA)
                 .request(MediaType.APPLICATION_JSON)
                 .get();
-
-        // Verificamos que la relación se haya guardado y pueda ser consultada (HTTP 200 OK)
-        Assertions.assertEquals(200, respuesta.getStatus());
-
-        // Extraemos la entidad y verificamos que el código de carrera coincida con nuestra semilla
-        CarrerasElegida carreraEncontrada = respuesta.readEntity(CarrerasElegida.class);
+        Assertions.assertEquals(200, respCarrera.getStatus());
+        CarrerasElegida carreraEncontrada = respCarrera.readEntity(CarrerasElegida.class);
+        Assertions.assertNotNull(carreraEncontrada);
+        Assertions.assertNotNull(carreraEncontrada.getId());
+        Assertions.assertEquals(idInscripcion, carreraEncontrada.getId().getIdInscripcion());
         Assertions.assertEquals(ID_CARRERA_SEMILLA, carreraEncontrada.getId().getIdCarrera());
+        Assertions.assertEquals(Short.valueOf((short) 1), carreraEncontrada.getPrioridad());
     }
 
 }

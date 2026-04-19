@@ -1,4 +1,4 @@
-Feature: Inscribir a un aspirante en una prueba de admision y turno especifico
+Feature: Inscribir a un aspirante en una prueba de admision con turno habilitado
 
 	Scenario: Aspirante se inscribe correctamente a una prueba de admision
 		Given se tiene un servidor corriendo con la aplicacion desplegada
@@ -7,4 +7,4 @@ Feature: Inscribir a un aspirante en una prueba de admision y turno especifico
 		When solicito inscribir al aspirante en la prueba de admision y turno seleccionados
 		Then se registra una nueva inscripcion a la prueba para ese aspirante
 		And puedo consultar la inscripcion de ese aspirante a la prueba
-		And la inscripcion muestra el turno de examen y la carrera elegida correctamente
+		And el turno de examen existe y la carrera elegida queda registrada correctamente
