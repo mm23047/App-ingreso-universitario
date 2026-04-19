@@ -166,6 +166,27 @@ class AspirantesDatoResourceTest {
     }
 
     @Test
+    void create_ConUsuarioInexistente_DebeRetornar404() {
+        AspirantesDato nuevo = new AspirantesDato();
+        UsuariosSistema u = new UsuariosSistema();
+        u.setId(usuarioId);
+        nuevo.setIdUsuario(u);
+        nuevo.setNombres("Maria");
+        nuevo.setApellidos("García");
+        nuevo.setDui("09876543-2");
+
+        when(usuariosSistemaDAO.leer(usuarioId)).thenReturn(null);
+
+        Response response = resource.create(nuevo, uriInfo);
+
+        assertEquals(404, response.getStatus());
+        assertNotNull(response.getHeaderString("Not-found-id"));
+        verify(usuariosSistemaDAO).leer(usuarioId);
+        verifyNoInteractions(aspirantesDatoDAO);
+        verifyNoInteractions(uriInfo);
+    }
+
+    @Test
     void create_ConEntidadNula_DebeRetornar422() {
         Response response = resource.create(null, uriInfo);
         assertEquals(422, response.getStatus());
@@ -191,6 +212,20 @@ class AspirantesDatoResourceTest {
     }
 
     @Test
+    void create_ConIdUsuarioSinId_DebeRetornar422() {
+        AspirantesDato nuevo = new AspirantesDato();
+        nuevo.setIdUsuario(new UsuariosSistema());
+        nuevo.setNombres("Ana");
+        nuevo.setApellidos("López");
+        nuevo.setDui("11111111-1");
+
+        Response response = resource.create(nuevo, uriInfo);
+
+        assertEquals(422, response.getStatus());
+        verifyNoInteractions(aspirantesDatoDAO, usuariosSistemaDAO, uriInfo);
+    }
+
+    @Test
     void create_SinNombres_DebeRetornar422() {
         AspirantesDato nuevo = new AspirantesDato();
         UsuariosSistema u = new UsuariosSistema();
@@ -201,6 +236,21 @@ class AspirantesDatoResourceTest {
         Response response = resource.create(nuevo, uriInfo);
         assertEquals(422, response.getStatus());
         verifyNoInteractions(aspirantesDatoDAO, usuariosSistemaDAO);
+    }
+
+    @Test
+    void create_SinApellidos_DebeRetornar422() {
+        AspirantesDato nuevo = new AspirantesDato();
+        UsuariosSistema u = new UsuariosSistema();
+        u.setId(usuarioId);
+        nuevo.setIdUsuario(u);
+        nuevo.setNombres("Carlos");
+        nuevo.setDui("11111111-1");
+
+        Response response = resource.create(nuevo, uriInfo);
+
+        assertEquals(422, response.getStatus());
+        verifyNoInteractions(aspirantesDatoDAO, usuariosSistemaDAO, uriInfo);
     }
 
     @Test
@@ -246,6 +296,66 @@ class AspirantesDatoResourceTest {
         Response response = resource.update(testId, actualizado);
 
         assertEquals(200, response.getStatus());
+        verify(aspirantesDatoDAO).actualizar(entidad);
+    }
+
+    @Test
+    void update_ConCambioUsuarioInexistente_DebeRetornar404() {
+        UUID nuevoUsuarioId = UUID.randomUUID();
+        when(aspirantesDatoDAO.leer(testId)).thenReturn(entidad);
+        when(usuariosSistemaDAO.leer(nuevoUsuarioId)).thenReturn(null);
+
+        AspirantesDato payload = new AspirantesDato();
+        UsuariosSistema u = new UsuariosSistema();
+        u.setId(nuevoUsuarioId);
+        payload.setIdUsuario(u);
+
+        Response response = resource.update(testId, payload);
+
+        assertEquals(404, response.getStatus());
+        assertNotNull(response.getHeaderString("Not-found-id"));
+        verify(aspirantesDatoDAO).leer(testId);
+        verify(usuariosSistemaDAO).leer(nuevoUsuarioId);
+        verify(aspirantesDatoDAO, never()).actualizar(any());
+    }
+
+    @Test
+    void update_ConCambioUsuarioExistente_DebeActualizarRelacion() {
+        UUID nuevoUsuarioId = UUID.randomUUID();
+        UsuariosSistema nuevoUsuario = new UsuariosSistema();
+        nuevoUsuario.setId(nuevoUsuarioId);
+        when(aspirantesDatoDAO.leer(testId)).thenReturn(entidad);
+        when(usuariosSistemaDAO.leer(nuevoUsuarioId)).thenReturn(nuevoUsuario);
+        when(aspirantesDatoDAO.actualizar(any(AspirantesDato.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        AspirantesDato payload = new AspirantesDato();
+        UsuariosSistema u = new UsuariosSistema();
+        u.setId(nuevoUsuarioId);
+        payload.setIdUsuario(u);
+
+        Response response = resource.update(testId, payload);
+
+        assertEquals(200, response.getStatus());
+        assertNotNull(response.getEntity());
+        assertSame(nuevoUsuario, entidad.getIdUsuario());
+        verify(aspirantesDatoDAO).actualizar(entidad);
+    }
+
+    @Test
+    void update_ConUsaSillaRuedasNoNulo_DebeActualizarCampo() {
+        entidad.setUsaSillaRuedas(false);
+        when(aspirantesDatoDAO.leer(testId)).thenReturn(entidad);
+        when(aspirantesDatoDAO.actualizar(any(AspirantesDato.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        AspirantesDato payload = new AspirantesDato();
+        payload.setUsaSillaRuedas(true);
+
+        Response response = resource.update(testId, payload);
+
+        assertEquals(200, response.getStatus());
+        assertNotNull(response.getEntity());
+        AspirantesDato respEntity = (AspirantesDato) response.getEntity();
+        assertTrue(respEntity.getUsaSillaRuedas());
         verify(aspirantesDatoDAO).actualizar(entidad);
     }
 
