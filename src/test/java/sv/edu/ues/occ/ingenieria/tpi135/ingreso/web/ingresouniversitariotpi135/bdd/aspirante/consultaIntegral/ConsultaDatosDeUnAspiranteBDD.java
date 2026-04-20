@@ -1,4 +1,4 @@
-package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.bdd.aspirante.asignacion;
+package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.bdd.aspirante.consultaIntegral;
 
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
