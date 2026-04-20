@@ -131,5 +131,30 @@ public class ProcesoAdmisionAspiranteResource extends AbstractResource<ProcesoAd
                 .header(MISSING_PARAMETER, "id")
                 .build();
     }
+
+    @POST
+    @Path("{idInscripcion}/asignar-carrera")
+    @Produces({MediaType.APPLICATION_JSON})
+    @Consumes({MediaType.APPLICATION_JSON})
+    public Response asignarCarrera(@PathParam("idInscripcion") UUID idInscripcion) {
+        if (idInscripcion != null) {
+            try {
+                ProcesoAdmisionAspirante proceso = procesoAdmisionAspiranteDAO.asignarCarreraFinal(idInscripcion);
+                if (proceso != null) {
+                    return Response.ok(proceso).build();
+                }
+                return Response.status(Response.Status.NOT_FOUND)
+                        .header(NOT_FOUND_ID, "Record with id " + idInscripcion + " not found")
+                        .build();
+            } catch (Exception ex) {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .header(SERVER_EXCEPTION, "Cannot access db")
+                        .build();
+            }
+        }
+        return Response.status(422)
+                .header(MISSING_PARAMETER, "idInscripcion")
+                .build();
+    }
 }
 
