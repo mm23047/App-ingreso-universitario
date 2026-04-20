@@ -417,4 +417,60 @@ class AspirantesDatoResourceTest {
         Response response = resource.delete(testId);
         assertEquals(500, response.getStatus());
     }
+
+    // ==================== getExpediente (GET /{id}/expediente) ====================
+
+    @Test
+    void getExpediente_ConAspiranteExistente_DebeRetornar200ConExpediente() {
+        when(aspirantesDatoDAO.leer(testId)).thenReturn(entidad);
+
+        Response response = resource.getExpediente(testId);
+
+        assertEquals(200, response.getStatus());
+        assertNotNull(response.getEntity());
+        assertTrue(response.getEntity() instanceof sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExpedienteAspiranteDTO);
+
+        sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExpedienteAspiranteDTO expediente =
+                (sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExpedienteAspiranteDTO) response.getEntity();
+
+        assertNotNull(expediente.getAspirante());
+        assertEquals(testId, expediente.getAspirante().getId());
+        assertNull(expediente.getInscripcion());
+        assertNull(expediente.getCarrera());
+        assertNull(expediente.getAsignacion());
+        assertNull(expediente.getExamen());
+        assertNull(expediente.getProceso());
+
+        verify(aspirantesDatoDAO).leer(testId);
+    }
+
+    @Test
+    void getExpediente_ConAspiranteNoExistente_DebeRetornar404() {
+        when(aspirantesDatoDAO.leer(testId)).thenReturn(null);
+
+        Response response = resource.getExpediente(testId);
+
+        assertEquals(404, response.getStatus());
+        assertNotNull(response.getHeaderString("Not-found-id"));
+        verify(aspirantesDatoDAO).leer(testId);
+    }
+
+    @Test
+    void getExpediente_ConIdNulo_DebeRetornar422() {
+        Response response = resource.getExpediente(null);
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+        verifyNoInteractions(aspirantesDatoDAO);
+    }
+
+    @Test
+    void getExpediente_ConExcepcionEnDAO_DebeRetornar500() {
+        when(aspirantesDatoDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.getExpediente(testId);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString("Server-exception"));
+    }
 }
