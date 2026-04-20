@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.ProcesoAdmisionAspiranteDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ProcesoAdmisionAspirante;
@@ -332,5 +333,50 @@ class ProcesoAdmisionAspiranteResourceTest {
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
+    }
+
+    // ==================== asignar carrera (POST /{idInscripcion}/asignar-carrera) ====================
+
+    @Test
+    void asignarCarrera_ConIdExistente_DebeRetornar200ConResultado() {
+        ProcesoAdmisionAspirante esperado = new ProcesoAdmisionAspirante();
+        esperado.setId(testId);
+        esperado.setEstado("ADMITIDO");
+        CatalogoCarrera carrera = new CatalogoCarrera();
+        carrera.setIdCarrera("ISI");
+        esperado.setCarreraAsignada(carrera);
+
+        when(procesoAdmisionAspiranteDAO.asignarCarreraFinal(testId)).thenReturn(esperado);
+
+        Response response = resource.asignarCarrera(testId);
+
+        assertEquals(200, response.getStatus());
+        assertNotNull(response.getEntity());
+        ProcesoAdmisionAspirante actual = (ProcesoAdmisionAspirante) response.getEntity();
+        assertEquals(testId, actual.getId());
+        assertEquals("ADMITIDO", actual.getEstado());
+        assertNotNull(actual.getCarreraAsignada());
+        assertEquals("ISI", actual.getCarreraAsignada().getIdCarrera());
+        verify(procesoAdmisionAspiranteDAO).asignarCarreraFinal(testId);
+    }
+
+    @Test
+    void asignarCarrera_ConIdInexistente_DebeRetornar404() {
+        when(procesoAdmisionAspiranteDAO.asignarCarreraFinal(testId)).thenReturn(null);
+
+        Response response = resource.asignarCarrera(testId);
+
+        assertEquals(404, response.getStatus());
+        assertNotNull(response.getHeaderString("Not-found-id"));
+        verify(procesoAdmisionAspiranteDAO).asignarCarreraFinal(testId);
+    }
+
+    @Test
+    void asignarCarrera_ConIdNulo_DebeRetornar422() {
+        Response response = resource.asignarCarrera(null);
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+        verifyNoInteractions(procesoAdmisionAspiranteDAO);
     }
 }

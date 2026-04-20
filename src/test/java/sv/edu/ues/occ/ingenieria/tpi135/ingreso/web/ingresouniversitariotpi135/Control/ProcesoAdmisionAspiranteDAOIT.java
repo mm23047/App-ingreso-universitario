@@ -7,6 +7,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegida;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegidaId;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CuposCarrera;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CuposCarreraId;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ProcesoAdmisionAspirante;
@@ -200,6 +205,110 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
             cut.eliminar(nuevoProceso);
             assertEquals(2, cut.count());
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(7)
+    public void testAsignarCarreraFinal_PrioridadYCupos_DebeAsignarPrimeraConCupoYDecrementar() {
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
+            cut.em = em;
+
+            AspirantesDato aspirante = em.find(AspirantesDato.class, ID_ASPIRANTE_1);
+            PruebasAdmision prueba = em.find(PruebasAdmision.class, ID_PRUEBA_2025);
+            assertNotNull(aspirante);
+            assertNotNull(prueba);
+
+            EtapasAdmision etapaAsignacion = new EtapasAdmision();
+            etapaAsignacion.setNombre("Etapa Asignacion Carrera IT");
+            em.persist(etapaAsignacion);
+            em.flush();
+
+            InscripcionesPrueba inscripcion = new InscripcionesPrueba();
+            inscripcion.setIdAspirante(aspirante);
+            inscripcion.setIdPrueba(prueba);
+            inscripcion.setEstado("INSCRITO");
+            em.persist(inscripcion);
+            em.flush();
+
+            ProcesoAdmisionAspirante proceso = new ProcesoAdmisionAspirante();
+            proceso.setInscripcionesPrueba(inscripcion);
+            proceso.setId(inscripcion.getId());
+            proceso.setIdEtapaActual(etapaAsignacion);
+            proceso.setEstado("EN_PROCESO");
+            em.persist(proceso);
+
+            CatalogoCarrera carreraICS = em.find(CatalogoCarrera.class, "ICS");
+            CatalogoCarrera carreraISI = em.find(CatalogoCarrera.class, "ISI");
+            assertNotNull(carreraICS);
+            assertNotNull(carreraISI);
+
+            CarrerasElegidaId pk1 = new CarrerasElegidaId();
+            pk1.setIdInscripcion(inscripcion.getId());
+            pk1.setIdCarrera("ICS");
+            CarrerasElegida elegida1 = new CarrerasElegida();
+            elegida1.setId(pk1);
+            elegida1.setIdInscripcion(inscripcion);
+            elegida1.setIdCarrera(carreraICS);
+            elegida1.setPrioridad((short) 1);
+            em.persist(elegida1);
+
+            CarrerasElegidaId pk2 = new CarrerasElegidaId();
+            pk2.setIdInscripcion(inscripcion.getId());
+            pk2.setIdCarrera("ISI");
+            CarrerasElegida elegida2 = new CarrerasElegida();
+            elegida2.setId(pk2);
+            elegida2.setIdInscripcion(inscripcion);
+            elegida2.setIdCarrera(carreraISI);
+            elegida2.setPrioridad((short) 2);
+            em.persist(elegida2);
+
+            CuposCarreraId cuposICSId = new CuposCarreraId();
+            cuposICSId.setIdPrueba(prueba.getId());
+            cuposICSId.setIdCarrera("ICS");
+            cuposICSId.setIdEtapa(etapaAsignacion.getId());
+            CuposCarrera cuposICS = new CuposCarrera();
+            cuposICS.setId(cuposICSId);
+            cuposICS.setIdPrueba(prueba);
+            cuposICS.setIdCarrera(carreraICS);
+            cuposICS.setIdEtapa(etapaAsignacion);
+            cuposICS.setCupos(0);
+            em.persist(cuposICS);
+
+            CuposCarreraId cuposISIId = new CuposCarreraId();
+            cuposISIId.setIdPrueba(prueba.getId());
+            cuposISIId.setIdCarrera("ISI");
+            cuposISIId.setIdEtapa(etapaAsignacion.getId());
+            CuposCarrera cuposISI = new CuposCarrera();
+            cuposISI.setId(cuposISIId);
+            cuposISI.setIdPrueba(prueba);
+            cuposISI.setIdCarrera(carreraISI);
+            cuposISI.setIdEtapa(etapaAsignacion);
+            cuposISI.setCupos(2);
+            em.persist(cuposISI);
+
+            ProcesoAdmisionAspirante resultado = cut.asignarCarreraFinal(inscripcion.getId());
+
+            assertNotNull(resultado);
+            assertEquals(inscripcion.getId(), resultado.getId());
+            assertEquals("ADMITIDO", resultado.getEstado());
+            assertNotNull(resultado.getCarreraAsignada());
+            assertEquals("ISI", resultado.getCarreraAsignada().getIdCarrera());
+
+            ProcesoAdmisionAspirante desdeBd = em.find(ProcesoAdmisionAspirante.class, inscripcion.getId());
+            assertNotNull(desdeBd);
+            assertEquals("ADMITIDO", desdeBd.getEstado());
+            assertNotNull(desdeBd.getCarreraAsignada());
+            assertEquals("ISI", desdeBd.getCarreraAsignada().getIdCarrera());
+
+            CuposCarrera cuposISIDesdeBd = em.find(CuposCarrera.class, cuposISIId);
+            assertNotNull(cuposISIDesdeBd);
+            assertEquals(1, cuposISIDesdeBd.getCupos());
 
             return null;
         });
