@@ -77,11 +77,14 @@ public class InscripcionesPruebaResourceST extends AbstractResourceST {
         // Con los datos iniciales del init.sql, el aspirante 1 solo tiene
         // asociada la inscripcion ID_INSCRIPCION_1, por lo que el filtro
         // por aspiranteId debe devolver precisamente esa inscripcion.
+        boolean encontro = false;
         for (InscripcionesPrueba i : arreglo) {
-            if(ID_INSCRIPCION_1.equals(i.getId())){
-                assertEquals(ID_INSCRIPCION_1, i.getId());
+            if (i != null && ID_INSCRIPCION_1.equals(i.getId())) {
+                encontro = true;
+                break;
             }
         }
+        assertTrue(encontro, "El filtro por aspiranteId debe incluir la inscripción semilla 1");
     }
 
     /**

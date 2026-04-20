@@ -32,6 +32,14 @@ public class ConsultaDatosDeUnAspiranteBDD {
     private CarrerasElegida carreraRecuperada;
     private AsignacionesAulaPupitre asignacionRecuperada;
 
+    // Valores esperados creados durante el escenario
+    private String nombresEsperados;
+    private String apellidosEsperados;
+    private String duiEsperado;
+    private boolean usaSillaRuedasEsperado;
+    private String estadoInscripcionEsperado;
+    private String pupitreEsperado;
+
     // IDs semilla reutilizadas de datos existentes
     private static final UUID ID_USUARIO = UUID.fromString("b1000000-0000-0000-0000-000000000001");
     private static final UUID ID_PRUEBA_SEMILLA = UUID.fromString("d1000000-0000-0000-0000-000000000001");
@@ -45,7 +53,10 @@ public class ConsultaDatosDeUnAspiranteBDD {
      */
     private UUID extraerIdDelHeader(Response respuesta, String endpoint) {
         String location = respuesta.getHeaderString("Location");
-        return UUID.fromString(location.split(endpoint + "/")[1]);
+        Assertions.assertNotNull(location, "Location no debe ser null");
+        String[] parts = location.split(endpoint + "/");
+        Assertions.assertTrue(parts.length >= 2, "Location no contiene el endpoint esperado: " + location);
+        return UUID.fromString(parts[1]);
     }
 
     /**
@@ -95,14 +106,19 @@ public class ConsultaDatosDeUnAspiranteBDD {
     public void se_crea_el_expediente_de_un_aspirante_con_inscripcion_carrera_y_aula_asignada(){
 
         // ===== 1. Crear aspirante =====
+        nombresEsperados = "Carlos";
+        apellidosEsperados = "López";
+        duiEsperado = "98765432-1";
+        usaSillaRuedasEsperado = false;
+
         AspirantesDato nuevoAspirante = new AspirantesDato();
-        nuevoAspirante.setNombres("Carlos");
-        nuevoAspirante.setApellidos("López");
-        nuevoAspirante.setDui("98765432-1");
+        nuevoAspirante.setNombres(nombresEsperados);
+        nuevoAspirante.setApellidos(apellidosEsperados);
+        nuevoAspirante.setDui(duiEsperado);
         UsuariosSistema usuario = new UsuariosSistema();
         usuario.setId(ID_USUARIO);
         nuevoAspirante.setIdUsuario(usuario);
-        nuevoAspirante.setUsaSillaRuedas(false);
+        nuevoAspirante.setUsaSillaRuedas(usaSillaRuedasEsperado);
 
         Response respuestaAspirante = hacerPost("aspirantes_datos", nuevoAspirante);
         Assertions.assertEquals(201, respuestaAspirante.getStatus());
@@ -117,7 +133,8 @@ public class ConsultaDatosDeUnAspiranteBDD {
         PruebasAdmision pruebaRef = new PruebasAdmision();
         pruebaRef.setId(ID_PRUEBA_SEMILLA);
         inscripcion.setIdPrueba(pruebaRef);
-        inscripcion.setEstado("INSCRITO");
+        estadoInscripcionEsperado = "INSCRITO";
+        inscripcion.setEstado(estadoInscripcionEsperado);
 
         Response respuestaInscripcion = hacerPost("inscripciones_prueba", inscripcion);
         Assertions.assertEquals(201, respuestaInscripcion.getStatus());
@@ -182,7 +199,8 @@ public class ConsultaDatosDeUnAspiranteBDD {
         aulaRef.setId(idAula);
         asignacion.setIdAula(aulaRef);
 
-        asignacion.setPupitre("Pupitre A-101");
+        pupitreEsperado = "Pupitre A-101";
+        asignacion.setPupitre(pupitreEsperado);
 
         Response respuestaAsignacion = hacerPost("asignaciones_aula_pupitre", asignacion);
         Assertions.assertEquals(201, respuestaAsignacion.getStatus());
@@ -230,21 +248,33 @@ public class ConsultaDatosDeUnAspiranteBDD {
 
     @Then("la informacion personal devuelta coincide con los datos originales")
     public void la_informacion_personal_devuelta_coincide_con_los_datos_originales(){
-        assertEquals("Carlos",aspiranteRecuperado.getNombres());
-        assertEquals("98765432-1",aspiranteRecuperado.getDui());
+        assertEquals(nombresEsperados, aspiranteRecuperado.getNombres());
+        assertEquals(apellidosEsperados, aspiranteRecuperado.getApellidos());
+        assertEquals(duiEsperado, aspiranteRecuperado.getDui());
+        assertEquals(Boolean.valueOf(usaSillaRuedasEsperado), aspiranteRecuperado.getUsaSillaRuedas());
     }
 
     @Then("los datos de su inscripcion y carrera elegida son consistentes")
     public void los_datos_de_su_inscripcion_y_carrera_elegida_son_consistentes(){
-        assertEquals(inscripcionRecuperada.getEstado(),"INSCRITO");
+        assertEquals(estadoInscripcionEsperado, inscripcionRecuperada.getEstado());
         assertEquals(idAspirante, inscripcionRecuperada.getIdAspirante().getId());
+        assertNotNull(inscripcionRecuperada.getIdPrueba());
+        assertEquals(ID_PRUEBA_SEMILLA, inscripcionRecuperada.getIdPrueba().getId());
+
+        assertNotNull(carreraRecuperada);
+        assertNotNull(carreraRecuperada.getId(), "CarrerasElegida.id (PK embebida) no debe ser null");
+        assertEquals(idInscripcion, carreraRecuperada.getId().getIdInscripcion());
+        assertEquals(ID_CARRERA_SEMILLA, carreraRecuperada.getId().getIdCarrera());
+        assertEquals(Short.valueOf((short) 1), carreraRecuperada.getPrioridad());
     }
 
 
     @Then("la asignacion de aula y pupitre corresponde a la inscripcion")
     public void la_asignacion_de_aula_y_pupitre_corresponde_a_la_inscripcion(){
         assertEquals(idInscripcion, asignacionRecuperada.getIdInscripcion().getId());
-        assertEquals("Pupitre A-101", asignacionRecuperada.getPupitre());
+        assertNotNull(asignacionRecuperada.getIdAula());
+        assertEquals(idAula, asignacionRecuperada.getIdAula().getId());
+        assertEquals(pupitreEsperado, asignacionRecuperada.getPupitre());
     }
 
 }
