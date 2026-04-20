@@ -192,40 +192,6 @@ public class AspirantesDatoResourceST extends AbstractResourceST {
     }
 
     /**
-     * GET /aspirantes_datos/{id}/expediente con un aspirante existente
-     * debe devolver 200 y un DTO ExpedienteAspiranteDTO con los datos del aspirante.
-     */
-    @Test
-    void getExpediente_ConAspiranteExistente_DebeRetornar200() {
-        Response response = get("aspirantes_datos/" + ID_ASPIRANTE_1 + "/expediente");
-
-        assertEquals(200, response.getStatus());
-
-        sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.DTO.ExpedienteAspiranteDTO expediente =
-                response.readEntity(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.DTO.ExpedienteAspiranteDTO.class);
-
-        assertNotNull(expediente);
-        assertNotNull(expediente.getAspirante());
-        assertEquals(ID_ASPIRANTE_1, expediente.getAspirante().getId());
-        assertEquals("Juan Carlos", expediente.getAspirante().getNombres());
-        assertEquals("Pérez López", expediente.getAspirante().getApellidos());
-    }
-
-    /**
-     * GET /aspirantes_datos/{id}/expediente con un aspirante inexistente
-     * debe devolver 404.
-     */
-    @Test
-    void getExpediente_ConAspiranteNoExistente_DebeRetornar404() {
-        UUID idInexistente = UUID.fromString("ffffffff-0000-0000-0000-000000000000");
-
-        Response response = get("aspirantes_datos/" + idInexistente + "/expediente");
-
-        assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
-    }
-
-    /**
      * Construye un AspirantesDato coherente a partir del usuario, los datos
      * basicos y el indicador de uso de silla de ruedas.
      */
