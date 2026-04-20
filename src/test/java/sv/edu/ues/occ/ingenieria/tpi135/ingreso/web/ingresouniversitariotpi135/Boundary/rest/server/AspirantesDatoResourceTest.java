@@ -428,10 +428,10 @@ class AspirantesDatoResourceTest {
 
         assertEquals(200, response.getStatus());
         assertNotNull(response.getEntity());
-        assertTrue(response.getEntity() instanceof sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExpedienteAspiranteDTO);
+        assertTrue(response.getEntity() instanceof sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.DTO.ExpedienteAspiranteDTO);
 
-        sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExpedienteAspiranteDTO expediente =
-                (sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExpedienteAspiranteDTO) response.getEntity();
+        sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.DTO.ExpedienteAspiranteDTO expediente =
+                (sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.DTO.ExpedienteAspiranteDTO) response.getEntity();
 
         assertNotNull(expediente.getAspirante());
         assertEquals(testId, expediente.getAspirante().getId());
