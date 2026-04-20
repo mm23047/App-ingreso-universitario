@@ -172,22 +172,26 @@ public class ExpedienteAspiranteBDD {
     public void paso4_crearCarreraElegida() {
         System.out.println("\n*** PASO 4: Crear carrera elegida ***");
         
-        // Crear carrera elegida con FK compuesta
+        // Crear carrera elegida con PK compuesta + referencias (evita 422)
         CarrerasElegidaId idCompuesta = new CarrerasElegidaId();
         idCompuesta.setIdInscripcion(idInscripcion);
         idCompuesta.setIdCarrera(ID_CARRERA_SEMILLA);
         
         CarrerasElegida carrera = new CarrerasElegida();
         carrera.setId(idCompuesta);
+        
+        InscripcionesPrueba inscripcionRef = new InscripcionesPrueba();
+        inscripcionRef.setId(idInscripcion);
+        carrera.setIdInscripcion(inscripcionRef);
+
+        CatalogoCarrera carreraRef = new CatalogoCarrera();
+        carreraRef.setIdCarrera(ID_CARRERA_SEMILLA);
+        carrera.setIdCarrera(carreraRef);
+
         carrera.setPrioridad((short) 1);
 
-        Response respuesta = hacerPost("carreras_elegida", carrera);
-        
-        // El endpoint puede no soportar POST directo (PK compuesta), es esperado
-        if (respuesta.getStatus() != 201) {
-            System.out.println("⚠ POST carreras_elegida retornó: " + respuesta.getStatus() + " (puede ser esperado)");
-            respuesta.close();
-        }
+        Response respuesta = hacerPost("carreras_elegidas", carrera);
+        Assertions.assertEquals(201, respuesta.getStatus(), "POST carreras_elegidas debe retornar 201");
 
         idCarreraElegida = ID_CARRERA_SEMILLA;
         System.out.println("✓ Carrera elegida preparada: " + idCarreraElegida);
