@@ -8,10 +8,12 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.rest.server.RestHeaders;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.OpcionesRespuestaDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.OpcionesRespuesta;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -25,9 +27,56 @@ public class OpcionesRespuestaResource extends AbstractResource<OpcionesRespuest
     @Inject
     OpcionesRespuestaDAO opcionesRespuestaDAO;
 
+    @QueryParam("preguntaId")
+    String preguntaIdParam;
+
+    // compatibilidad hacia atrás (ya usado en pruebas ST existentes)
+    @QueryParam("idPregunta")
+    String idPreguntaParam;
+
     @Override
     protected IngresoDefaultDataAccess<OpcionesRespuesta> getDAO() {
         return opcionesRespuestaDAO;
+    }
+
+    @Override
+    @GET
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response findRange(
+            @DefaultValue("0") @QueryParam("first") int first,
+            @DefaultValue("50") @QueryParam("max") int max
+    ) {
+        if (first < 0 || max <= 0 || max > 100) {
+            return Response.status(422)
+                    .header(MISSING_PARAMETER, "first:" + first + ", max:" + max)
+                    .build();
+        }
+
+        String valorFiltro = (preguntaIdParam != null && !preguntaIdParam.isBlank()) ? preguntaIdParam : idPreguntaParam;
+        if (valorFiltro == null || valorFiltro.isBlank()) {
+            return super.findRange(first, max);
+        }
+
+        final UUID preguntaUuid;
+        try {
+            preguntaUuid = UUID.fromString(valorFiltro);
+        } catch (IllegalArgumentException ex) {
+            return Response.status(422)
+                    .header(MISSING_PARAMETER, "preguntaId")
+                    .build();
+        }
+
+        try {
+            int total = opcionesRespuestaDAO.countByPreguntaId(preguntaUuid);
+            List<OpcionesRespuesta> entities = opcionesRespuestaDAO.findByPreguntaId(preguntaUuid, first, max);
+            return Response.ok(entities)
+                    .header(RestHeaders.TOTAL_RECORDS, total)
+                    .build();
+        } catch (Exception ex) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(SERVER_EXCEPTION, "Cannot access db")
+                    .build();
+        }
     }
 
     @GET

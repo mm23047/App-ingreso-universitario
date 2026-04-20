@@ -97,6 +97,24 @@ public class OpcionesRespuestaResourceST extends AbstractResourceST {
     }
 
     /**
+     * Validación puntual del contrato para la opción semilla usada en el flujo BDD de examen.
+     */
+    @Test
+    void findById_OpcionSemillaCorrecta_DebeExponerDetalleYCorreccion() {
+        Response response = get("opciones_respuesta/" + ID_OPCION_2);
+
+        assertEquals(200, response.getStatus());
+
+        OpcionesRespuesta entidad = response.readEntity(OpcionesRespuesta.class);
+        assertNotNull(entidad);
+        assertEquals(ID_OPCION_2, entidad.getId());
+        assertEquals("4", entidad.getTextoOpcion());
+        assertTrue(entidad.getEsCorrecta());
+        assertNotNull(entidad.getIdPregunta());
+        assertEquals(ID_PREGUNTA_1, entidad.getIdPregunta().getId());
+    }
+
+    /**
      * GET /resources/v1/opciones_respuesta/{id} con un id inexistente debe retornar 404.
      */
     @Test
@@ -142,6 +160,35 @@ public class OpcionesRespuestaResourceST extends AbstractResourceST {
             }
         }
         assertTrue(encontroDelaPregunta);
+    }
+
+    /**
+     * GET /resources/v1/opciones_respuesta?preguntaId={id} debe ser soportado (alias) y retornar solo opciones de esa pregunta.
+     */
+    @Test
+    void findRange_ConFiltroPregunta_AliasPreguntaId_DebeRetornarDelaPregunta() {
+        Response response = get("opciones_respuesta?preguntaId=" + ID_PREGUNTA_1);
+
+        assertEquals(200, response.getStatus());
+
+        OpcionesRespuesta[] arreglo = response.readEntity(OpcionesRespuesta[].class);
+        assertNotNull(arreglo);
+        assertTrue(arreglo.length >= 3, "Pregunta 1 debe tener al menos 3 opciones");
+
+        boolean encontroDelaPregunta = false;
+        for (OpcionesRespuesta opcion : arreglo) {
+            assertNotNull(opcion.getIdPregunta());
+            if (ID_PREGUNTA_1.equals(opcion.getIdPregunta().getId())) {
+                encontroDelaPregunta = true;
+                break;
+            }
+        }
+        assertTrue(encontroDelaPregunta);
+
+        String totalHeader = response.getHeaderString("Total-records");
+        assertNotNull(totalHeader);
+        int total = Integer.parseInt(totalHeader);
+        assertTrue(total >= 3);
     }
 
     /**

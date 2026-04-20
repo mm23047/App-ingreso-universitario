@@ -1,5 +1,6 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
 
+import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
@@ -7,6 +8,16 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "opciones_respuesta", schema = "public")
+@NamedQueries({
+    @NamedQuery(
+        name = "OpcionesRespuesta.findByPreguntaId",
+        query = "SELECT o FROM OpcionesRespuesta o WHERE o.idPregunta.id = :preguntaId ORDER BY o.id"
+    ),
+    @NamedQuery(
+        name = "OpcionesRespuesta.countByPreguntaId",
+        query = "SELECT COUNT(o) FROM OpcionesRespuesta o WHERE o.idPregunta.id = :preguntaId"
+    )
+})
 public class OpcionesRespuesta {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -27,6 +38,7 @@ public class OpcionesRespuesta {
     @Column(name = "es_correcta", nullable = false)
     private Boolean esCorrecta;
 
+    @JsonbProperty("id")
     public UUID getId() {
         return id;
     }
@@ -43,6 +55,7 @@ public class OpcionesRespuesta {
         this.idPregunta = idPregunta;
     }
 
+    @JsonbProperty("textoOpcion")
     public String getTextoOpcion() {
         return textoOpcion;
     }
@@ -51,6 +64,7 @@ public class OpcionesRespuesta {
         this.textoOpcion = textoOpcion;
     }
 
+    @JsonbProperty("esCorrecta")
     public Boolean getEsCorrecta() {
         return esCorrecta;
     }
