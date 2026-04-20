@@ -201,8 +201,8 @@ public class AspirantesDatoResourceST extends AbstractResourceST {
 
         assertEquals(200, response.getStatus());
 
-        sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExpedienteAspiranteDTO expediente =
-                response.readEntity(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExpedienteAspiranteDTO.class);
+        sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.DTO.ExpedienteAspiranteDTO expediente =
+                response.readEntity(sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.DTO.ExpedienteAspiranteDTO.class);
 
         assertNotNull(expediente);
         assertNotNull(expediente.getAspirante());
