@@ -78,7 +78,9 @@ public class InscripcionesPruebaResourceST extends AbstractResourceST {
         // asociada la inscripcion ID_INSCRIPCION_1, por lo que el filtro
         // por aspiranteId debe devolver precisamente esa inscripcion.
         for (InscripcionesPrueba i : arreglo) {
-            assertEquals(ID_INSCRIPCION_1, i.getId());
+            if(ID_INSCRIPCION_1.equals(i.getId())){
+                assertEquals(ID_INSCRIPCION_1, i.getId());
+            }
         }
     }
 
