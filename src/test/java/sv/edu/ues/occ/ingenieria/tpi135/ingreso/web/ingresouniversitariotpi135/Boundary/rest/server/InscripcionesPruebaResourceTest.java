@@ -292,6 +292,30 @@ class InscripcionesPruebaResourceTest {
         assertEquals(500, response.getStatus());
     }
 
+    @Test
+    void create_CuandoExisteDuplicado_DebeRetornar422YNoCrear() {
+        UUID aspiranteId = UUID.randomUUID();
+        UUID pruebaId = UUID.randomUUID();
+
+        AspirantesDato aspirante = new AspirantesDato();
+        aspirante.setId(aspiranteId);
+
+        PruebasAdmision prueba = new PruebasAdmision();
+        prueba.setId(pruebaId);
+
+        InscripcionesPrueba nueva = new InscripcionesPrueba();
+        nueva.setIdAspirante(aspirante);
+        nueva.setIdPrueba(prueba);
+
+        when(inscripcionesPruebaDAO.existsByAspiranteAndPrueba(aspiranteId, pruebaId)).thenReturn(true);
+
+        Response response = resource.create(nueva, uriInfo);
+
+        assertEquals(422, response.getStatus());
+        assertEquals("true", response.getHeaderString("REGISTRO-DUPLICADO"));
+        verify(inscripcionesPruebaDAO, never()).crear(any());
+    }
+
     // ==================== update (PUT /{id}) ====================
 
     @Test

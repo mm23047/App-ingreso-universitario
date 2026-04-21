@@ -379,4 +379,15 @@ class ProcesoAdmisionAspiranteResourceTest {
         assertNotNull(response.getHeaderString("Missing-parameter"));
         verifyNoInteractions(procesoAdmisionAspiranteDAO);
     }
+
+    @Test
+    void asignarCarrera_ConExcepcionEnDAO_DebeRetornar500() {
+        when(procesoAdmisionAspiranteDAO.asignarCarreraFinal(any())).thenThrow(new RuntimeException("BD error"));
+
+        Response response = resource.asignarCarrera(testId);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString("Server-exception"));
+        verify(procesoAdmisionAspiranteDAO).asignarCarreraFinal(testId);
+    }
 }

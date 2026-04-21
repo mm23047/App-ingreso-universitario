@@ -134,6 +134,20 @@ class OpcionesRespuestaResourceTest {
         verify(opcionesRespuestaDAO, never()).findByPreguntaId(any(), anyInt(), anyInt());
     }
 
+    @Test
+    void findRange_ConFiltroPreguntaId_YExcepcionEnDAO_DebeRetornar500() {
+        UUID preguntaId = UUID.randomUUID();
+        resource.preguntaIdParam = preguntaId.toString();
+
+        when(opcionesRespuestaDAO.countByPreguntaId(preguntaId)).thenThrow(new RuntimeException("BD error"));
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString("Server-exception"));
+        verify(opcionesRespuestaDAO, never()).findByPreguntaId(any(), anyInt(), anyInt());
+    }
+
     // ==================== findById (GET /{id}) ====================
 
     @Test

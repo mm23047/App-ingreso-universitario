@@ -313,4 +313,98 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             return null;
         });
     }
+
+    @Test
+    @Order(8)
+    public void testAsignarCarreraFinal_SinCuposDisponibles_DebeMarcarNoAdmitido() {
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
+            cut.em = em;
+
+            AspirantesDato aspirante = em.find(AspirantesDato.class, ID_ASPIRANTE_1);
+            PruebasAdmision prueba = em.find(PruebasAdmision.class, ID_PRUEBA_2025);
+            assertNotNull(aspirante);
+            assertNotNull(prueba);
+
+            EtapasAdmision etapaAsignacion = new EtapasAdmision();
+            etapaAsignacion.setNombre("Etapa Asignacion Carrera IT - Sin cupos");
+            em.persist(etapaAsignacion);
+            em.flush();
+
+            InscripcionesPrueba inscripcion = new InscripcionesPrueba();
+            inscripcion.setIdAspirante(aspirante);
+            inscripcion.setIdPrueba(prueba);
+            inscripcion.setEstado("INSCRITO");
+            em.persist(inscripcion);
+            em.flush();
+
+            ProcesoAdmisionAspirante proceso = new ProcesoAdmisionAspirante();
+            proceso.setInscripcionesPrueba(inscripcion);
+            proceso.setId(inscripcion.getId());
+            proceso.setIdEtapaActual(etapaAsignacion);
+            proceso.setEstado("EN_PROCESO");
+            em.persist(proceso);
+
+            CatalogoCarrera carreraICS = em.find(CatalogoCarrera.class, "ICS");
+            CatalogoCarrera carreraISI = em.find(CatalogoCarrera.class, "ISI");
+            assertNotNull(carreraICS);
+            assertNotNull(carreraISI);
+
+            // Prioridad 1: ICS (tendrá cupos=0)
+            CarrerasElegidaId pk1 = new CarrerasElegidaId();
+            pk1.setIdInscripcion(inscripcion.getId());
+            pk1.setIdCarrera("ICS");
+            CarrerasElegida elegida1 = new CarrerasElegida();
+            elegida1.setId(pk1);
+            elegida1.setIdInscripcion(inscripcion);
+            elegida1.setIdCarrera(carreraICS);
+            elegida1.setPrioridad((short) 1);
+            em.persist(elegida1);
+
+            // Prioridad 2: ISI (no tendrá registro de cupos, buscarCupos devolverá null)
+            CarrerasElegidaId pk2 = new CarrerasElegidaId();
+            pk2.setIdInscripcion(inscripcion.getId());
+            pk2.setIdCarrera("ISI");
+            CarrerasElegida elegida2 = new CarrerasElegida();
+            elegida2.setId(pk2);
+            elegida2.setIdInscripcion(inscripcion);
+            elegida2.setIdCarrera(carreraISI);
+            elegida2.setPrioridad((short) 2);
+            em.persist(elegida2);
+
+            // Cupos para ICS en 0
+            CuposCarreraId cuposICSId = new CuposCarreraId();
+            cuposICSId.setIdPrueba(prueba.getId());
+            cuposICSId.setIdCarrera("ICS");
+            cuposICSId.setIdEtapa(etapaAsignacion.getId());
+            CuposCarrera cuposICS = new CuposCarrera();
+            cuposICS.setId(cuposICSId);
+            cuposICS.setIdPrueba(prueba);
+            cuposICS.setIdCarrera(carreraICS);
+            cuposICS.setIdEtapa(etapaAsignacion);
+            cuposICS.setCupos(0);
+            em.persist(cuposICS);
+
+            ProcesoAdmisionAspirante resultado = cut.asignarCarreraFinal(inscripcion.getId());
+
+            assertNotNull(resultado);
+            assertEquals(inscripcion.getId(), resultado.getId());
+            assertEquals("NO_ADMITIDO", resultado.getEstado());
+            assertNull(resultado.getCarreraAsignada());
+
+            ProcesoAdmisionAspirante desdeBd = em.find(ProcesoAdmisionAspirante.class, inscripcion.getId());
+            assertNotNull(desdeBd);
+            assertEquals("NO_ADMITIDO", desdeBd.getEstado());
+            assertNull(desdeBd.getCarreraAsignada());
+
+            // Cupos ICS se mantiene en 0 porque no se consume
+            CuposCarrera cuposICSDesdeBd = em.find(CuposCarrera.class, cuposICSId);
+            assertNotNull(cuposICSDesdeBd);
+            assertEquals(0, cuposICSDesdeBd.getCupos());
+
+            return null;
+        });
+    }
 }
