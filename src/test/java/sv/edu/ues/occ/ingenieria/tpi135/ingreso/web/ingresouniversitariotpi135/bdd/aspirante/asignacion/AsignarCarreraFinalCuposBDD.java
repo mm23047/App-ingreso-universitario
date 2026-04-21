@@ -19,6 +19,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ProcesoAdmisionAspirante;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.UsuariosSistema;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.bdd.BaseSistemaBDD;
 
 import java.util.UUID;
@@ -40,7 +41,7 @@ public class AsignarCarreraFinalCuposBDD {
     static Response ultimaRespuesta;
     static ProcesoAdmisionAspirante ultimoResultado;
 
-    private static final UUID ID_ASPIRANTE_SEMILLA = UUID.fromString("e1000000-0000-0000-0000-000000000001");
+    private static final UUID ID_USUARIO_SEMILLA = UUID.fromString("b1000000-0000-0000-0000-000000000001");
     private static final UUID ID_PRUEBA_2025 = UUID.fromString("d1000000-0000-0000-0000-000000000002");
 
     private UUID extraerIdDelHeader(Response respuesta) {
@@ -64,6 +65,28 @@ public class AsignarCarreraFinalCuposBDD {
                 .get();
     }
 
+    private String generarDuiUnico() {
+        long n = Math.abs(System.nanoTime());
+        String s = String.format("%09d", n % 1_000_000_000L);
+        return s.substring(0, 8) + "-" + s.substring(8);
+    }
+
+    private UUID crearAspiranteDePrueba() {
+        UsuariosSistema usuarioRef = new UsuariosSistema();
+        usuarioRef.setId(ID_USUARIO_SEMILLA);
+
+        AspirantesDato aspirante = new AspirantesDato();
+        aspirante.setIdUsuario(usuarioRef);
+        aspirante.setNombres("Aspirante");
+        aspirante.setApellidos("Asignacion");
+        aspirante.setDui(generarDuiUnico());
+        aspirante.setUsaSillaRuedas(false);
+
+        Response respAsp = postJson("aspirantes_datos", aspirante);
+        Assertions.assertEquals(201, respAsp.getStatus(), "POST aspirantes_datos debe retornar 201");
+        return extraerIdDelHeader(respAsp);
+    }
+
     @Given("se inicializa el servidor para asignación de carrera")
     public void se_inicializa_el_servidor_para_asignacion_de_carrera() {
         BaseSistemaBDD.init();
@@ -73,9 +96,11 @@ public class AsignarCarreraFinalCuposBDD {
 
     @Given("existe una inscripción con proceso en etapa de asignación")
     public void existe_una_inscripcion_con_proceso_en_etapa_de_asignacion() {
+        UUID idAspirante = crearAspiranteDePrueba();
+
         InscripcionesPrueba inscripcion = new InscripcionesPrueba();
         AspirantesDato aspiranteRef = new AspirantesDato();
-        aspiranteRef.setId(ID_ASPIRANTE_SEMILLA);
+        aspiranteRef.setId(idAspirante);
         inscripcion.setIdAspirante(aspiranteRef);
         PruebasAdmision pruebaRef = new PruebasAdmision();
         pruebaRef.setId(ID_PRUEBA_2025);
