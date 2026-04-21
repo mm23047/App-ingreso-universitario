@@ -111,7 +111,20 @@ public class InscripcionesPruebaResource extends AbstractResource<InscripcionesP
         if (entity != null && entity.getId() == null
                 && entity.getIdAspirante() != null
                 && entity.getIdPrueba() != null) {
+
             try {
+                //Verificamos si ya existe la inscripcion en la prueba
+                boolean existe = inscripcionesPruebaDAO.existsByAspiranteAndPrueba(
+                        entity.getIdAspirante().getId(),
+                        entity.getIdPrueba().getId()
+                );
+                if (existe) {
+                    return Response.status(422)
+                            .header("REGISTRO-DUPLICADO", "true")
+                            .entity("El aspirante ya está inscrito en esta prueba")
+                            .build();
+                }
+                // Camino por el cual no existe el registro
                 inscripcionesPruebaDAO.crear(entity);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()

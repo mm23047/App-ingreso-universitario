@@ -16,7 +16,11 @@ import java.util.UUID;
     @NamedQuery(
         name = "InscripcionesPrueba.findByPruebaId",
         query = "SELECT i FROM InscripcionesPrueba i WHERE i.idPrueba.id = :idPrueba"
-    )
+    ),
+        @NamedQuery(
+                name = "InscripcionesPrueba.countByAspiranteAndPrueba",
+                query = "SELECT COUNT(i) FROM InscripcionesPrueba i WHERE i.idAspirante.id = :idAspirante AND i.idPrueba.id = :idPrueba"
+        )
 })
 public class InscripcionesPrueba {
     @Id

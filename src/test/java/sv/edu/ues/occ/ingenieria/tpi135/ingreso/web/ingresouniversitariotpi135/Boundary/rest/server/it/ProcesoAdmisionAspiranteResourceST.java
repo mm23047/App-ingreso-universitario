@@ -2,16 +2,7 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegida;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegidaId;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CuposCarrera;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CuposCarreraId;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ProcesoAdmisionAspirante;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.*;
 
 import java.util.UUID;
 
@@ -274,8 +265,9 @@ public class ProcesoAdmisionAspiranteResourceST extends AbstractResourceST {
     private UUID crearInscripcionReal(UUID idAspirante, UUID idPrueba, String estado) {
         InscripcionesPrueba nuevaInscripcion = new InscripcionesPrueba();
 
+        //Creamos el aspirante de forma dinamica
         AspirantesDato aspirante = new AspirantesDato();
-        aspirante.setId(idAspirante);
+        aspirante.setId(crearAspiranteDinamico());
         nuevaInscripcion.setIdAspirante(aspirante);
 
         PruebasAdmision prueba = new PruebasAdmision();
@@ -373,4 +365,28 @@ public class ProcesoAdmisionAspiranteResourceST extends AbstractResourceST {
         Response responseCupos = post("cupos_carrera", entidad);
         assertEquals(201, responseCupos.getStatus());
     }
+
+    /**
+     * Crea un aspirante nuevo de forma dinámica para evitar choques de duplicidad
+     * entre los diferentes tests.
+     */
+    private UUID crearAspiranteDinamico() {
+        AspirantesDato nuevoAspirante = new AspirantesDato();
+        nuevoAspirante.setNombres("Aspirante IT");
+        nuevoAspirante.setApellidos("Dinamico");
+        // Generamos un DUI aleatorio de 9 dígitos
+        nuevoAspirante.setDui(String.valueOf(System.currentTimeMillis()).substring(4));
+        nuevoAspirante.setUsaSillaRuedas(false);
+
+        // Usamos una semilla de usuario que ya existe en tu DB
+        UsuariosSistema usuario = new UsuariosSistema();
+        usuario.setId(UUID.fromString("b1000000-0000-0000-0000-000000000001"));
+        nuevoAspirante.setIdUsuario(usuario);
+
+        Response response = post("aspirantes_datos", nuevoAspirante);
+        assertEquals(201, response.getStatus(), "Fallo al crear el aspirante dinamico");
+        String location = response.getHeaderString("Location");
+        return UUID.fromString(location.substring(location.lastIndexOf('/') + 1));
+    }
+
 }

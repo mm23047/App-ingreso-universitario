@@ -250,4 +250,61 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
         });
     }
 
+    @Test
+    @Order(9)
+    public void testExistsByAspiranteAndPrueba() {
+        assertTrue(postgres.isRunning());
+        System.out.println("Test ExistsByAspiranteAndPrueba");
+
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
+
+            // Juan Carlos (Aspirante 1)
+            UUID idAspirante = UUID.fromString("e1000000-0000-0000-0000-000000000001");
+            // Prueba 2026 En la que está inscrito
+            UUID idPruebaInscrita = UUID.fromString("d1000000-0000-0000-0000-000000000001");
+            // Prueba 2025 (En la que NO está inscrito)
+            UUID idPruebaNoInscrita = UUID.fromString("d1000000-0000-0000-0000-000000000002");
+
+
+            // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            // CAMINO FELIZ !!!
+
+            // Probamos que devuelva TRUE si la combinación existe
+            boolean existe = cut.existsByAspiranteAndPrueba(idAspirante, idPruebaInscrita);
+            assertTrue(existe, "El aspirante SI debería estar inscrito en esta prueba");
+
+            // Probamos que devuelva FALSE si la combinación no existe
+            boolean noExiste = cut.existsByAspiranteAndPrueba(idAspirante, idPruebaNoInscrita);
+            assertFalse(noExiste, "El aspirante NO debería estar inscrito en esta prueba");
+
+            // FIN del camino FELIZ!!!
+
+            // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            // CAMINOS DE ERROR !!!
+
+            // Probar ID de aspirante NULL
+            IllegalArgumentException argEx1 = assertThrows(IllegalArgumentException.class, () -> {
+                cut.existsByAspiranteAndPrueba(null, idPruebaInscrita);
+            });
+            assertEquals("aspiranteId y pruebaId NO deben ser null", argEx1.getMessage());
+
+            // Probar ID de prueba NULL
+            IllegalArgumentException argEx2 = assertThrows(IllegalArgumentException.class, () -> {
+                cut.existsByAspiranteAndPrueba(idAspirante, null);
+            });
+            assertEquals("aspiranteId y pruebaId NO deben ser null", argEx2.getMessage());
+
+            // Probanmos el CATCH sin conexión a la BD
+            cut.em = null;
+            IllegalStateException illegalStateException = assertThrows(IllegalStateException.class, () -> {
+                cut.existsByAspiranteAndPrueba(idAspirante, idPruebaInscrita);
+            });
+            assertEquals("sin acceso a la BD", illegalStateException.getMessage());
+
+            return null;
+        });
+    }
+
 }

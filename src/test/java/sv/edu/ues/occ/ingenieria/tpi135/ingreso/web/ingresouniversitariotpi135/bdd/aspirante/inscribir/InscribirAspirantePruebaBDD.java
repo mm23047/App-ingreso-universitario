@@ -27,6 +27,9 @@ public class InscribirAspirantePruebaBDD {
     static Client cliente;
     static WebTarget target;
 
+    //Variable para saber si hay duplicidad de registros
+    static Response respuestaDuplicada;
+
     /**
      * Variables de estado del escenario para guardar los IDS generados en la prueba
      */
@@ -133,6 +136,7 @@ public class InscribirAspirantePruebaBDD {
         idAspirante = extraerIdDelHeader(respuestaAspirante, "aspirantes_datos");
     }
 
+
     @Given("existe una prueba de admision disponible con un turno habilitado")
     public void existe_una_prueba_de_admision_disponible_con_un_turno_habilitado(){
         System.out.println("CREAMOS un TURNO de Examen");
@@ -228,6 +232,44 @@ public class InscribirAspirantePruebaBDD {
         Assertions.assertEquals(201, respuestaCarrera.getStatus());
     }
 
+
+    @When("vuelvo a solicitar la inscripcion del mismo aspirante a la misma prueba")
+    public void vuelvo_a_solicitar_la_inscripcion_del_mismo_aspirante_a_la_misma_prueba(){
+        System.out.println("Intentando inscribir por segunda vez al aspirante (DUPLICADO)");
+
+        // Armamos exactamente la misma inscripción que en el paso anterior
+        InscripcionesPrueba inscripcionDuplicada = new InscripcionesPrueba();
+
+        AspirantesDato aspirante = new AspirantesDato();
+        aspirante.setId(idAspirante);
+        inscripcionDuplicada.setIdAspirante(aspirante);
+
+        PruebasAdmision prueba = new PruebasAdmision();
+        prueba.setId(ID_PRUEBA_SEMILLA);
+        inscripcionDuplicada.setIdPrueba(prueba);
+
+        inscripcionDuplicada.setEstado("INSCRITO");
+
+        // Hacemos el POST, pero esta vez guardamos la respuesta en respuestaDuplicada
+        respuestaDuplicada = hacerPost("inscripciones_prueba", inscripcionDuplicada);
+    }
+
+    @Then("el sistema rechaza la solicitud por duplicidad")
+    public void el_sistema_rechaza_la_solicitud_por_duplicidad(){
+        System.out.println("Validando el rechazo de la inscripción duplicada");
+
+        // Verificamos que el servidor haya devuelto 422
+        Assertions.assertEquals(422, respuestaDuplicada.getStatus(), "El servidor no devolvió error 422");
+
+        // Verificamos que el Header especial venga en la respuesta
+        Assertions.assertEquals("true", respuestaDuplicada.getHeaderString("REGISTRO-DUPLICADO"), "No se encontró el header Duplicate-registration");
+
+        // Verificamos el mensaje del cuerpo
+        String cuerpoRespuesta = respuestaDuplicada.readEntity(String.class);
+        Assertions.assertEquals("El aspirante ya está inscrito en esta prueba", cuerpoRespuesta);
+    }
+
+
     @Then("se registra una nueva inscripcion a la prueba para ese aspirante")
     public void se_registra_una_nueva_inscripcion_a_la_prueba_para_ese_aspirante(){
         System.out.println("Verificamos que se haya creado un ID en la inscripcion");
@@ -292,5 +334,7 @@ public class InscribirAspirantePruebaBDD {
         Assertions.assertEquals(ID_CARRERA_SEMILLA, carreraEncontrada.getId().getIdCarrera());
         Assertions.assertEquals(Short.valueOf((short) 1), carreraEncontrada.getPrioridad());
     }
+
+
 
 }

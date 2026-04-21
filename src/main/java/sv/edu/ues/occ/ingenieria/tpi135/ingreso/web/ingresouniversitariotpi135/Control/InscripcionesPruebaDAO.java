@@ -52,4 +52,19 @@ public class InscripcionesPruebaDAO extends IngresoDefaultDataAccess<Inscripcion
         }
     }
 
+    public boolean existsByAspiranteAndPrueba(UUID aspiranteId, UUID pruebaId) {
+        if (aspiranteId == null || pruebaId == null) {
+            throw new IllegalArgumentException("aspiranteId y pruebaId NO deben ser null");
+        }
+        try {
+            Long count = em.createNamedQuery("InscripcionesPrueba.countByAspiranteAndPrueba", Long.class)
+                    .setParameter("idAspirante", aspiranteId)
+                    .setParameter("idPrueba", pruebaId)
+                    .getSingleResult();
+            return count > 0;
+        } catch (Exception e) {
+            throw new IllegalStateException("sin acceso a la BD", e);
+        }
+    }
+
 }
