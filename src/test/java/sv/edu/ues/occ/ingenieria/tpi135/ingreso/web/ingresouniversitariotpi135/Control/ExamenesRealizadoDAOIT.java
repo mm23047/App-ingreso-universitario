@@ -18,9 +18,11 @@ public class ExamenesRealizadoDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     private static final UUID ID_INSCRIPCION_1  = UUID.fromString("09000000-0000-0000-0000-000000000001");
+    private static final UUID ID_INSCRIPCION_2  = UUID.fromString("09000000-0000-0000-0000-000000000002");
     private static final UUID ID_AULA_2         = UUID.fromString("0a000000-0000-0000-0000-000000000002");
     private static final UUID ID_CLAVE_2        = UUID.fromString("08000000-0000-0000-0000-000000000002");
     private static final UUID ID_ETAPA_2        = UUID.fromString("c1000000-0000-0000-0000-000000000002");
+    private static final UUID ID_EXAMEN_2       = UUID.fromString("0d000000-0000-0000-0000-000000000002");
 
     @Test
     public void testCount() {
@@ -263,4 +265,62 @@ public class ExamenesRealizadoDAOIT extends AbstractBaseIT {
                 return null;
             });
             }
+
+        @Test
+        public void testCalificarExamen() {
+            assertTrue(postgres.isRunning());
+
+            ejecutarEnTransaccion(em -> {
+                ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
+                cut.em = em;
+
+                ExamenesRealizado resultado = cut.calificarExamen(ID_EXAMEN_2);
+
+                assertNotNull(resultado);
+                assertEquals(ID_EXAMEN_2, resultado.getId());
+                assertNotNull(resultado.getPuntajeFinal());
+                assertEquals(0, new BigDecimal("5.00").compareTo(resultado.getPuntajeFinal()));
+
+                InscripcionesPrueba inscripcion = em.find(InscripcionesPrueba.class, ID_INSCRIPCION_2);
+                assertNotNull(inscripcion);
+                assertEquals("CALIFICADO", inscripcion.getEstado());
+
+                ExamenesRealizado persistido = em.find(ExamenesRealizado.class, ID_EXAMEN_2);
+                assertNotNull(persistido);
+                assertEquals(0, new BigDecimal("5.00").compareTo(persistido.getPuntajeFinal()));
+
+                return null;
+            });
+        }
+
+        @Test
+        public void testCalificarExamenConIdInexistente_DebeRetornarNull() {
+            assertTrue(postgres.isRunning());
+
+            ejecutarEnTransaccion(em -> {
+                ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
+                cut.em = em;
+
+                UUID idInexistente = UUID.fromString("ffffffff-0000-0000-0000-000000000001");
+                ExamenesRealizado resultado = cut.calificarExamen(idInexistente);
+
+                assertNull(resultado);
+                return null;
+            });
+        }
+
+        @Test
+        public void testCalificarExamenConIdNulo_DebeLanzarIllegalArgumentException() {
+            assertTrue(postgres.isRunning());
+
+            ejecutarEnTransaccion(em -> {
+                ExamenesRealizadoDAO cut = new ExamenesRealizadoDAO();
+                cut.em = em;
+
+                IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                        () -> cut.calificarExamen(null));
+                assertEquals("examenId must not be null", ex.getMessage());
+                return null;
+            });
+        }
 }

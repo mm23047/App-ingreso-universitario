@@ -14,13 +14,9 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Recurso REST de SOLO LECTURA para Exámenes Realizados.
- * Hereda el endpoint GET paginado de AbstractResource.
- * Expone únicamente operaciones de consulta bajo /resources/v1/examenes_realizados
- * <p>
- * Los exámenes realizados son datos históricos generados por el sistema;
- * no se permiten POST, PUT ni DELETE desde la API para preservar la integridad de los resultados.
- * </p>
+ * Recurso REST para consulta y calificación de Exámenes Realizados.
+ * Hereda el endpoint GET paginado de AbstractResource y expone un endpoint
+ * para recalcular el puntaje final del examen según respuestas registradas.
  */
 @Path("examenes_realizados")
 public class ExamenesRealizadoResource extends AbstractResource<ExamenesRealizado> {
@@ -91,6 +87,30 @@ public class ExamenesRealizadoResource extends AbstractResource<ExamenesRealizad
                 ExamenesRealizado resp = examenesRealizadoDAO.leer(id);
                 if (resp != null) {
                     return Response.ok(resp).build();
+                }
+                return Response.status(Response.Status.NOT_FOUND)
+                        .header(NOT_FOUND_ID, "Record with id " + id + " not found")
+                        .build();
+            } catch (Exception ex) {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .header(SERVER_EXCEPTION, "Cannot access db")
+                        .build();
+            }
+        }
+        return Response.status(422)
+                .header(MISSING_PARAMETER, "id")
+                .build();
+    }
+
+    @POST
+    @Path("{id}/calificar")
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response calificar(@PathParam("id") UUID id) {
+        if (id != null) {
+            try {
+                ExamenesRealizado calificado = examenesRealizadoDAO.calificarExamen(id);
+                if (calificado != null) {
+                    return Response.ok(calificado).build();
                 }
                 return Response.status(Response.Status.NOT_FOUND)
                         .header(NOT_FOUND_ID, "Record with id " + id + " not found")

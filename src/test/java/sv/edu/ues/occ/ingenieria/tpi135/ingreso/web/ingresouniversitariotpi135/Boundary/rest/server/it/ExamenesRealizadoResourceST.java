@@ -1,9 +1,12 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.rest.server.it;
 
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExamenesRealizado;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,8 +27,10 @@ public class ExamenesRealizadoResourceST extends AbstractResourceST {
 
     // UUIDs tomados del init.sql (mismos que en ExamenesRealizadoDAOIT y entidades relacionadas)
     private static final UUID ID_EXAMEN_1      = UUID.fromString("0d000000-0000-0000-0000-000000000001");
+    private static final UUID ID_EXAMEN_2      = UUID.fromString("0d000000-0000-0000-0000-000000000002");
     private static final UUID ID_ASIGNACION_1  = UUID.fromString("0c000000-0000-0000-0000-000000000001");
     private static final UUID ID_ASPIRANTE_1   = UUID.fromString("e1000000-0000-0000-0000-000000000001");
+    private static final UUID ID_INSCRIPCION_2 = UUID.fromString("09000000-0000-0000-0000-000000000002");
     private static final UUID ID_PRUEBA_1      = UUID.fromString("d1000000-0000-0000-0000-000000000001");
     private static final UUID ID_ETAPA_1       = UUID.fromString("c1000000-0000-0000-0000-000000000001");
 
@@ -150,5 +155,35 @@ public class ExamenesRealizadoResourceST extends AbstractResourceST {
 
         assertEquals(422, response.getStatus());
         assertNotNull(response.getHeaderString("Missing-parameter"));
+    }
+
+    /**
+     * POST /examenes_realizados/{id}/calificar debe recalcular el puntaje final
+     * usando respuestas del examen y marcar la inscripción asociada como CALIFICADO.
+     */
+    @Test
+    void calificar_ConIdExistente_DebeRecalcularPuntajeYMarcarInscripcion() {
+        Response responseCalificacion = targetDe("examenes_realizados/" + ID_EXAMEN_2 + "/calificar")
+                .request()
+                .post(Entity.text(""));
+
+        assertEquals(200, responseCalificacion.getStatus());
+        ExamenesRealizado calificado = responseCalificacion.readEntity(ExamenesRealizado.class);
+        assertNotNull(calificado);
+        assertEquals(ID_EXAMEN_2, calificado.getId());
+        assertNotNull(calificado.getPuntajeFinal());
+        assertEquals(0, new BigDecimal("5.00").compareTo(calificado.getPuntajeFinal()));
+
+        Response responseExamen = get("examenes_realizados/" + ID_EXAMEN_2);
+        assertEquals(200, responseExamen.getStatus());
+        ExamenesRealizado examenPersistido = responseExamen.readEntity(ExamenesRealizado.class);
+        assertNotNull(examenPersistido);
+        assertEquals(0, new BigDecimal("5.00").compareTo(examenPersistido.getPuntajeFinal()));
+
+        Response responseInscripcion = get("inscripciones_prueba/" + ID_INSCRIPCION_2);
+        assertEquals(200, responseInscripcion.getStatus());
+        InscripcionesPrueba inscripcion = responseInscripcion.readEntity(InscripcionesPrueba.class);
+        assertNotNull(inscripcion);
+        assertEquals("CALIFICADO", inscripcion.getEstado());
     }
 }

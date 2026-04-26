@@ -206,4 +206,46 @@ class ExamenesRealizadoResourceTest {
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
     }
+
+    // ==================== calificar (POST /{id}/calificar) ====================
+
+    @Test
+    void calificar_ConIdExistente_DebeRetornar200ConExamenActualizado() {
+        when(examenesRealizadoDAO.calificarExamen(testId)).thenReturn(entidad);
+
+        Response response = resource.calificar(testId);
+
+        assertEquals(200, response.getStatus());
+        assertSame(entidad, response.getEntity());
+        verify(examenesRealizadoDAO).calificarExamen(testId);
+    }
+
+    @Test
+    void calificar_ConIdInexistente_DebeRetornar404() {
+        when(examenesRealizadoDAO.calificarExamen(testId)).thenReturn(null);
+
+        Response response = resource.calificar(testId);
+
+        assertEquals(404, response.getStatus());
+        assertNotNull(response.getHeaderString("Not-found-id"));
+    }
+
+    @Test
+    void calificar_ConIdNulo_DebeRetornar422() {
+        Response response = resource.calificar(null);
+
+        assertEquals(422, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+        verifyNoInteractions(examenesRealizadoDAO);
+    }
+
+    @Test
+    void calificar_ConExcepcionEnDAO_DebeRetornar500() {
+        when(examenesRealizadoDAO.calificarExamen(any())).thenThrow(new RuntimeException("BD error"));
+
+        Response response = resource.calificar(testId);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString("Server-exception"));
+    }
 }
