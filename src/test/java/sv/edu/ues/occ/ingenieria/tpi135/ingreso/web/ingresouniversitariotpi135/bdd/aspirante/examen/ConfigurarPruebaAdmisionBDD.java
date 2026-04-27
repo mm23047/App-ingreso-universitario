@@ -14,7 +14,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.b
 import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ConfigurarPruebaAdmision {
+public class ConfigurarPruebaAdmisionBDD {
     static Client cliente;
     static WebTarget target;
 
