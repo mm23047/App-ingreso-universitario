@@ -138,35 +138,10 @@ public class OpcionesRespuestaResourceST extends AbstractResourceST {
     }
 
     /**
-     * GET /resources/v1/opciones_respuesta?idPregunta={id} debe retornar solo opciones de esa pregunta.
+     * GET /resources/v1/opciones_respuesta?preguntaId={id} debe retornar solo opciones de esa pregunta.
      */
     @Test
-    void findRange_ConFiltroPregunta_DebeRetornarDelaPregunta() {
-        Response response = get("opciones_respuesta?idPregunta=" + ID_PREGUNTA_1);
-
-        assertEquals(200, response.getStatus());
-
-        OpcionesRespuesta[] arreglo = response.readEntity(OpcionesRespuesta[].class);
-        assertNotNull(arreglo);
-        assertTrue(arreglo.length >= 3, "Pregunta 1 debe tener al menos 3 opciones");
-
-        // Verificar que al menos una opción pertenece a Pregunta 1
-        boolean encontroDelaPregunta = false;
-        for (OpcionesRespuesta opcion : arreglo) {
-            assertNotNull(opcion.getIdPregunta());
-            if (ID_PREGUNTA_1.equals(opcion.getIdPregunta().getId())) {
-                encontroDelaPregunta = true;
-                break;
-            }
-        }
-        assertTrue(encontroDelaPregunta);
-    }
-
-    /**
-     * GET /resources/v1/opciones_respuesta?preguntaId={id} debe ser soportado (alias) y retornar solo opciones de esa pregunta.
-     */
-    @Test
-    void findRange_ConFiltroPregunta_AliasPreguntaId_DebeRetornarDelaPregunta() {
+    void findRange_ConFiltroPreguntaId_DebeRetornarDelaPregunta() {
         Response response = get("opciones_respuesta?preguntaId=" + ID_PREGUNTA_1);
 
         assertEquals(200, response.getStatus());
