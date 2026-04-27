@@ -3,8 +3,10 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceContext;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AsignacionesAulaPupitre;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AulasExaman;
 
 import java.io.Serializable;
 import java.util.List;
@@ -49,6 +51,40 @@ public class AsignacionesAulaPupitreDAO extends IngresoDefaultDataAccess<Asignac
                     .getResultList();
         } catch (Exception e) {
             throw new IllegalStateException("Cannot access db", e);
+        }
+    }
+
+    public AsignacionesAulaPupitre crearConCupo(AsignacionesAulaPupitre entity) {
+        if (entity == null || entity.getIdAula() == null || entity.getIdAula().getId() == null) {
+            throw new IllegalArgumentException("entity.idAula must not be null");
+        }
+
+        try {
+            AulasExaman aula = em.find(AulasExaman.class, entity.getIdAula().getId(), LockModeType.PESSIMISTIC_WRITE);
+            if (aula == null) {
+                throw new IllegalStateException("AULA_NO_ENCONTRADA");
+            }
+
+            Integer capacidad = aula.getCapacidad();
+            int ocupados = aula.getCuposOcupados() == null ? 0 : aula.getCuposOcupados();
+
+            if (capacidad == null || capacidad < 1) {
+                throw new IllegalStateException("AULA_CAPACIDAD_INVALIDA");
+            }
+
+            if (ocupados >= capacidad) {
+                throw new IllegalStateException("AULA_SIN_CUPO");
+            }
+
+            aula.setCuposOcupados(ocupados + 1);
+            entity.setIdAula(aula);
+            em.persist(entity);
+            em.flush();
+            return entity;
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating assignment: " + e.getMessage(), e);
         }
     }
 
