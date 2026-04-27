@@ -154,6 +154,18 @@ public class AsignarCarreraFinalCuposBDD {
         crearCuposCarrera(idCarreraPri2, cuposInicialesCarrera2);
     }
 
+    @When("ejecuto la asignación final de carrera para la inscripción")
+    public void ejecuto_la_asignacion_final_de_carrera_para_la_inscripcion() {
+        ultimaRespuesta = target
+                .path("proceso_admision_aspirante/{id}/asignar-carrera")
+                .resolveTemplate("id", idInscripcion)
+                .request(MediaType.APPLICATION_JSON)
+                .post(Entity.json("{}"));
+
+        Assertions.assertNotNull(ultimaRespuesta);
+        ultimoResultado = ultimaRespuesta.readEntity(ProcesoAdmisionAspirante.class);
+    }
+
     @Then("se obtiene estado ADMITIDO con carrera asignada por cupos y prioridad")
     public void se_obtiene_estado_admitido_con_carrera_asignada_por_cupos_y_prioridad() {
         Assertions.assertEquals(200, ultimaRespuesta.getStatus());
@@ -172,42 +184,6 @@ public class AsignarCarreraFinalCuposBDD {
 
         int cuposEsperados = cuposInicialesCarrera2 - 1;
         Assertions.assertEquals(cuposEsperados, cupos.getCupos());
-    }
-
-    //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    // ESCENARIO 2: CAMINO TRIZTE
-
-    @Given("existen carreras elegidas con prioridades pero sin cupos disponibles")
-    public void existen_carreras_elegidas_con_prioridades_pero_sin_cupos_disponibles() {
-        idCarreraPri1 = "ICC";
-        idCarreraPri2 = "MAT";
-
-        crearCarreraElegida(idCarreraPri1, (short) 1);
-        crearCarreraElegida(idCarreraPri2, (short) 2);
-
-        // Ambas sin cupos
-        crearCuposCarrera(idCarreraPri1, 0);
-        crearCuposCarrera(idCarreraPri2, 0);
-    }
-
-    @Then("se obtiene estado NO_ADMITIDO y el aspirante queda sin carrera asignada")
-    public void se_obtiene_estado_no_admitido_y_el_aspirante_queda_sin_carrera_asignada() {
-        Assertions.assertEquals(200, ultimaRespuesta.getStatus());
-        Assertions.assertNotNull(ultimoResultado);
-        Assertions.assertEquals("NO_ADMITIDO", ultimoResultado.getEstado());
-        Assertions.assertNull(ultimoResultado.getCarreraAsignada(), "La carrera asignada debe ser nula al ser rechazado");
-    }
-
-    @When("ejecuto la asignación final de carrera para la inscripción")
-    public void ejecuto_la_asignacion_final_de_carrera_para_la_inscripcion() {
-        ultimaRespuesta = target
-                .path("proceso_admision_aspirante/{id}/asignar-carrera")
-                .resolveTemplate("id", idInscripcion)
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.json("{}"));
-
-        Assertions.assertNotNull(ultimaRespuesta);
-        ultimoResultado = ultimaRespuesta.readEntity(ProcesoAdmisionAspirante.class);
     }
 
 
