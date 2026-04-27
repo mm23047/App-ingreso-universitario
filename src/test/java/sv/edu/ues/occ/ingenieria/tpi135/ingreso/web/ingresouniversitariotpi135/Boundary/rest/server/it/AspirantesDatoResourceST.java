@@ -85,6 +85,32 @@ public class AspirantesDatoResourceST extends AbstractResourceST {
     }
 
     /**
+     * GET /aspirantes_datos?dui=... debe devolver 200 cuando existe el DUI.
+     */
+    @Test
+    void findByDui_ConDuiExistente_DebeRetornar200() {
+        Response response = get("aspirantes_datos?dui=01234567-8");
+
+        assertEquals(200, response.getStatus());
+
+        AspirantesDato entidad = response.readEntity(AspirantesDato.class);
+        assertNotNull(entidad);
+        assertEquals("01234567-8", entidad.getDui());
+        assertEquals(ID_ASPIRANTE_1, entidad.getId());
+    }
+
+    /**
+     * GET /aspirantes_datos?dui=... debe devolver 404 cuando el DUI no existe.
+     */
+    @Test
+    void findByDui_ConDuiInexistente_DebeRetornar404() {
+        Response response = get("aspirantes_datos?dui=00000000-0");
+
+        assertEquals(404, response.getStatus());
+        assertNotNull(response.getHeaderString("Not-found-id"));
+    }
+
+    /**
      * POST /aspirantes_datos con una entidad valida debe devolver 201 y permitir consultar luego el recurso creado.
      */
     @Test

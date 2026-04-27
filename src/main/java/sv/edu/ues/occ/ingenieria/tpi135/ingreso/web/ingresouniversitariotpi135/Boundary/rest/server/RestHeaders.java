@@ -23,4 +23,7 @@ public final class RestHeaders {
 
     /** Header que describe la excepción ocurrida en el servidor. */
     public static final String SERVER_EXCEPTION  = "Server-exception";
+
+    /** Header que indica una razon de conflicto de negocio. */
+    public static final String CONFLICT_REASON   = "Conflict-reason";
 }

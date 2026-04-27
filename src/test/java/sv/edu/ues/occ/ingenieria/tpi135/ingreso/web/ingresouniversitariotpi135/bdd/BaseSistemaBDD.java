@@ -51,7 +51,9 @@ public abstract class BaseSistemaBDD {
             .dependsOn(postgres)
             .withCopyFileToContainer(war, "/opt/wlp/usr/servers/tpi135_2026/dropins/ingreso.war")
             .withExposedPorts(9080)
-            .waitingFor(Wait.forListeningPort());
+            .waitingFor(Wait.forHttp("/ingreso/resources/v1/aspirantes_datos")
+                    .withBasicCredentials("", "")
+                    .forStatusCodeMatching(status -> status >= 200 && status < 500));
 
     public static synchronized void init() {
         if (!inicializado) {

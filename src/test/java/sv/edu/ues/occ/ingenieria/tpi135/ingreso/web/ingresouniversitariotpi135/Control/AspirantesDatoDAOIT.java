@@ -53,6 +53,23 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     }
 
     @Test
+    public void testFindByDui() {
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            AspirantesDatoDAO cut = new AspirantesDatoDAO();
+            cut.em = em;
+
+            AspirantesDato resultado = cut.findByDui("01234567-8");
+
+            assertNotNull(resultado);
+            assertEquals("01234567-8", resultado.getDui());
+
+            return null;
+        });
+    }
+
+    @Test
     public void testCrear() {
         assertTrue(postgres.isRunning());
 

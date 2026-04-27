@@ -223,14 +223,32 @@ class AsignacionesAulaPupitreResourceTest {
         nueva.setIdInscripcion(new InscripcionesPrueba());
         nueva.setIdAula(new AulasExaman());
         nueva.setPupitre("B-05");
+        AsignacionesAulaPupitre creada = new AsignacionesAulaPupitre();
+        creada.setId(UUID.randomUUID());
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
         when(uriBuilder.build()).thenReturn(URI.create("http://localhost/asignaciones/1"));
+        when(asignacionesAulaPupitreDAO.crearConCupo(nueva)).thenReturn(creada);
 
         Response response = resource.create(nueva, uriInfo);
 
         assertEquals(201, response.getStatus());
-        verify(asignacionesAulaPupitreDAO).crear(nueva);
+        verify(asignacionesAulaPupitreDAO).crearConCupo(nueva);
+    }
+
+    @Test
+    void create_ConAulaSinCupo_DebeRetornar409() {
+        AsignacionesAulaPupitre nueva = new AsignacionesAulaPupitre();
+        nueva.setIdInscripcion(new InscripcionesPrueba());
+        nueva.setIdAula(new AulasExaman());
+        nueva.setPupitre("B-05");
+        when(asignacionesAulaPupitreDAO.crearConCupo(nueva))
+                .thenThrow(new IllegalStateException("AULA_SIN_CUPO"));
+
+        Response response = resource.create(nueva, uriInfo);
+
+        assertEquals(409, response.getStatus());
+        assertNotNull(response.getHeaderString("Conflict-reason"));
     }
 
     @Test
@@ -283,7 +301,7 @@ class AsignacionesAulaPupitreResourceTest {
         nueva.setIdInscripcion(new InscripcionesPrueba());
         nueva.setIdAula(new AulasExaman());
         nueva.setPupitre("E-01");
-        doThrow(new RuntimeException("Error de BD")).when(asignacionesAulaPupitreDAO).crear(any());
+        doThrow(new RuntimeException("Error de BD")).when(asignacionesAulaPupitreDAO).crearConCupo(any());
         Response response = resource.create(nueva, uriInfo);
         assertEquals(500, response.getStatus());
     }

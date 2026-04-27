@@ -30,9 +30,47 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
     @Inject
     UsuariosSistemaDAO usuariosSistemaDAO;
 
+    @QueryParam("dui")
+    String duiParam;
+
     @Override
     protected IngresoDefaultDataAccess<AspirantesDato> getDAO() {
         return aspirantesDatoDAO;
+    }
+
+    @Override
+    @GET
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response findRange(
+            @DefaultValue("0") @QueryParam("first") int first,
+            @DefaultValue("50") @QueryParam("max") int max
+    ) {
+        if (duiParam != null) {
+            if (duiParam.isBlank()) {
+                return Response.status(422)
+                        .header(MISSING_PARAMETER, "dui")
+                        .build();
+            }
+            try {
+                AspirantesDato encontrado = aspirantesDatoDAO.findByDui(duiParam.trim());
+                if (encontrado != null) {
+                    return Response.ok(encontrado).build();
+                }
+                return Response.status(Response.Status.NOT_FOUND)
+                        .header(NOT_FOUND_ID, "Record with dui " + duiParam + " not found")
+                        .build();
+            } catch (IllegalArgumentException ex) {
+                return Response.status(422)
+                        .header(MISSING_PARAMETER, "dui")
+                        .build();
+            } catch (Exception ex) {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .header(SERVER_EXCEPTION, "Cannot access db")
+                        .build();
+            }
+        }
+
+        return super.findRange(first, max);
     }
 
     @GET
