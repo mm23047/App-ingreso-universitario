@@ -113,15 +113,45 @@ public class AsignacionesAulaPupitreResource extends AbstractResource<Asignacion
                 && entity.getIdAula() != null
                 && entity.getPupitre() != null) {
             try {
-                asignacionesAulaPupitreDAO.crear(entity);
+                AsignacionesAulaPupitre creada = asignacionesAulaPupitreDAO.crearConCupo(entity);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()
-                                .path(String.valueOf(entity.getId()))
+                    .path(String.valueOf(creada.getId()))
                                 .build())
+                        .build();
+            } catch (IllegalStateException ex) {
+                String mensaje = ex.getMessage() != null ? ex.getMessage() : "";
+                if ("AULA_SIN_CUPO".equals(mensaje)) {
+                    return Response.status(Response.Status.CONFLICT)
+                                .header(CONFLICT_REASON, "El aula ya alcanzo su capacidad maxima")
+                        .build();
+                }
+                if ("AULA_NO_ENCONTRADA".equals(mensaje)) {
+                    return Response.status(Response.Status.NOT_FOUND)
+                        .header(NOT_FOUND_ID, "Aula no encontrada")
+                        .build();
+                }
+                if ("AULA_CAPACIDAD_INVALIDA".equals(mensaje)) {
+                    return Response.status(422)
+                        .header(MISSING_PARAMETER, "capacidad")
+                        .build();
+                }
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(SERVER_EXCEPTION, "Cannot access db: " + mensaje)
+                    .build();
+            } catch (RuntimeException ex) {
+                String mensaje = ex.getMessage() != null ? ex.getMessage() : "";
+                if (mensaje.contains("AULA_SIN_CUPO")) {
+                    return Response.status(Response.Status.CONFLICT)
+                                .header(CONFLICT_REASON, "El aula ya alcanzo su capacidad maxima")
+                        .build();
+                }
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .header(SERVER_EXCEPTION, "Cannot access db: " + mensaje)
                         .build();
             } catch (Exception ex) {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .header(SERVER_EXCEPTION, "Cannot access db")
+                        .header(SERVER_EXCEPTION, "Cannot access db: " + ex.getMessage())
                         .build();
             }
         }
