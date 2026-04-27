@@ -210,7 +210,15 @@ public class ProcesoAdmisionAspiranteResourceST extends AbstractResourceST {
     /**
      * POST /proceso_admision_aspirante/{idInscripcion}/asignar-carrera
      * Debe asignar la primera carrera (por prioridad) que tenga cupos > 0
-     * en la etapa actual del proceso, decrementando el cupo.
+     * en la etapa actual del proceso, decrementando el cupo exactamente en 1.
+     *
+     * Caso: Prioridad 1 (ICS) SIN cupo → debe elegir Prioridad 2 (ISI) CON cupo.
+     *
+     * Validaciones:
+     * - Status 200 ✓
+     * - Estado = ADMITIDO ✓
+     * - Carrera asignada = ISI ✓
+     * - Cupos decrementaron de 2 → 1 ✓
      */
     @Test
     void asignarCarreraFinal_ConPrioridadYCupos_DebeAsignarYDecrementar() {
@@ -228,6 +236,14 @@ public class ProcesoAdmisionAspiranteResourceST extends AbstractResourceST {
         crearCuposCarrera(ID_PRUEBA_2025, "ICS", idEtapaAsignacion, 0);
         crearCuposCarrera(ID_PRUEBA_2025, "ISI", idEtapaAsignacion, 2);
 
+        // Validar cupos ANTES de la asignacion
+        Response responseCuposAntes = get("cupos_carrera/" + ID_PRUEBA_2025 + "/ISI/" + idEtapaAsignacion);
+        assertEquals(200, responseCuposAntes.getStatus());
+        CuposCarrera cuposAntes = responseCuposAntes.readEntity(CuposCarrera.class);
+        assertNotNull(cuposAntes);
+        int cuposDisponiblesAntes = cuposAntes.getCupos();
+        assertEquals(2, cuposDisponiblesAntes, "ISI debe tener 2 cupos disponibles antes");
+
         Response responseAsignacion = post(
                 "proceso_admision_aspirante/" + idInscripcionCreada + "/asignar-carrera",
             "{}"
@@ -237,10 +253,11 @@ public class ProcesoAdmisionAspiranteResourceST extends AbstractResourceST {
         ProcesoAdmisionAspirante resultado = responseAsignacion.readEntity(ProcesoAdmisionAspirante.class);
         assertNotNull(resultado);
         assertEquals(idInscripcionCreada, resultado.getId());
-        assertEquals("ADMITIDO", resultado.getEstado());
-        assertNotNull(resultado.getCarreraAsignada());
-        assertEquals("ISI", resultado.getCarreraAsignada().getIdCarrera());
+        assertEquals("ADMITIDO", resultado.getEstado(), "El estado debe ser ADMITIDO tras asignacion exitosa");
+        assertNotNull(resultado.getCarreraAsignada(), "Debe haber carrera asignada");
+        assertEquals("ISI", resultado.getCarreraAsignada().getIdCarrera(), "Debe asignar ISI (prioridad 2, porque ICS sin cupo)");
 
+        // Validar que persiste en BD via GET
         Response responseProcesoFinal = get("proceso_admision_aspirante/" + idInscripcionCreada);
         assertEquals(200, responseProcesoFinal.getStatus());
         ProcesoAdmisionAspirante procesoFinal = responseProcesoFinal.readEntity(ProcesoAdmisionAspirante.class);
@@ -249,23 +266,83 @@ public class ProcesoAdmisionAspiranteResourceST extends AbstractResourceST {
         assertNotNull(procesoFinal.getCarreraAsignada());
         assertEquals("ISI", procesoFinal.getCarreraAsignada().getIdCarrera());
 
-        Response responseCupos = get("cupos_carrera/" + ID_PRUEBA_2025 + "/ISI/" + idEtapaAsignacion);
-        assertEquals(200, responseCupos.getStatus());
-        CuposCarrera cupos = responseCupos.readEntity(CuposCarrera.class);
-        assertNotNull(cupos);
-        assertNotNull(cupos.getCupos());
-        assertEquals(1, cupos.getCupos());
+        // Validar que los CUPOS decrementaron exactamente en 1
+        Response responseCuposDespues = get("cupos_carrera/" + ID_PRUEBA_2025 + "/ISI/" + idEtapaAsignacion);
+        assertEquals(200, responseCuposDespues.getStatus());
+        CuposCarrera cuposDespues = responseCuposDespues.readEntity(CuposCarrera.class);
+        assertNotNull(cuposDespues);
+        int cuposDisponiblesDespues = cuposDespues.getCupos();
+        assertEquals(cuposDisponiblesAntes - 1, cuposDisponiblesDespues, 
+            "Los cupos deben decrementar exactamente en 1 (de " + cuposDisponiblesAntes + " a " + (cuposDisponiblesAntes - 1) + ")");
+    }
+
+    /**
+     * POST /proceso_admision_aspirante/{idInscripcion}/asignar-carrera sin cupos disponibles
+     * Debe cambiar el estado a NO_ADMITIDO y NO asignar carrera.
+     *
+     * Validaciones:
+     * - Status 200 ✓
+     * - Estado = NO_ADMITIDO ✓
+     * - Carrera asignada = null ✓
+     * - Cupos se mantienen en 0 ✓
+     */
+    @Test
+    void asignarCarreraFinal_SinCuposDisponibles_DebeNoAdmitirYNoAsignarCarrera() {
+        UUID idInscripcionCreada = crearInscripcionReal(ID_ASPIRANTE_1, ID_PRUEBA_2025, "INSCRITO");
+
+        UUID idEtapaAsignacion = crearEtapa("Etapa Sin Cupos ST");
+
+        ProcesoAdmisionAspirante nuevoProceso = crearProcesoAdmision(idInscripcionCreada, idEtapaAsignacion, "EN_PROCESO");
+        Response responseProceso = post("proceso_admision_aspirante", nuevoProceso);
+        assertEquals(201, responseProceso.getStatus());
+
+        // Crear 2 carreras elegidas, ambas sin cupos
+        crearCarreraElegida(idInscripcionCreada, "ICS", (short) 1);
+        crearCarreraElegida(idInscripcionCreada, "ISI", (short) 2);
+
+        crearCuposCarrera(ID_PRUEBA_2025, "ICS", idEtapaAsignacion, 0);
+        crearCuposCarrera(ID_PRUEBA_2025, "ISI", idEtapaAsignacion, 0);
+
+        Response responseAsignacion = post(
+                "proceso_admision_aspirante/" + idInscripcionCreada + "/asignar-carrera",
+            "{}"
+        );
+
+        assertEquals(200, responseAsignacion.getStatus());
+        ProcesoAdmisionAspirante resultado = responseAsignacion.readEntity(ProcesoAdmisionAspirante.class);
+        assertNotNull(resultado);
+        assertEquals("NO_ADMITIDO", resultado.getEstado(), "Sin cupos disponibles debe ser NO_ADMITIDO");
+        assertTrue(resultado.getCarreraAsignada() == null, "No debe haber carrera asignada");
+
+        // Validar que persista
+        Response responseProcesoFinal = get("proceso_admision_aspirante/" + idInscripcionCreada);
+        assertEquals(200, responseProcesoFinal.getStatus());
+        ProcesoAdmisionAspirante procesoFinal = responseProcesoFinal.readEntity(ProcesoAdmisionAspirante.class);
+        assertNotNull(procesoFinal);
+        assertEquals("NO_ADMITIDO", procesoFinal.getEstado());
+        assertTrue(procesoFinal.getCarreraAsignada() == null);
+
+        // Validar que los cupos se mantienen en 0
+        Response responseCuposICS = get("cupos_carrera/" + ID_PRUEBA_2025 + "/ICS/" + idEtapaAsignacion);
+        assertEquals(200, responseCuposICS.getStatus());
+        CuposCarrera cuposICS = responseCuposICS.readEntity(CuposCarrera.class);
+        assertEquals(0, cuposICS.getCupos());
+
+        Response responseCuposISI = get("cupos_carrera/" + ID_PRUEBA_2025 + "/ISI/" + idEtapaAsignacion);
+        assertEquals(200, responseCuposISI.getStatus());
+        CuposCarrera cuposISI = responseCuposISI.readEntity(CuposCarrera.class);
+        assertEquals(0, cuposISI.getCupos());
     }
 
     /**
      * Usado para crear una inscripcion real via el recurso REST de inscripciones,
-     * reutilizado por varios tests. Encapsula la construccion del payload, el POST
-     * y la extraccion del UUID desde el header Location.
+     * reutilizado por varios tests. NOTA: El parámetro idAspirante se ignora
+     * porque siempre creamos aspirantes dinámicos para evitar conflictos con init.sql.
      */
     private UUID crearInscripcionReal(UUID idAspirante, UUID idPrueba, String estado) {
         InscripcionesPrueba nuevaInscripcion = new InscripcionesPrueba();
 
-        //Creamos el aspirante de forma dinamica
+        // Siempre crear aspirante dinámico para evitar duplicidad
         AspirantesDato aspirante = new AspirantesDato();
         aspirante.setId(crearAspiranteDinamico());
         nuevaInscripcion.setIdAspirante(aspirante);
