@@ -8,7 +8,6 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.rest.server.RestHeaders;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.OpcionesRespuestaDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.OpcionesRespuesta;
@@ -30,10 +29,6 @@ public class OpcionesRespuestaResource extends AbstractResource<OpcionesRespuest
     @QueryParam("preguntaId")
     String preguntaIdParam;
 
-    // compatibilidad hacia atrás (ya usado en pruebas ST existentes)
-    @QueryParam("idPregunta")
-    String idPreguntaParam;
-
     @Override
     protected IngresoDefaultDataAccess<OpcionesRespuesta> getDAO() {
         return opcionesRespuestaDAO;
@@ -52,14 +47,13 @@ public class OpcionesRespuestaResource extends AbstractResource<OpcionesRespuest
                     .build();
         }
 
-        String valorFiltro = (preguntaIdParam != null && !preguntaIdParam.isBlank()) ? preguntaIdParam : idPreguntaParam;
-        if (valorFiltro == null || valorFiltro.isBlank()) {
+        if (preguntaIdParam == null || preguntaIdParam.isBlank()) {
             return super.findRange(first, max);
         }
 
         final UUID preguntaUuid;
         try {
-            preguntaUuid = UUID.fromString(valorFiltro);
+            preguntaUuid = UUID.fromString(preguntaIdParam);
         } catch (IllegalArgumentException ex) {
             return Response.status(422)
                     .header(MISSING_PARAMETER, "preguntaId")

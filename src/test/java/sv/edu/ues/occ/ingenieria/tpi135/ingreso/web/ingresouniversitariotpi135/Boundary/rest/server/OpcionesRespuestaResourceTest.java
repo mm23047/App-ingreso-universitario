@@ -110,20 +110,6 @@ class OpcionesRespuestaResourceTest {
     }
 
     @Test
-    void findRange_ConFiltroIdPregunta_Alias_DebeRetornar200() {
-        UUID preguntaId = UUID.randomUUID();
-        resource.idPreguntaParam = preguntaId.toString();
-
-        when(opcionesRespuestaDAO.countByPreguntaId(preguntaId)).thenReturn(1);
-        when(opcionesRespuestaDAO.findByPreguntaId(preguntaId, 0, 10)).thenReturn(List.of(entidad));
-
-        Response response = resource.findRange(0, 10);
-
-        assertEquals(200, response.getStatus());
-        assertEquals("1", response.getHeaderString("Total-records"));
-    }
-
-    @Test
     void findRange_ConFiltroPreguntaIdInvalido_DebeRetornar422() {
         resource.preguntaIdParam = "no-es-uuid";
 
