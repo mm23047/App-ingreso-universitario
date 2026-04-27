@@ -197,4 +197,80 @@ public class InscripcionesPruebaResourceST extends AbstractResourceST {
         assertEquals(422, response.getStatus());
         assertNotNull(response.getHeaderString("Missing-parameter"));
     }
+
+    /**
+     * POST /inscripciones_prueba con combinacion aspirante+prueba duplicada
+     * debe devolver 422 y el header REGISTRO-DUPLICADO indicando violacion de constraint.
+     *
+     * Estrategia: Crear un aspirante DINAMICO + PRUEBA_2, crear dos inscripciones
+     * con esa misma combinacion para provocar violacion de UNIQUE constraint.
+     *
+     * Validaciones:
+     * - Status 201 primera inscripcion ✓
+     * - Status 422 segunda (duplicada) ✓
+     * - Header REGISTRO-DUPLICADO = "true" ✓
+     * - Mensaje contiene indicativo de constraint ✓
+     */
+    @Test
+    void create_ConInscripcionDuplicada_DebeRetornar422_YHeaderDuplicado() {
+        // 1) Crear un aspirante dinamico (no exista en init.sql)
+        UUID idAspiranteDinamico = crearAspiranteDinamico();
+        
+        // 2) Primera inscripcion: aspirante dinamico + prueba 2 (debe ser 201)
+        InscripcionesPrueba primera = new InscripcionesPrueba();
+        AspirantesDato aspirante = new AspirantesDato();
+        aspirante.setId(idAspiranteDinamico);
+        primera.setIdAspirante(aspirante);
+        PruebasAdmision prueba = new PruebasAdmision();
+        prueba.setId(ID_PRUEBA_2);
+        primera.setIdPrueba(prueba);
+        primera.setEstado("INSCRITO");
+
+        Response responseFirst = post("inscripciones_prueba", primera);
+        assertEquals(201, responseFirst.getStatus(), "Primera inscripcion debe crearse correctamente");
+
+        // 3) Segunda inscripcion: MISMO aspirante + MISMA prueba (debe ser 422 por UNIQUE)
+        InscripcionesPrueba duplicada = new InscripcionesPrueba();
+        duplicada.setIdAspirante(aspirante);
+        duplicada.setIdPrueba(prueba);
+        duplicada.setEstado("INSCRITO");
+
+        Response responseDuplicate = post("inscripciones_prueba", duplicada);
+
+        // Validaciones estrictas
+        assertEquals(422, responseDuplicate.getStatus(), 
+            "POST con inscripcion duplicada debe retornar 422 (unprocessable entity)");
+        
+        String headerDuplicado = responseDuplicate.getHeaderString("REGISTRO-DUPLICADO");
+        assertNotNull(headerDuplicado, "Debe existir header REGISTRO-DUPLICADO");
+        assertEquals("true", headerDuplicado, "Header REGISTRO-DUPLICADO debe ser 'true'");
+        
+        // Validar el cuerpo del error contiene mensaje util
+        String responseBody = responseDuplicate.readEntity(String.class);
+        assertNotNull(responseBody, "Debe haber un cuerpo de error");
+        assertTrue(responseBody.toLowerCase().contains("ya existe") || 
+                   responseBody.toLowerCase().contains("duplicado") ||
+                   responseBody.toLowerCase().contains("constraint"),
+            "El mensaje debe indicar la violacion de constraint o duplicidad");
+    }
+
+    /**
+     * Crea un aspirante dinamico para evitar conflictos con datos de init.sql.
+     */
+    private UUID crearAspiranteDinamico() {
+        AspirantesDato nuevoAspirante = new AspirantesDato();
+        nuevoAspirante.setNombres("Aspirante ST");
+        nuevoAspirante.setApellidos("Duplicado");
+        nuevoAspirante.setDui(String.valueOf(System.currentTimeMillis()).substring(4));
+        nuevoAspirante.setUsaSillaRuedas(false);
+
+        UsuariosSistema usuario = new UsuariosSistema();
+        usuario.setId(UUID.fromString("b1000000-0000-0000-0000-000000000001"));
+        nuevoAspirante.setIdUsuario(usuario);
+
+        Response response = post("aspirantes_datos", nuevoAspirante);
+        assertEquals(201, response.getStatus(), "Fallo al crear aspirante dinamico");
+        String location = response.getHeaderString("Location");
+        return UUID.fromString(location.substring(location.lastIndexOf('/') + 1));
+    }
 }
