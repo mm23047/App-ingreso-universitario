@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.UsuariosSistema;
 
 import java.util.UUID;
 
@@ -248,9 +249,9 @@ public class InscripcionesPruebaResourceST extends AbstractResourceST {
         // Validar el cuerpo del error contiene mensaje util
         String responseBody = responseDuplicate.readEntity(String.class);
         assertNotNull(responseBody, "Debe haber un cuerpo de error");
-        assertTrue(responseBody.toLowerCase().contains("ya existe") || 
-                   responseBody.toLowerCase().contains("duplicado") ||
-                   responseBody.toLowerCase().contains("constraint"),
+        assertTrue(responseBody.toLowerCase().contains("inscrito") ||
+               responseBody.toLowerCase().contains("duplicado") ||
+               responseBody.toLowerCase().contains("constraint"),
             "El mensaje debe indicar la violacion de constraint o duplicidad");
     }
 
