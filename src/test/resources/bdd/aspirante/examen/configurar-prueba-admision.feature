@@ -1,9 +1,5 @@
 Feature: Configurar y armar una prueba de admision con preguntas y respuestas
 
-  Como docente o administrador del sistema
-  Quiero ingresar preguntas con sus opciones de respuesta por area de conocimiento
-  Para armar una clave de examen estructurada que luego sera presentada a los aspirantes
-
   Scenario: Armado exitoso de un examen con sus respectivas respuestas correctas y trampas
     Given el servidor esta inicializado para la administracion academica
     And existe un area de conocimiento llamada "Matematicas"
