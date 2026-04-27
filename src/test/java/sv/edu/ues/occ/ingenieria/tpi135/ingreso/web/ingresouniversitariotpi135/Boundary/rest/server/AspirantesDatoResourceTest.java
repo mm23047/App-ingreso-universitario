@@ -108,6 +108,38 @@ class AspirantesDatoResourceTest {
         assertEquals(500, response.getStatus());
     }
 
+    @Test
+    void findRange_ConDui_DebeRetornar200() {
+        resource.duiParam = "01234567-8";
+        when(aspirantesDatoDAO.findByDui("01234567-8")).thenReturn(entidad);
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(200, response.getStatus());
+        assertSame(entidad, response.getEntity());
+    }
+
+    @Test
+    void findRange_ConDuiNoEncontrado_DebeRetornar404() {
+        resource.duiParam = "00000000-0";
+        when(aspirantesDatoDAO.findByDui("00000000-0")).thenReturn(null);
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(404, response.getStatus());
+        assertNotNull(response.getHeaderString("Not-found-id"));
+    }
+
+    @Test
+    void findRange_ConDuiVacio_DebeRetornar422() {
+        resource.duiParam = "   ";
+
+        Response response = resource.findRange(0, 10);
+
+        assertEquals(422, response.getStatus());
+        verifyNoInteractions(aspirantesDatoDAO);
+    }
+
     // ==================== findById (GET /{id}) ====================
 
     @Test
