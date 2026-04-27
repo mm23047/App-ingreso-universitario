@@ -4,6 +4,7 @@ import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.NoResultException;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
 
 import java.io.Serializable;
@@ -22,6 +23,21 @@ public class AspirantesDatoDAO extends IngresoDefaultDataAccess<AspirantesDato> 
     @Override
     public EntityManager getEntityManager() {
         return em;
+    }
+
+    public AspirantesDato findByDui(String dui) {
+        if (dui == null || dui.isBlank()) {
+            throw new IllegalArgumentException("dui must not be null or blank");
+        }
+        try {
+            return em.createQuery(
+                            "SELECT a FROM AspirantesDato a WHERE a.dui = :dui",
+                            AspirantesDato.class)
+                    .setParameter("dui", dui)
+                    .getSingleResult();
+        } catch (NoResultException ex) {
+            return null;
+        }
     }
 
 }
