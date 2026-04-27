@@ -273,6 +273,51 @@ public class AsignacionesAulaPupitreResourceST extends AbstractResourceST {
     }
 
     /**
+     * POST /asignaciones_aula_pupitre con pupitre especifico DEBE asignar exactamente ese pupitre.
+     * 
+     * Validaciones clave:
+     * - Status 201 (created) ✓
+     * - GET posterior retorna 200 ✓
+     * - idInscripcion coincide EXACTAMENTE ✓
+     * - idAula coincide EXACTAMENTE ✓
+     * - Pupitre asignado = "C-15" (exacto) ✓
+     * - Relacion indirecta: inscripcion pertenece a aspirante correcto ✓
+     */
+    @Test
+    void create_ConPupitreEspecifico_DebeAsignarExactamente() {
+        // Usar inscripcion y aula que ya existen en init.sql
+        AsignacionesAulaPupitre nueva = crearAsignacion(ID_INSCRIPCION_1, ID_AULA_1, "C-15");
+
+        Response responseCreacion = post("asignaciones_aula_pupitre", nueva);
+
+        assertEquals(201, responseCreacion.getStatus(), "Debe retornar 201 (created)");
+        String location = responseCreacion.getHeaderString("Location");
+        assertNotNull(location);
+
+        String idString = location.substring(location.lastIndexOf('/') + 1);
+        UUID idAsignacionCreada = UUID.fromString(idString);
+
+        // GET posterior debe retornar 200 y los datos exactos
+        Response responseConsulta = get("asignaciones_aula_pupitre/" + idAsignacionCreada);
+        assertEquals(200, responseConsulta.getStatus(), "GET debe retornar 200");
+
+        AsignacionesAulaPupitre creada = responseConsulta.readEntity(AsignacionesAulaPupitre.class);
+        assertNotNull(creada);
+        assertEquals(idAsignacionCreada, creada.getId(), "ID debe coincidir");
+        
+        // Validaciones EXACTAS de las relaciones
+        assertNotNull(creada.getIdInscripcion(), "Debe tener inscripcion");
+        assertEquals(ID_INSCRIPCION_1, creada.getIdInscripcion().getId(), 
+            "idInscripcion DEBE ser exactamente " + ID_INSCRIPCION_1);
+        
+        assertNotNull(creada.getIdAula(), "Debe tener aula");
+        assertEquals(ID_AULA_1, creada.getIdAula().getId(), 
+            "idAula DEBE ser exactamente " + ID_AULA_1);
+        
+        assertEquals("C-15", creada.getPupitre(), "Pupitre DEBE ser exactamente C-15");
+    }
+
+    /**
      * Construye una AsignacionesAulaPupitre coherente a partir de los ids de
      * inscripcion y aula, y el valor de pupitre deseado.
      */
