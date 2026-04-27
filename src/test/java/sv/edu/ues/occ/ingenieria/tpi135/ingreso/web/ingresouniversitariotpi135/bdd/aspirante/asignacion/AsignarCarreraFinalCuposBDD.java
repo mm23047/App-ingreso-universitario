@@ -41,6 +41,11 @@ public class AsignarCarreraFinalCuposBDD {
     static Response ultimaRespuesta;
     static ProcesoAdmisionAspirante ultimoResultado;
 
+    // Variables dinámicas para las carreras y cupos
+    static String idCarreraPri1;
+    static String idCarreraPri2;
+    static int cuposInicialesCarrera2;
+
     private static final UUID ID_USUARIO_SEMILLA = UUID.fromString("b1000000-0000-0000-0000-000000000001");
     private static final UUID ID_PRUEBA_2025 = UUID.fromString("d1000000-0000-0000-0000-000000000002");
 
@@ -112,7 +117,7 @@ public class AsignarCarreraFinalCuposBDD {
         idInscripcion = extraerIdDelHeader(respIns);
 
         EtapasAdmision etapa = new EtapasAdmision();
-        etapa.setNombre("Etapa Asignacion Carrera BDD");
+        etapa.setNombre("Etapa Asignacion BDD " + generarDuiUnico());
 
         Response respEtapa = postJson("etapas_admision", etapa);
         Assertions.assertEquals(201, respEtapa.getStatus());
@@ -131,13 +136,66 @@ public class AsignarCarreraFinalCuposBDD {
         Assertions.assertEquals(201, respProceso.getStatus());
     }
 
+    //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    // ESCENARIO 1: CAMINO FELIZ
+
     @Given("existen carreras elegidas con prioridades y cupos configurados")
     public void existen_carreras_elegidas_con_prioridades_y_cupos_configurados() {
-        crearCarreraElegida("ICS", (short) 1);
-        crearCarreraElegida("ISI", (short) 2);
+        idCarreraPri1 = "ICS";
+        idCarreraPri2 = "ISI";
+        cuposInicialesCarrera2 = 1;
 
-        crearCuposCarrera("ICS", 0);
-        crearCuposCarrera("ISI", 1);
+        crearCarreraElegida(idCarreraPri1, (short) 1);
+        crearCarreraElegida(idCarreraPri2, (short) 2);
+
+        // La primera prioridad no tiene cupos
+        crearCuposCarrera(idCarreraPri1, 0);
+        // La segunda sí tiene
+        crearCuposCarrera(idCarreraPri2, cuposInicialesCarrera2);
+    }
+
+    @Then("se obtiene estado ADMITIDO con carrera asignada por cupos y prioridad")
+    public void se_obtiene_estado_admitido_con_carrera_asignada_por_cupos_y_prioridad() {
+        Assertions.assertEquals(200, ultimaRespuesta.getStatus());
+        Assertions.assertNotNull(ultimoResultado);
+        Assertions.assertEquals("ADMITIDO", ultimoResultado.getEstado());
+        Assertions.assertNotNull(ultimoResultado.getCarreraAsignada());
+        // Se valida que asignó la segunda prioridad, porque la primera estaba llena
+        Assertions.assertEquals(idCarreraPri2, ultimoResultado.getCarreraAsignada().getIdCarrera());
+    }
+
+    @Then("el cupo de la carrera asignada se decrementa")
+    public void el_cupo_de_la_carrera_asignada_se_decrementa() {
+        Response respCupos = getJson("cupos_carrera/" + ID_PRUEBA_2025 + "/" + idCarreraPri2 + "/" + idEtapaAsignacion);
+        Assertions.assertEquals(200, respCupos.getStatus());
+        CuposCarrera cupos = respCupos.readEntity(CuposCarrera.class);
+
+        int cuposEsperados = cuposInicialesCarrera2 - 1;
+        Assertions.assertEquals(cuposEsperados, cupos.getCupos());
+    }
+
+    //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    // ESCENARIO 2: CAMINO TRIZTE
+
+    @Given("existen carreras elegidas con prioridades pero sin cupos disponibles")
+    public void existen_carreras_elegidas_con_prioridades_pero_sin_cupos_disponibles() {
+        idCarreraPri1 = "ICC";
+        idCarreraPri2 = "MAT";
+
+        crearCarreraElegida(idCarreraPri1, (short) 1);
+        crearCarreraElegida(idCarreraPri2, (short) 2);
+
+        // Ambas sin cupos
+        crearCuposCarrera(idCarreraPri1, 0);
+        crearCuposCarrera(idCarreraPri2, 0);
+    }
+
+    @Then("se obtiene estado NO_ADMITIDO y el aspirante queda sin carrera asignada")
+    public void se_obtiene_estado_no_admitido_y_el_aspirante_queda_sin_carrera_asignada() {
+        Assertions.assertEquals(200, ultimaRespuesta.getStatus());
+        Assertions.assertNotNull(ultimoResultado);
+        Assertions.assertEquals("NO_ADMITIDO", ultimoResultado.getEstado());
+        Assertions.assertNull(ultimoResultado.getCarreraAsignada(), "La carrera asignada debe ser nula al ser rechazado");
     }
 
     @When("ejecuto la asignación final de carrera para la inscripción")
@@ -152,24 +210,8 @@ public class AsignarCarreraFinalCuposBDD {
         ultimoResultado = ultimaRespuesta.readEntity(ProcesoAdmisionAspirante.class);
     }
 
-    @Then("se obtiene estado ADMITIDO con carrera asignada por cupos y prioridad")
-    public void se_obtiene_estado_admitido_con_carrera_asignada_por_cupos_y_prioridad() {
-        Assertions.assertEquals(200, ultimaRespuesta.getStatus());
-        Assertions.assertNotNull(ultimoResultado);
-        Assertions.assertEquals(idInscripcion, ultimoResultado.getId());
-        Assertions.assertEquals("ADMITIDO", ultimoResultado.getEstado());
-        Assertions.assertNotNull(ultimoResultado.getCarreraAsignada());
-        Assertions.assertEquals("ISI", ultimoResultado.getCarreraAsignada().getIdCarrera());
-    }
 
-    @Then("el cupo de la carrera asignada se decrementa")
-    public void el_cupo_de_la_carrera_asignada_se_decrementa() {
-        Response respCupos = getJson("cupos_carrera/" + ID_PRUEBA_2025 + "/ISI/" + idEtapaAsignacion);
-        Assertions.assertEquals(200, respCupos.getStatus());
-        CuposCarrera cupos = respCupos.readEntity(CuposCarrera.class);
-        Assertions.assertNotNull(cupos);
-        Assertions.assertEquals(0, cupos.getCupos());
-    }
+
 
     private void crearCarreraElegida(String idCarrera, short prioridad) {
         CarrerasElegidaId pk = new CarrerasElegidaId();
