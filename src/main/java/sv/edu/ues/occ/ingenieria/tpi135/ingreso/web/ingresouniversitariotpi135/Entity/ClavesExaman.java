@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import java.util.UUID;
 
 @Entity
-@Table(name = "claves_examen", schema = "public")
+@Table(name = "clave_examen", schema = "public")
 public class ClavesExaman {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

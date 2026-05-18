@@ -3,12 +3,17 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 import static sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.rest.server.RestHeaders.*;
 
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.ExamenesRealizadoDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.ExamenRealizadoDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExamenesRealizado;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExamenRealizado;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,11 +23,11 @@ import java.util.UUID;
  * Hereda el endpoint GET paginado de AbstractResource y expone un endpoint
  * para recalcular el puntaje final del examen según respuestas registradas.
  */
-@Path("examenes_realizados")
-public class ExamenesRealizadoResource extends AbstractResource<ExamenesRealizado> {
+@Path("examen_realizado")
+public class ExamenRealizadoResource extends AbstractResource<ExamenRealizado> {
 
     @Inject
-    ExamenesRealizadoDAO examenesRealizadoDAO;
+    ExamenRealizadoDAO examenRealizadoDAO;
 
     @QueryParam("aspiranteId")
     String aspiranteIdParam;
@@ -31,8 +36,8 @@ public class ExamenesRealizadoResource extends AbstractResource<ExamenesRealizad
     String pruebaIdParam;
 
     @Override
-    protected IngresoDefaultDataAccess<ExamenesRealizado> getDAO() {
-        return examenesRealizadoDAO;
+    protected IngresoDefaultDataAccess<ExamenRealizado> getDAO() {
+        return examenRealizadoDAO;
     }
 
     @Override
@@ -47,7 +52,7 @@ public class ExamenesRealizadoResource extends AbstractResource<ExamenesRealizad
             if (aspiranteIdParam != null && !aspiranteIdParam.isBlank()) {
                 try {
                     UUID aspiranteId = UUID.fromString(aspiranteIdParam);
-                    List<ExamenesRealizado> list = examenesRealizadoDAO.findByAspiranteId(aspiranteId);
+                    List<ExamenRealizado> list = examenRealizadoDAO.findByAspiranteId(aspiranteId);
                     return Response.ok(list).build();
                 } catch (IllegalArgumentException e) {
                     return Response.status(422)
@@ -59,7 +64,7 @@ public class ExamenesRealizadoResource extends AbstractResource<ExamenesRealizad
             if (pruebaIdParam != null && !pruebaIdParam.isBlank()) {
                 try {
                     UUID pruebaId = UUID.fromString(pruebaIdParam);
-                    List<ExamenesRealizado> list = examenesRealizadoDAO.findByPruebaId(pruebaId);
+                    List<ExamenRealizado> list = examenRealizadoDAO.findByPruebaId(pruebaId);
                     return Response.ok(list).build();
                 } catch (IllegalArgumentException e) {
                     return Response.status(422)
@@ -84,7 +89,7 @@ public class ExamenesRealizadoResource extends AbstractResource<ExamenesRealizad
     public Response findById(@PathParam("id") UUID id) {
         if (id != null) {
             try {
-                ExamenesRealizado resp = examenesRealizadoDAO.leer(id);
+                ExamenRealizado resp = examenRealizadoDAO.leer(id);
                 if (resp != null) {
                     return Response.ok(resp).build();
                 }
@@ -102,13 +107,13 @@ public class ExamenesRealizadoResource extends AbstractResource<ExamenesRealizad
                 .build();
     }
 
-    @POST
+    @GET
     @Path("{id}/calificar")
     @Produces({MediaType.APPLICATION_JSON})
     public Response calificar(@PathParam("id") UUID id) {
         if (id != null) {
             try {
-                ExamenesRealizado calificado = examenesRealizadoDAO.calificarExamen(id);
+                ExamenRealizado calificado = examenRealizadoDAO.calificarExamen(id);
                 if (calificado != null) {
                     return Response.ok(calificado).build();
                 }

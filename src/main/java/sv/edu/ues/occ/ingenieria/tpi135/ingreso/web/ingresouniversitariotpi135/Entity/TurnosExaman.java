@@ -6,11 +6,12 @@ import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Objects;
 
 import java.util.UUID;
 
 @Entity
-@Table(name = "turnos_examen", schema = "public")
+@Table(name = "turno_examen", schema = "public")
 public class TurnosExaman {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -38,6 +39,12 @@ public class TurnosExaman {
     @NotNull
     @Column(name = "hora_fin", nullable = false)
     private LocalTime horaFin;
+
+    @PrePersist
+    @PreUpdate
+    private void validarHorarioPersistible() {
+        validarHorario();
+    }
 
     public UUID getId() {
         return id;
@@ -85,6 +92,29 @@ public class TurnosExaman {
 
     public void setHoraFin(LocalTime horaFin) {
         this.horaFin = horaFin;
+    }
+
+    public void validarHorario() {
+        if (horaInicio != null && horaFin != null && !horaInicio.isBefore(horaFin)) {
+            throw new IllegalArgumentException("horaInicio must be before horaFin");
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        TurnosExaman that = (TurnosExaman) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
 }

@@ -7,9 +7,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExamenesRealizado;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.OpcionesRespuesta;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.RespuestasExaman;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExamenRealizado;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntaOpcion;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.RespuestaExamen;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.RespuestaExamenDAO;
 
 import java.util.List;
 import java.util.UUID;
@@ -43,7 +44,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
-            RespuestasExamanDAO cut = new RespuestasExamanDAO();
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
             cut.em = em;
 
             int resultado = cut.count();
@@ -62,10 +63,10 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
-            RespuestasExamanDAO cut = new RespuestasExamanDAO();
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
             cut.em = em;
 
-            List<RespuestasExaman> resultado = cut.findRange(0, 10);
+            List<RespuestaExamen> resultado = cut.findRange(0, 10);
 
             // Aún no se ha insertado nada sigue habiendo 4
             assertNotNull(resultado);
@@ -83,18 +84,17 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
         // Crear una respuesta temporal y verificar dentro de la misma transacción
         ejecutarEnTransaccion(em -> {
-            RespuestasExamanDAO cut = new RespuestasExamanDAO();
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
             cut.em = em;
 
             // Examen1 tiene pregunta1 y pregunta2 en el init.sql  (examen1, pregunta3) es nueva
-            ExamenesRealizado examen    = em.find(ExamenesRealizado.class, ID_EXAMEN_1);
+            ExamenRealizado examen    = em.find(ExamenRealizado.class, ID_EXAMEN_1);
             BancoPregunta pregunta      = em.find(BancoPregunta.class, ID_PREGUNTA_3);
-            OpcionesRespuesta opcion    = em.find(OpcionesRespuesta.class, ID_OPCION_7);
+            PreguntaOpcion opcion    = em.find(PreguntaOpcion.class, ID_OPCION_7);
 
-            RespuestasExaman nueva = new RespuestasExaman();
+            RespuestaExamen nueva = new RespuestaExamen();
             nueva.setIdExamen(examen);
-            nueva.setIdPregunta(pregunta);
-            nueva.setIdOpcionSeleccionada(opcion);
+            nueva.setIdPreguntaOpcion(opcion);
 
             cut.crear(nueva);
 
@@ -106,7 +106,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
         // Verificar que después del rollback implícito la BD queda con 4 respuestas
         ejecutarEnTransaccion(em -> {
-            RespuestasExamanDAO cut = new RespuestasExamanDAO();
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
             cut.em = em;
 
             assertEquals(4, cut.count());
@@ -120,16 +120,15 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
-            RespuestasExamanDAO cut = new RespuestasExamanDAO();
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
             cut.em = em;
 
             // Leer primer registro del init.sql: examen1 + pregunta1 + opcion2
-            RespuestasExaman resultado = cut.leer(ID_RESPUESTA_1);
+            RespuestaExamen resultado = cut.leer(ID_RESPUESTA_1);
 
             assertNotNull(resultado);
             assertEquals(ID_EXAMEN_1,   resultado.getIdExamen().getId());
-            assertEquals(ID_PREGUNTA_1, resultado.getIdPregunta().getId());
-            assertEquals(ID_OPCION_2,   resultado.getIdOpcionSeleccionada().getId());
+            assertEquals(ID_OPCION_2,   resultado.getIdPreguntaOpcion().getId());
 
             return null;
         });
@@ -141,20 +140,20 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
-            RespuestasExamanDAO cut = new RespuestasExamanDAO();
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
             cut.em = em;
 
             // Respuesta1 tiene opcion2  cambiar a opcion1
-            RespuestasExaman respuesta = cut.leer(ID_RESPUESTA_1);
+            RespuestaExamen respuesta = cut.leer(ID_RESPUESTA_1);
             assertNotNull(respuesta);
 
-            OpcionesRespuesta opcionNueva = em.find(OpcionesRespuesta.class, ID_OPCION_1);
-            respuesta.setIdOpcionSeleccionada(opcionNueva);
+            PreguntaOpcion opcionNueva = em.find(PreguntaOpcion.class, ID_OPCION_1);
+            respuesta.setIdPreguntaOpcion(opcionNueva);
 
-            RespuestasExaman actualizada = cut.actualizar(respuesta);
+            RespuestaExamen actualizada = cut.actualizar(respuesta);
 
             assertNotNull(actualizada);
-            assertEquals(ID_OPCION_1, actualizada.getIdOpcionSeleccionada().getId());
+            assertEquals(ID_OPCION_1, actualizada.getIdPreguntaOpcion().getId());
 
             return null;
         });
@@ -167,17 +166,16 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
         // Crear y eliminar una respuesta temporal dentro de una única transacción
         ejecutarEnTransaccion(em -> {
-            RespuestasExamanDAO cut = new RespuestasExamanDAO();
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
             cut.em = em;
 
-            ExamenesRealizado examen    = em.find(ExamenesRealizado.class, ID_EXAMEN_1);
+            ExamenRealizado examen    = em.find(ExamenRealizado.class, ID_EXAMEN_1);
             BancoPregunta pregunta      = em.find(BancoPregunta.class, ID_PREGUNTA_3);
-            OpcionesRespuesta opcion    = em.find(OpcionesRespuesta.class, ID_OPCION_7);
+            PreguntaOpcion opcion    = em.find(PreguntaOpcion.class, ID_OPCION_7);
 
-            RespuestasExaman nueva = new RespuestasExaman();
+            RespuestaExamen nueva = new RespuestaExamen();
             nueva.setIdExamen(examen);
-            nueva.setIdPregunta(pregunta);
-            nueva.setIdOpcionSeleccionada(opcion);
+            nueva.setIdPreguntaOpcion(opcion);
 
             cut.crear(nueva);
             assertEquals(5, cut.count());
@@ -195,10 +193,10 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
-            RespuestasExamanDAO cut = new RespuestasExamanDAO();
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
             cut.em = em;
 
-            List<RespuestasExaman> resultado = cut.findByExamenId(ID_EXAMEN_1);
+            List<RespuestaExamen> resultado = cut.findByExamenId(ID_EXAMEN_1);
 
             assertNotNull(resultado);
             assertFalse(resultado.isEmpty());

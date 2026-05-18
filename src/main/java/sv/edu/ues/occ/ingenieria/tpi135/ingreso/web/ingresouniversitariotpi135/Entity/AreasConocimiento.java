@@ -7,7 +7,9 @@ import jakarta.validation.constraints.Size;
 import java.util.UUID;
 
 @Entity
-@Table(name = "areas_conocimiento", schema = "public")
+@Table(name = "area_conocimiento", schema = "public", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_area_conocimiento_nombre_area", columnNames = "nombre_area")
+})
 public class AreasConocimiento {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -16,7 +18,7 @@ public class AreasConocimiento {
 
     @Size(max = 100)
     @NotNull
-    @Column(name = "nombre_area", nullable = false, length = 100)
+    @Column(name = "nombre_area", nullable = false, unique = true, length = 100)
     private String nombreArea;
 
     public UUID getId() {

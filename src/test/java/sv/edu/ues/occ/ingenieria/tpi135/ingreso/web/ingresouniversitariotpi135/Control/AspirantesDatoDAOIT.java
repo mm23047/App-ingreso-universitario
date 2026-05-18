@@ -2,7 +2,7 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 
 import org.junit.jupiter.api.Test;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.UsuariosSistema;
+import java.time.LocalDate;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,8 +12,6 @@ import static org.junit.jupiter.api.Assertions.*;
 public class AspirantesDatoDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
-    // admin (b1...001) no está referenciado en aspirantes_datos → disponible para testCrear
-    private static final UUID ID_USUARIO_ADMIN = UUID.fromString("b1000000-0000-0000-0000-000000000001");
 
     @Test
     public void testCount() {
@@ -78,15 +76,12 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
             AspirantesDatoDAO cut = new AspirantesDatoDAO();
             cut.em = em;
 
-            // Usar el usuario admin (b1...001) que no tiene aspirante asociado aún
-            UsuariosSistema usuario = em.find(UsuariosSistema.class, ID_USUARIO_ADMIN);
-            assertNotNull(usuario);
-
             AspirantesDato nuevo = new AspirantesDato();
-            nuevo.setIdUsuario(usuario);
             nuevo.setNombres("Test Aspirante");
             nuevo.setApellidos("Apellido Prueba");
             nuevo.setDui("98765432-1");
+            nuevo.setCorreo("test.aspirante@example.com");
+            nuevo.setFechaNacimiento(LocalDate.of(1990,1,1));
             nuevo.setUsaSillaRuedas(false);
 
             cut.crear(nuevo);
@@ -141,14 +136,12 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
             cut.em = em;
 
             // Crear un nuevo aspirante para eliminarlo
-            UsuariosSistema usuario = em.find(UsuariosSistema.class, ID_USUARIO_ADMIN);
-            assertNotNull(usuario);
-
             AspirantesDato nuevo = new AspirantesDato();
-            nuevo.setIdUsuario(usuario);
             nuevo.setNombres("Aspirante para eliminar");
             nuevo.setApellidos("Apellido");
             nuevo.setDui("87654321-0");
+            nuevo.setCorreo("elim@example.com");
+            nuevo.setFechaNacimiento(LocalDate.of(1992,2,2));
             nuevo.setUsaSillaRuedas(false);
 
             cut.crear(nuevo);

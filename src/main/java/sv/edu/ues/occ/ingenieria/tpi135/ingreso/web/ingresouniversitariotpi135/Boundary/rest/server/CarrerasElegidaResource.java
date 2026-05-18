@@ -11,7 +11,6 @@ import jakarta.ws.rs.core.UriInfo;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.CarrerasElegidaDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegida;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegidaId;
 
 import java.util.UUID;
 
@@ -41,10 +40,7 @@ public class CarrerasElegidaResource extends AbstractResource<CarrerasElegida> {
                              @PathParam("idCarrera") String idCarrera) {
         if (idInscripcion != null && idCarrera != null) {
             try {
-                CarrerasElegidaId pk = new CarrerasElegidaId();
-                pk.setIdInscripcion(idInscripcion);
-                pk.setIdCarrera(idCarrera);
-                CarrerasElegida resp = carrerasElegidaDAO.leer(pk);
+                CarrerasElegida resp = carrerasElegidaDAO.findByInscripcionAndCarrera(idInscripcion, idCarrera);
                 if (resp != null) {
                     return Response.ok(resp).build();
                 }
@@ -66,18 +62,23 @@ public class CarrerasElegidaResource extends AbstractResource<CarrerasElegida> {
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
     public Response create(CarrerasElegida entity, @Context UriInfo uriInfo) {
-        if (entity != null && entity.getId() != null
-                && entity.getId().getIdInscripcion() != null
-                && entity.getId().getIdCarrera() != null
-                && entity.getIdInscripcion() != null
+        if (entity != null
+            && entity.getIdInscripcion() != null
+            && entity.getIdInscripcion().getId() != null
                 && entity.getIdCarrera() != null
+            && entity.getIdCarrera().getIdCarrera() != null
                 && entity.getPrioridad() != null) {
             try {
+            if (carrerasElegidaDAO.existsByInscripcionAndPrioridad(entity.getIdInscripcion().getId(), entity.getPrioridad())) {
+                return Response.status(Response.Status.CONFLICT)
+                            .header(CONFLICT_REASON, "prioridad already exists for inscripcion")
+                    .build();
+            }
                 carrerasElegidaDAO.crear(entity);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()
-                                .path(String.valueOf(entity.getId().getIdInscripcion()))
-                                .path(entity.getId().getIdCarrera())
+                    .path(String.valueOf(entity.getIdInscripcion().getId()))
+                    .path(entity.getIdCarrera().getIdCarrera())
                                 .build())
                         .build();
             } catch (Exception ex) {
@@ -87,7 +88,7 @@ public class CarrerasElegidaResource extends AbstractResource<CarrerasElegida> {
             }
         }
         return Response.status(422)
-                .header(MISSING_PARAMETER, "entity must not be null; id.idInscripcion, id.idCarrera, idInscripcion, idCarrera and prioridad must not be null")
+            .header(MISSING_PARAMETER, "entity must not be null; idInscripcion.id, idCarrera.idCarrera and prioridad must not be null")
                 .build();
     }
 
@@ -100,14 +101,20 @@ public class CarrerasElegidaResource extends AbstractResource<CarrerasElegida> {
                            CarrerasElegida entity) {
         if (idInscripcion != null && idCarrera != null && entity != null) {
             try {
-                CarrerasElegidaId pk = new CarrerasElegidaId();
-                pk.setIdInscripcion(idInscripcion);
-                pk.setIdCarrera(idCarrera);
-                CarrerasElegida existing = carrerasElegidaDAO.leer(pk);
+                CarrerasElegida existing = carrerasElegidaDAO.findByInscripcionAndCarrera(idInscripcion, idCarrera);
                 if (existing != null) {
-                    entity.setId(pk);
-                    carrerasElegidaDAO.actualizar(entity);
-                    return Response.ok(entity).build();
+                    if (entity.getPrioridad() != null
+                            && !entity.getPrioridad().equals(existing.getPrioridad())
+                            && carrerasElegidaDAO.existsByInscripcionAndPrioridad(idInscripcion, entity.getPrioridad())) {
+                        return Response.status(Response.Status.CONFLICT)
+                                .header(CONFLICT_REASON, "prioridad already exists for inscripcion")
+                                .build();
+                    }
+                    if (entity.getPrioridad() != null) {
+                        existing.setPrioridad(entity.getPrioridad());
+                    }
+                    CarrerasElegida updated = carrerasElegidaDAO.actualizar(existing);
+                    return Response.ok(updated).build();
                 }
                 return Response.status(Response.Status.NOT_FOUND)
                         .header(NOT_FOUND_ID, "Record with idInscripcion=" + idInscripcion + " idCarrera=" + idCarrera + " not found")
@@ -130,10 +137,7 @@ public class CarrerasElegidaResource extends AbstractResource<CarrerasElegida> {
                            @PathParam("idCarrera") String idCarrera) {
         if (idInscripcion != null && idCarrera != null) {
             try {
-                CarrerasElegidaId pk = new CarrerasElegidaId();
-                pk.setIdInscripcion(idInscripcion);
-                pk.setIdCarrera(idCarrera);
-                CarrerasElegida existing = carrerasElegidaDAO.leer(pk);
+                CarrerasElegida existing = carrerasElegidaDAO.findByInscripcionAndCarrera(idInscripcion, idCarrera);
                 if (existing != null) {
                     carrerasElegidaDAO.eliminar(existing);
                     return Response.noContent().build();

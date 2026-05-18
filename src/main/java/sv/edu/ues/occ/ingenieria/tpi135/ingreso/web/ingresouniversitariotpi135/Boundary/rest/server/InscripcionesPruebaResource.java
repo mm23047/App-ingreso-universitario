@@ -119,9 +119,9 @@ public class InscripcionesPruebaResource extends AbstractResource<InscripcionesP
                         entity.getIdPrueba().getId()
                 );
                 if (existe) {
-                    return Response.status(422)
-                            .header("REGISTRO-DUPLICADO", "true")
-                            .entity("El aspirante ya está inscrito en esta prueba")
+                return Response.status(Response.Status.CONFLICT)
+                    .header(CONFLICT_REASON, "duplicate inscription for aspirante and prueba")
+                    .entity("El aspirante ya está inscrito en esta prueba")
                             .build();
                 }
                 // Camino por el cual no existe el registro
@@ -151,9 +151,26 @@ public class InscripcionesPruebaResource extends AbstractResource<InscripcionesP
             try {
                 InscripcionesPrueba existing = inscripcionesPruebaDAO.leer(id);
                 if (existing != null) {
-                    entity.setId(id);
-                    inscripcionesPruebaDAO.actualizar(entity);
-                    return Response.ok(entity).build();
+                    if (entity.getIdAspirante() != null) {
+                        existing.setIdAspirante(entity.getIdAspirante());
+                    }
+                    if (entity.getIdPrueba() != null) {
+                        existing.setIdPrueba(entity.getIdPrueba());
+                    }
+                    if (existing.getIdAspirante() != null && existing.getIdPrueba() != null
+                            && inscripcionesPruebaDAO.existsByAspiranteAndPruebaExcludingId(
+                            existing.getIdAspirante().getId(),
+                            existing.getIdPrueba().getId(),
+                            id)) {
+                        return Response.status(Response.Status.CONFLICT)
+                                .header(CONFLICT_REASON, "duplicate inscription for aspirante and prueba")
+                                .build();
+                    }
+                    if (entity.getEstado() != null) {
+                        existing.setEstado(entity.getEstado());
+                    }
+                    inscripcionesPruebaDAO.actualizar(existing);
+                    return Response.ok(existing).build();
                 }
                 return Response.status(Response.Status.NOT_FOUND)
                         .header(NOT_FOUND_ID, "Record with id " + id + " not found")

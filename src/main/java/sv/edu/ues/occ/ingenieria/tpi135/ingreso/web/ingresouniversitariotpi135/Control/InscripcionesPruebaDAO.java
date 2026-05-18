@@ -67,4 +67,25 @@ public class InscripcionesPruebaDAO extends IngresoDefaultDataAccess<Inscripcion
         }
     }
 
+    public boolean existsByAspiranteAndPruebaExcludingId(UUID aspiranteId, UUID pruebaId, UUID excludeId) {
+        if (aspiranteId == null || pruebaId == null || excludeId == null) {
+            throw new IllegalArgumentException("aspiranteId, pruebaId y excludeId NO deben ser null");
+        }
+        try {
+            Long count = em.createQuery(
+                            "SELECT COUNT(i) FROM InscripcionesPrueba i " +
+                                    "WHERE i.idAspirante.id = :idAspirante " +
+                                    "AND i.idPrueba.id = :idPrueba " +
+                                    "AND i.id <> :excludeId",
+                            Long.class)
+                    .setParameter("idAspirante", aspiranteId)
+                    .setParameter("idPrueba", pruebaId)
+                    .setParameter("excludeId", excludeId)
+                    .getSingleResult();
+            return count > 0;
+        } catch (Exception e) {
+            throw new IllegalStateException("sin acceso a la BD", e);
+        }
+    }
+
 }

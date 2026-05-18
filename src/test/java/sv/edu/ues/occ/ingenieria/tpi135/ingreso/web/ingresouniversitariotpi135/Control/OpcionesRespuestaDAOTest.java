@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.OpcionesRespuesta;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntaOpcion;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,102 +22,95 @@ class OpcionesRespuestaDAOTest {
     private EntityManager entityManager;
 
     @Mock
-    private TypedQuery<OpcionesRespuesta> queryOpciones;
+    private TypedQuery<PreguntaOpcion> queryOpciones;
 
     @Mock
     private TypedQuery<Long> queryLong;
 
     @Test
     void leer_CuandoExiste_DebeHacerRefresh() {
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+        PreguntaOpcionDAO cut = new PreguntaOpcionDAO();
         cut.em = entityManager;
 
         UUID id = UUID.randomUUID();
-        OpcionesRespuesta entity = new OpcionesRespuesta();
+        PreguntaOpcion entity = new PreguntaOpcion();
         entity.setId(id);
 
-        when(entityManager.find(eq(OpcionesRespuesta.class), eq(id))).thenReturn(entity);
+        when(entityManager.find(eq(PreguntaOpcion.class), eq(id))).thenReturn(entity);
 
-        OpcionesRespuesta result = cut.leer(id);
+        PreguntaOpcion result = cut.leer(id);
 
         assertSame(entity, result);
-        verify(entityManager).refresh(entity);
+        verify(entityManager).find(PreguntaOpcion.class, id);
     }
 
     @Test
     void leer_CuandoNoExiste_NoDebeHacerRefresh() {
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+        PreguntaOpcionDAO cut = new PreguntaOpcionDAO();
         cut.em = entityManager;
 
         UUID id = UUID.randomUUID();
-        when(entityManager.find(eq(OpcionesRespuesta.class), eq(id))).thenReturn(null);
+        when(entityManager.find(eq(PreguntaOpcion.class), eq(id))).thenReturn(null);
 
-        OpcionesRespuesta result = cut.leer(id);
+        PreguntaOpcion result = cut.leer(id);
 
         assertNull(result);
         verify(entityManager, never()).refresh(any());
     }
 
     @Test
-    void findByPreguntaId_DebeAplicarPaginacionYRetornarLista() {
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+    void findByPregunta_DebeRetornarLista() {
+        PreguntaOpcionDAO cut = new PreguntaOpcionDAO();
         cut.em = entityManager;
 
         UUID preguntaId = UUID.randomUUID();
-        int first = 5;
-        int max = 10;
 
-        when(entityManager.createNamedQuery(eq("OpcionesRespuesta.findByPreguntaId"), eq(OpcionesRespuesta.class)))
-                .thenReturn(queryOpciones);
-        when(queryOpciones.setParameter(eq("preguntaId"), eq(preguntaId))).thenReturn(queryOpciones);
-        when(queryOpciones.setFirstResult(first)).thenReturn(queryOpciones);
-        when(queryOpciones.setMaxResults(max)).thenReturn(queryOpciones);
+        String expectedQuery = "SELECT p FROM PreguntaOpcion p WHERE p.idPregunta.id = :idPregunta ORDER BY p.id";
+        when(entityManager.createQuery(eq(expectedQuery), eq(PreguntaOpcion.class))).thenReturn(queryOpciones);
+        when(queryOpciones.setParameter(eq("idPregunta"), eq(preguntaId))).thenReturn(queryOpciones);
 
-        List<OpcionesRespuesta> esperado = List.of(new OpcionesRespuesta());
+        List<PreguntaOpcion> esperado = List.of(new PreguntaOpcion());
         when(queryOpciones.getResultList()).thenReturn(esperado);
 
-        List<OpcionesRespuesta> result = cut.findByPreguntaId(preguntaId, first, max);
+        List<PreguntaOpcion> result = cut.findByPregunta(preguntaId);
 
         assertSame(esperado, result);
-        verify(entityManager).createNamedQuery("OpcionesRespuesta.findByPreguntaId", OpcionesRespuesta.class);
-        verify(queryOpciones).setParameter("preguntaId", preguntaId);
-        verify(queryOpciones).setFirstResult(first);
-        verify(queryOpciones).setMaxResults(max);
+        verify(entityManager).createQuery(expectedQuery, PreguntaOpcion.class);
+        verify(queryOpciones).setParameter("idPregunta", preguntaId);
         verify(queryOpciones).getResultList();
     }
 
     @Test
-    void countByPreguntaId_CuandoHayTotal_DebeRetornarEntero() {
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+    void existsByPreguntaAndRespuesta_CuandoHay_ReturnsTrue() {
+        PreguntaOpcionDAO cut = new PreguntaOpcionDAO();
         cut.em = entityManager;
 
         UUID preguntaId = UUID.randomUUID();
-        when(entityManager.createNamedQuery(eq("OpcionesRespuesta.countByPreguntaId"), eq(Long.class)))
-                .thenReturn(queryLong);
-        when(queryLong.setParameter(eq("preguntaId"), eq(preguntaId))).thenReturn(queryLong);
-        when(queryLong.getSingleResult()).thenReturn(3L);
+        UUID respuestaId = UUID.randomUUID();
 
-        int result = cut.countByPreguntaId(preguntaId);
+        when(entityManager.createQuery(anyString(), eq(Long.class))).thenReturn(queryLong);
+        when(queryLong.setParameter(eq("idPregunta"), eq(preguntaId))).thenReturn(queryLong);
+        when(queryLong.setParameter(eq("idRespuestaGlobal"), eq(respuestaId))).thenReturn(queryLong);
+        when(queryLong.getSingleResult()).thenReturn(2L);
 
-        assertEquals(3, result);
-        verify(entityManager).createNamedQuery("OpcionesRespuesta.countByPreguntaId", Long.class);
-        verify(queryLong).setParameter("preguntaId", preguntaId);
-        verify(queryLong).getSingleResult();
+        boolean result = cut.existsByPreguntaAndRespuesta(preguntaId, respuestaId);
+        assertTrue(result);
     }
 
     @Test
-    void countByPreguntaId_CuandoTotalEsNull_DebeRetornarCero() {
-        OpcionesRespuestaDAO cut = new OpcionesRespuestaDAO();
+    void existsByPreguntaAndRespuesta_CuandoNoHay_ReturnsFalse() {
+        PreguntaOpcionDAO cut = new PreguntaOpcionDAO();
         cut.em = entityManager;
 
         UUID preguntaId = UUID.randomUUID();
-        when(entityManager.createNamedQuery(eq("OpcionesRespuesta.countByPreguntaId"), eq(Long.class)))
-                .thenReturn(queryLong);
-        when(queryLong.setParameter(eq("preguntaId"), eq(preguntaId))).thenReturn(queryLong);
-        when(queryLong.getSingleResult()).thenReturn(null);
+        UUID respuestaId = UUID.randomUUID();
 
-        int result = cut.countByPreguntaId(preguntaId);
+        when(entityManager.createQuery(anyString(), eq(Long.class))).thenReturn(queryLong);
+        when(queryLong.setParameter(eq("idPregunta"), eq(preguntaId))).thenReturn(queryLong);
+        when(queryLong.setParameter(eq("idRespuestaGlobal"), eq(respuestaId))).thenReturn(queryLong);
+        when(queryLong.getSingleResult()).thenReturn(0L);
 
-        assertEquals(0, result);
+        boolean result = cut.existsByPreguntaAndRespuesta(preguntaId, respuestaId);
+        assertFalse(result);
     }
 }

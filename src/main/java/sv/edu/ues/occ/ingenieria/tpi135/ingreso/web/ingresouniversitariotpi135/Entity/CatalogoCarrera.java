@@ -4,13 +4,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import java.util.UUID;
-
 @Entity
-@Table(name = "catalogo_carreras", schema = "public")
+@Table(name = "catalogo_carrera", schema = "public", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_catalogo_carrera_nombre", columnNames = "nombre")
+})
 public class CatalogoCarrera {
     @Id
     @Size(max = 10)
@@ -19,7 +20,7 @@ public class CatalogoCarrera {
 
     @Size(max = 100)
     @NotNull
-    @Column(name = "nombre", nullable = false, length = 100)
+    @Column(name = "nombre", nullable = false, unique = true, length = 100)
     private String nombre;
 
     public String getIdCarrera() {

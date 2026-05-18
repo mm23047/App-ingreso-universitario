@@ -60,11 +60,16 @@ public class TurnosExamanResource extends AbstractResource<TurnosExaman> {
     public Response create(TurnosExaman entity, @Context UriInfo uriInfo) {
         if (entity != null && entity.getId() == null) {
             try {
+                entity.validarHorario();
                 turnosExamanDAO.crear(entity);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()
                                 .path(String.valueOf(entity.getId()))
                                 .build())
+                        .build();
+            } catch (IllegalArgumentException ex) {
+                return Response.status(422)
+                        .header(MISSING_PARAMETER, "horaInicio must be before horaFin")
                         .build();
             } catch (Exception ex) {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -84,6 +89,7 @@ public class TurnosExamanResource extends AbstractResource<TurnosExaman> {
     public Response update(@PathParam("id") UUID id, TurnosExaman entity) {
         if (id != null && entity != null) {
             try {
+                entity.validarHorario();
                 TurnosExaman existing = turnosExamanDAO.leer(id);
                 if (existing != null) {
                     entity.setId(id);
@@ -92,6 +98,10 @@ public class TurnosExamanResource extends AbstractResource<TurnosExaman> {
                 }
                 return Response.status(Response.Status.NOT_FOUND)
                         .header(NOT_FOUND_ID, "Record with id " + id + " not found")
+                        .build();
+            } catch (IllegalArgumentException ex) {
+                return Response.status(422)
+                        .header(MISSING_PARAMETER, "horaInicio must be before horaFin")
                         .build();
             } catch (Exception ex) {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)

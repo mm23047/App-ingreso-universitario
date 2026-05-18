@@ -58,14 +58,14 @@ public class ProcesoAdmisionAspiranteDAO extends IngresoDefaultDataAccess<Proces
 
         List<CarrerasElegida> elegidas = em.createQuery(
                         "SELECT ce FROM CarrerasElegida ce " +
-                                "WHERE ce.id.idInscripcion = :idInscripcion " +
+                    "WHERE ce.idInscripcion.id = :idInscripcion " +
                                 "ORDER BY ce.prioridad ASC",
                         CarrerasElegida.class)
                 .setParameter("idInscripcion", idInscripcion)
                 .getResultList();
 
         for (CarrerasElegida elegida : elegidas) {
-            String idCarrera = elegida.getId().getIdCarrera();
+            String idCarrera = elegida.getIdCarrera().getIdCarrera();
             CuposCarrera cupos = buscarCupos(idPrueba, idCarrera, idEtapa);
 
             if (cupos != null && cupos.getCupos() != null && cupos.getCupos() > 0) {

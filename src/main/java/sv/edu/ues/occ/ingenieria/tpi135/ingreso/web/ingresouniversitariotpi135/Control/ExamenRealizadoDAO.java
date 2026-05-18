@@ -4,7 +4,7 @@ import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExamenesRealizado;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExamenRealizado;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 
 import java.io.Serializable;
@@ -15,13 +15,13 @@ import java.util.UUID;
 
 @Stateless
 @LocalBean
-public class ExamenesRealizadoDAO extends IngresoDefaultDataAccess<ExamenesRealizado> implements Serializable {
+public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado> implements Serializable {
 
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
 
-    public ExamenesRealizadoDAO() {
-        super(ExamenesRealizado.class);
+    public ExamenRealizadoDAO() {
+        super(ExamenRealizado.class);
     }
 
     @Override
@@ -29,12 +29,12 @@ public class ExamenesRealizadoDAO extends IngresoDefaultDataAccess<ExamenesReali
         return em;
     }
 
-    public List<ExamenesRealizado> findByAspiranteId(UUID aspiranteId) {
+    public List<ExamenRealizado> findByAspiranteId(UUID aspiranteId) {
         if (aspiranteId == null) {
             throw new IllegalArgumentException("aspiranteId must not be null");
         }
         try {
-            return em.createNamedQuery("ExamenesRealizado.findByAspiranteId", ExamenesRealizado.class)
+            return em.createNamedQuery("ExamenRealizado.findByAspiranteId", ExamenRealizado.class)
                     .setParameter("aspiranteId", aspiranteId)
                     .getResultList();
         } catch (Exception e) {
@@ -42,12 +42,12 @@ public class ExamenesRealizadoDAO extends IngresoDefaultDataAccess<ExamenesReali
         }
     }
 
-    public List<ExamenesRealizado> findByPruebaId(UUID pruebaId) {
+    public List<ExamenRealizado> findByPruebaId(UUID pruebaId) {
         if (pruebaId == null) {
             throw new IllegalArgumentException("pruebaId must not be null");
         }
         try {
-            return em.createNamedQuery("ExamenesRealizado.findByPruebaId", ExamenesRealizado.class)
+            return em.createNamedQuery("ExamenRealizado.findByPruebaId", ExamenRealizado.class)
                     .setParameter("pruebaId", pruebaId)
                     .getResultList();
         } catch (Exception e) {
@@ -55,12 +55,12 @@ public class ExamenesRealizadoDAO extends IngresoDefaultDataAccess<ExamenesReali
         }
     }
 
-    public ExamenesRealizado calificarExamen(UUID examenId) {
+    public ExamenRealizado calificarExamen(UUID examenId) {
         if (examenId == null) {
             throw new IllegalArgumentException("examenId must not be null");
         }
         try {
-            ExamenesRealizado examen = em.find(ExamenesRealizado.class, examenId);
+            ExamenRealizado examen = em.find(ExamenRealizado.class, examenId);
             if (examen == null) {
                 return null;
             }
@@ -76,15 +76,14 @@ public class ExamenesRealizadoDAO extends IngresoDefaultDataAccess<ExamenesReali
                     .getSingleResult();
 
             Long preguntasCorrectas = em.createQuery(
-                            "SELECT COUNT(DISTINCT r.idPregunta.id) "
-                                    + "FROM RespuestasExaman r "
-                                    + "JOIN r.idOpcionSeleccionada o "
+                            "SELECT COUNT(DISTINCT r.idPreguntaOpcion.idPregunta.id) "
+                                    + "FROM RespuestaExamen r "
+                                    + "JOIN r.idPreguntaOpcion o "
                                     + "WHERE r.idExamen.id = :idExamen "
-                                    + "AND r.idPregunta.id IN ("
-                                    + "  SELECT p2.id.idPregunta FROM PreguntasPorClave p2 WHERE p2.id.idClave = :idClave"
-                                    + ") "
                                     + "AND o.esCorrecta = TRUE "
-                                    + "AND o.idPregunta.id = r.idPregunta.id",
+                                    + "AND o.idPregunta.id IN ("
+                                    + "  SELECT p2.id.idPregunta FROM PreguntasPorClave p2 WHERE p2.id.idClave = :idClave"
+                                    + ")",
                             Long.class)
                     .setParameter("idExamen", examenId)
                     .setParameter("idClave", claveId)
@@ -103,13 +102,13 @@ public class ExamenesRealizadoDAO extends IngresoDefaultDataAccess<ExamenesReali
 
             examen.setPuntajeFinal(puntajeCalculado);
 
-            if (examen.getIdAsignacion() != null && examen.getIdAsignacion().getIdInscripcion() != null) {
-                InscripcionesPrueba inscripcion = examen.getIdAsignacion().getIdInscripcion();
+            if (examen.getIdInscripcion() != null) {
+                InscripcionesPrueba inscripcion = examen.getIdInscripcion();
                 inscripcion.setEstado("CALIFICADO");
                 em.merge(inscripcion);
             }
 
-            ExamenesRealizado actualizado = em.merge(examen);
+            ExamenRealizado actualizado = em.merge(examen);
             em.flush();
             em.refresh(actualizado);
             return actualizado;
@@ -117,5 +116,4 @@ public class ExamenesRealizadoDAO extends IngresoDefaultDataAccess<ExamenesReali
             throw new IllegalStateException("Cannot access db", e);
         }
     }
-
 }

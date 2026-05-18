@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.InscripcionesPruebaDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
@@ -311,8 +312,8 @@ class InscripcionesPruebaResourceTest {
 
         Response response = resource.create(nueva, uriInfo);
 
-        assertEquals(422, response.getStatus());
-        assertEquals("true", response.getHeaderString("REGISTRO-DUPLICADO"));
+        assertEquals(409, response.getStatus());
+        assertEquals("duplicate inscription for aspirante and prueba", response.getHeaderString("CONFLICT-REASON"));
         verify(inscripcionesPruebaDAO, never()).crear(any());
     }
 
@@ -327,7 +328,10 @@ class InscripcionesPruebaResourceTest {
         Response response = resource.update(testId, actualizada);
 
         assertEquals(200, response.getStatus());
-        verify(inscripcionesPruebaDAO).actualizar(actualizada);
+        ArgumentCaptor<InscripcionesPrueba> captor = ArgumentCaptor.forClass(InscripcionesPrueba.class);
+        verify(inscripcionesPruebaDAO).actualizar(captor.capture());
+        assertEquals(testId, captor.getValue().getId());
+        assertEquals("FINALIZADO", captor.getValue().getEstado());
     }
 
     @Test

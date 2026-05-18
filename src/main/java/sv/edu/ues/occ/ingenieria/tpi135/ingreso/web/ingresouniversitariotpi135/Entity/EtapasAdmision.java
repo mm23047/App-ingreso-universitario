@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
-@Table(name = "etapas_admision", schema = "public")
+@Table(name = "etapa_admision", schema = "public")
 public class EtapasAdmision {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

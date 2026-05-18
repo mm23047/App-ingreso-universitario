@@ -40,4 +40,19 @@ public class AspirantesDatoDAO extends IngresoDefaultDataAccess<AspirantesDato> 
         }
     }
 
+    public AspirantesDato findByCorreo(String correo) {
+        if (correo == null || correo.isBlank()) {
+            throw new IllegalArgumentException("correo must not be null or blank");
+        }
+        try {
+            return em.createQuery(
+                            "SELECT a FROM AspirantesDato a WHERE a.correo = :correo",
+                            AspirantesDato.class)
+                    .setParameter("correo", correo)
+                    .getSingleResult();
+        } catch (NoResultException ex) {
+            return null;
+        }
+    }
+
 }

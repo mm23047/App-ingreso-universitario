@@ -10,9 +10,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.AspirantesDatoDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.UsuariosSistemaDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.UsuariosSistema;
 
 import java.util.UUID;
 
@@ -26,9 +24,6 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
 
     @Inject
     AspirantesDatoDAO aspirantesDatoDAO;
-
-    @Inject
-    UsuariosSistemaDAO usuariosSistemaDAO;
 
     @QueryParam("dui")
     String duiParam;
@@ -102,31 +97,46 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
     @Consumes({MediaType.APPLICATION_JSON})
     public Response create(AspirantesDato entity, @Context UriInfo uriInfo) {
         if (entity != null && entity.getId() == null
-                && entity.getIdUsuario() != null
-            && entity.getIdUsuario().getId() != null
                 && entity.getNombres() != null
                 && entity.getApellidos() != null
-                && entity.getDui() != null) {
+                && entity.getDui() != null
+                && entity.getCorreo() != null
+                && entity.getFechaNacimiento() != null) {
             try {
-            UsuariosSistema usuario = usuariosSistemaDAO.leer(entity.getIdUsuario().getId());
-            if (usuario == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                    .header(NOT_FOUND_ID, "Record with id " + entity.getIdUsuario().getId() + " not found")
-                    .build();
-            }
+                if (aspirantesDatoDAO.findByDui(entity.getDui()) != null) {
+                    return Response.status(Response.Status.CONFLICT)
+                            .header(CONFLICT_REASON, "dui already exists")
+                            .build();
+                }
+                if (aspirantesDatoDAO.findByCorreo(entity.getCorreo()) != null) {
+                    return Response.status(Response.Status.CONFLICT)
+                            .header(CONFLICT_REASON, "correo already exists")
+                            .build();
+                }
 
-            AspirantesDato nuevo = new AspirantesDato();
-            nuevo.setIdUsuario(usuario);
-            nuevo.setNombres(entity.getNombres());
-            nuevo.setApellidos(entity.getApellidos());
-            nuevo.setDui(entity.getDui());
-            nuevo.setUsaSillaRuedas(entity.getUsaSillaRuedas());
+                AspirantesDato nuevo = new AspirantesDato();
+                nuevo.setNombres(entity.getNombres());
+                nuevo.setApellidos(entity.getApellidos());
+                nuevo.setDui(entity.getDui());
+                nuevo.setCorreo(entity.getCorreo());
+                nuevo.setFechaNacimiento(entity.getFechaNacimiento());
+                nuevo.setFechaCreacionPerfil(entity.getFechaCreacionPerfil());
+                nuevo.setUsaSillaRuedas(entity.getUsaSillaRuedas() != null ? entity.getUsaSillaRuedas() : Boolean.FALSE);
 
-            aspirantesDatoDAO.crear(nuevo);
+                aspirantesDatoDAO.crear(nuevo);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()
-                    .path(String.valueOf(nuevo.getId()))
+                                .path(String.valueOf(nuevo.getId()))
                                 .build())
+                        .build();
+            } catch (IllegalStateException ex) {
+                if (ex.getMessage() != null && ex.getMessage().contains("duplicate")) {
+                    return Response.status(Response.Status.CONFLICT)
+                            .header(CONFLICT_REASON, "dui/correo already exists")
+                            .build();
+                }
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .header(SERVER_EXCEPTION, "Cannot access db")
                         .build();
             } catch (Exception ex) {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -135,7 +145,7 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
             }
         }
         return Response.status(422)
-            .header(MISSING_PARAMETER, "entity must not be null; id must be null; idUsuario.id, nombres, apellidos, dui must not be null")
+                .header(MISSING_PARAMETER, "entity must not be null; id must be null; nombres, apellidos, dui, correo, fechaNacimiento must not be null")
                 .build();
     }
 
@@ -148,16 +158,6 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
             try {
                 AspirantesDato existing = aspirantesDatoDAO.leer(id);
                 if (existing != null) {
-                    if (entity.getIdUsuario() != null && entity.getIdUsuario().getId() != null) {
-                        UsuariosSistema usuario = usuariosSistemaDAO.leer(entity.getIdUsuario().getId());
-                        if (usuario == null) {
-                            return Response.status(Response.Status.NOT_FOUND)
-                                    .header(NOT_FOUND_ID, "Record with id " + entity.getIdUsuario().getId() + " not found")
-                                    .build();
-                        }
-                        existing.setIdUsuario(usuario);
-                    }
-
                     if (entity.getNombres() != null) {
                         existing.setNombres(entity.getNombres());
                     }
@@ -165,7 +165,28 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
                         existing.setApellidos(entity.getApellidos());
                     }
                     if (entity.getDui() != null) {
+                        AspirantesDato byDui = aspirantesDatoDAO.findByDui(entity.getDui());
+                        if (byDui != null && !byDui.getId().equals(existing.getId())) {
+                            return Response.status(Response.Status.CONFLICT)
+                                    .header(CONFLICT_REASON, "dui already exists")
+                                    .build();
+                        }
                         existing.setDui(entity.getDui());
+                    }
+                    if (entity.getCorreo() != null) {
+                        AspirantesDato byCorreo = aspirantesDatoDAO.findByCorreo(entity.getCorreo());
+                        if (byCorreo != null && !byCorreo.getId().equals(existing.getId())) {
+                            return Response.status(Response.Status.CONFLICT)
+                                    .header(CONFLICT_REASON, "correo already exists")
+                                    .build();
+                        }
+                        existing.setCorreo(entity.getCorreo());
+                    }
+                    if (entity.getFechaNacimiento() != null) {
+                        existing.setFechaNacimiento(entity.getFechaNacimiento());
+                    }
+                    if (entity.getFechaCreacionPerfil() != null) {
+                        existing.setFechaCreacionPerfil(entity.getFechaCreacionPerfil());
                     }
                     if (entity.getUsaSillaRuedas() != null) {
                         existing.setUsaSillaRuedas(entity.getUsaSillaRuedas());

@@ -10,7 +10,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Assertions;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.UsuariosSistema;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegida;
@@ -52,9 +51,8 @@ public class CrearAspiranteBDD {
         nuevo.setNombres("Jose");
         nuevo.setApellidos("Morales");
         nuevo.setDui("12345678-9");
-        UsuariosSistema usuario = new UsuariosSistema();
-        usuario.setId(ID_USUARIO);
-        nuevo.setIdUsuario(usuario);
+        // Legacy UsuariosSistema removed: set correo directly on aspirante
+        nuevo.setCorreo("usuario.test@local");
         nuevo.setUsaSillaRuedas(false);
         int esperado = 201;
         Response respuesta = target

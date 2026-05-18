@@ -4,10 +4,13 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
-@Table(name = "inscripciones_prueba", schema = "public")
+@Table(name = "inscripcion_prueba", schema = "public", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"id_aspirante", "id_prueba"})
+})
 @NamedQueries({
     @NamedQuery(
         name = "InscripcionesPrueba.findByAspiranteId",
@@ -72,6 +75,23 @@ public class InscripcionesPrueba {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        InscripcionesPrueba that = (InscripcionesPrueba) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
 }
