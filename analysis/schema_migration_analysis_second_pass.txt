@@ -153,3 +153,9 @@ RESUMEN EJECUTIVO
 NOTAS FINALES
 - Este analisis asume migracion completa a esquema nuevo.
 - Si se requiere compatibilidad con API vieja, se recomienda capa de adaptacion (DTO + mapper + resources legacy).
+
+CONSOLIDACION SEMANTICA (2026-05-18)
+- Eliminado: OpcionesRespuestaResourceST como huérfano REST sin recurso equivalente en src/main/java.
+- Se conservan como bridges útiles: OpcionesRespuestaDAOTest y RespuestasExamanDAOIT; validan PreguntaOpcion y RespuestaExamen del modelo nuevo.
+- Nombres legacy que permanecen por estabilidad histórica: OpcionesRespuestaDAOTest y RespuestasExamanDAOIT.
+- No se eliminaron bridges ni tests activos porque siguen aportando cobertura funcional al modelo académico consolidado.

@@ -51,7 +51,6 @@ public class CrearAspiranteBDD {
         nuevo.setNombres("Jose");
         nuevo.setApellidos("Morales");
         nuevo.setDui("12345678-9");
-        // Legacy UsuariosSistema removed: set correo directly on aspirante
         nuevo.setCorreo("usuario.test@local");
         nuevo.setUsaSillaRuedas(false);
         int esperado = 201;

@@ -186,7 +186,7 @@ class AspirantesDatoResourceTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("Legacy UsuariosSistema removed in new admission model")
+    @org.junit.jupiter.api.Disabled("Scenario removed after academic refactor")
     void create_ConUsuarioInexistente_DebeRetornar404() {
     }
 
@@ -301,12 +301,12 @@ class AspirantesDatoResourceTest {
         verify(aspirantesDatoDAO).actualizar(entidad);
     }
 
-    @org.junit.jupiter.api.Disabled("Legacy UsuariosSistema removed in new admission model")
+    @org.junit.jupiter.api.Disabled("Scenario removed after academic refactor")
     @Test
     void update_ConCambioUsuarioInexistente_DebeRetornar404() {
     }
 
-    @org.junit.jupiter.api.Disabled("Legacy UsuariosSistema removed in new admission model")
+    @org.junit.jupiter.api.Disabled("Scenario removed after academic refactor")
     @Test
     void update_ConCambioUsuarioExistente_DebeActualizarRelacion() {
     }
