@@ -115,13 +115,13 @@ public class RespuestaExamenResource extends AbstractResource<RespuestaExamen> {
     public Response create(RespuestaExamen entity, @Context UriInfo uriInfo) {
         if (entity != null
                 && entity.getIdRespuestaExamen() == null
-                && entity.getIdExamen() != null
-                && entity.getIdExamen().getIdExamenRealizado() != null
-                && entity.getIdPreguntaOpcion() != null
-                && entity.getIdPreguntaOpcion().getIdPreguntaOpcion() != null) {
+                && entity.getExamenRealizado() != null
+                && entity.getExamenRealizado().getIdExamenRealizado() != null
+                && entity.getPreguntaOpcion() != null
+                && entity.getPreguntaOpcion().getIdPreguntaOpcion() != null) {
             try {
-                UUID examenId = entity.getIdExamen().getIdExamenRealizado();
-                UUID opcionId = entity.getIdPreguntaOpcion().getIdPreguntaOpcion();
+                UUID examenId = entity.getExamenRealizado().getIdExamenRealizado();
+                UUID opcionId = entity.getPreguntaOpcion().getIdPreguntaOpcion();
 
                 ExamenRealizado examen = examenRealizadoDAO.leer(examenId);
                 if (examen == null) {
@@ -150,8 +150,8 @@ public class RespuestaExamenResource extends AbstractResource<RespuestaExamen> {
                             .build();
                 }
 
-                entity.setIdExamen(examen);
-                entity.setIdPreguntaOpcion(opcion);
+                entity.setExamenRealizado(examen);
+                entity.setPreguntaOpcion(opcion);
                 respuestaExamenDAO.crear(entity);
                 return Response.created(
                                 uriInfo.getAbsolutePathBuilder()

@@ -92,8 +92,8 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
             PreguntaOpcion opcion    = em.find(PreguntaOpcion.class, ID_OPCION_7);
 
             RespuestaExamen nueva = new RespuestaExamen();
-            nueva.setIdExamen(examen);
-            nueva.setIdPreguntaOpcion(opcion);
+            nueva.setExamenRealizado(examen);
+            nueva.setPreguntaOpcion(opcion);
 
             cut.crear(nueva);
 
@@ -126,8 +126,8 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
             RespuestaExamen resultado = cut.leer(ID_RESPUESTA_1);
 
             assertNotNull(resultado);
-            assertEquals(ID_EXAMEN_1,   resultado.getIdExamen().getIdExamenRealizado());
-            assertEquals(ID_OPCION_2,   resultado.getIdPreguntaOpcion().getIdPreguntaOpcion());
+            assertEquals(ID_EXAMEN_1,   resultado.getExamenRealizado().getIdExamenRealizado());
+            assertEquals(ID_OPCION_2,   resultado.getPreguntaOpcion().getIdPreguntaOpcion());
 
             return null;
         });
@@ -147,12 +147,12 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
             assertNotNull(respuesta);
 
             PreguntaOpcion opcionNueva = em.find(PreguntaOpcion.class, ID_OPCION_1);
-            respuesta.setIdPreguntaOpcion(opcionNueva);
+            respuesta.setPreguntaOpcion(opcionNueva);
 
             RespuestaExamen actualizada = cut.actualizar(respuesta);
 
             assertNotNull(actualizada);
-            assertEquals(ID_OPCION_1, actualizada.getIdPreguntaOpcion().getIdPreguntaOpcion());
+            assertEquals(ID_OPCION_1, actualizada.getPreguntaOpcion().getIdPreguntaOpcion());
 
             return null;
         });
@@ -173,8 +173,8 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
             PreguntaOpcion opcion    = em.find(PreguntaOpcion.class, ID_OPCION_7);
 
             RespuestaExamen nueva = new RespuestaExamen();
-            nueva.setIdExamen(examen);
-            nueva.setIdPreguntaOpcion(opcion);
+            nueva.setExamenRealizado(examen);
+            nueva.setPreguntaOpcion(opcion);
 
             cut.crear(nueva);
             assertEquals(5, cut.count());
@@ -201,7 +201,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
             assertFalse(resultado.isEmpty());
             assertEquals(2, resultado.size());
             assertTrue(resultado.stream()
-                    .allMatch(r -> r.getIdExamen() != null && ID_EXAMEN_1.equals(r.getIdExamen().getIdExamenRealizado())));
+                    .allMatch(r -> r.getExamenRealizado() != null && ID_EXAMEN_1.equals(r.getExamenRealizado().getIdExamenRealizado())));
 
             // Parámetro nulo debe lanzar IllegalArgumentException
             IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,

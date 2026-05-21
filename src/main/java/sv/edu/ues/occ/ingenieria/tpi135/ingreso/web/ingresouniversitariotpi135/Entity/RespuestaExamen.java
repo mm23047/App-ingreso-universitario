@@ -22,20 +22,20 @@ import java.util.UUID;
 @NamedQueries({
         @NamedQuery(
                 name = "RespuestaExamen.findByExamenId",
-                query = "SELECT r FROM RespuestaExamen r WHERE r.idExamen.idExamenRealizado = :idExamen"
+                query = "SELECT r FROM RespuestaExamen r WHERE r.examenRealizado.idExamenRealizado = :idExamen"
         ),
         @NamedQuery(
                 name = "RespuestaExamen.countByExamenAndPregunta",
-                query = "SELECT COUNT(r) FROM RespuestaExamen r WHERE r.idExamen.idExamenRealizado = :idExamen AND r.idPreguntaOpcion.bancoPregunta.idBancoPregunta = :idPregunta"
+                query = "SELECT COUNT(r) FROM RespuestaExamen r WHERE r.examenRealizado.idExamenRealizado = :idExamen AND r.preguntaOpcion.bancoPregunta.idBancoPregunta = :idPregunta"
         ),
         // NUEVAS CONSULTAS: Para actualización de respuestas y validación final
         @NamedQuery(
                 name = "RespuestaExamen.findByExamenAndPregunta",
-                query = "SELECT r FROM RespuestaExamen r WHERE r.idExamen.idExamenRealizado = :idExamen AND r.idPreguntaOpcion.bancoPregunta.idBancoPregunta = :idPregunta"
+                query = "SELECT r FROM RespuestaExamen r WHERE r.examenRealizado.idExamenRealizado = :idExamen AND r.preguntaOpcion.bancoPregunta.idBancoPregunta = :idPregunta"
         ),
         @NamedQuery(
                 name = "RespuestaExamen.countRespuestasByExamen",
-                query = "SELECT COUNT(r) FROM RespuestaExamen r WHERE r.idExamen.idExamenRealizado = :idExamen"
+                query = "SELECT COUNT(r) FROM RespuestaExamen r WHERE r.examenRealizado.idExamenRealizado = :idExamen"
         )
 })
 public class RespuestaExamen implements Serializable {
@@ -50,12 +50,12 @@ public class RespuestaExamen implements Serializable {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_examen", nullable = false)
-    private ExamenRealizado idExamen;
+    private ExamenRealizado examenRealizado;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_pregunta_opcion", nullable = false)
-    private PreguntaOpcion idPreguntaOpcion;
+    private PreguntaOpcion preguntaOpcion;
 
     public UUID getIdRespuestaExamen() {
         return idRespuestaExamen;
@@ -65,20 +65,20 @@ public class RespuestaExamen implements Serializable {
         this.idRespuestaExamen = id;
     }
 
-    public ExamenRealizado getIdExamen() {
-        return idExamen;
+    public ExamenRealizado getExamenRealizado() {
+        return examenRealizado;
     }
 
-    public void setIdExamen(ExamenRealizado idExamen) {
-        this.idExamen = idExamen;
+    public void setExamenRealizado(ExamenRealizado idExamen) {
+        this.examenRealizado = idExamen;
     }
 
-    public PreguntaOpcion getIdPreguntaOpcion() {
-        return idPreguntaOpcion;
+    public PreguntaOpcion getPreguntaOpcion() {
+        return preguntaOpcion;
     }
 
-    public void setIdPreguntaOpcion(PreguntaOpcion idPreguntaOpcion) {
-        this.idPreguntaOpcion = idPreguntaOpcion;
+    public void setPreguntaOpcion(PreguntaOpcion idPreguntaOpcion) {
+        this.preguntaOpcion = idPreguntaOpcion;
     }
 
     @Override

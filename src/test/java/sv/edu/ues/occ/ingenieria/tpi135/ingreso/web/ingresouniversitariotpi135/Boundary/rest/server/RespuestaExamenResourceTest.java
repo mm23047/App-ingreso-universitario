@@ -62,8 +62,8 @@ class RespuestaExamenResourceTest {
         opcion.setIdPreguntaOpcion(opcionId);
 
         RespuestaExamen payload = new RespuestaExamen();
-        payload.setIdExamen(examen);
-        payload.setIdPreguntaOpcion(opcion);
+        payload.setExamenRealizado(examen);
+        payload.setPreguntaOpcion(opcion);
 
         when(examenRealizadoDAO.leer(examenId)).thenReturn(examen);
         when(preguntaOpcionDAO.leer(opcionId)).thenReturn(opcion);
@@ -83,8 +83,8 @@ class RespuestaExamenResourceTest {
         opcion.setIdPreguntaOpcion(opcionId);
 
         RespuestaExamen payload = new RespuestaExamen();
-        payload.setIdExamen(examen);
-        payload.setIdPreguntaOpcion(opcion);
+        payload.setExamenRealizado(examen);
+        payload.setPreguntaOpcion(opcion);
 
         when(examenRealizadoDAO.leer(examenId)).thenReturn(examen);
         when(preguntaOpcionDAO.leer(opcionId)).thenReturn(opcion);
@@ -105,8 +105,8 @@ class RespuestaExamenResourceTest {
         opcion.setIdPreguntaOpcion(opcionId);
 
         RespuestaExamen payload = new RespuestaExamen();
-        payload.setIdExamen(examen);
-        payload.setIdPreguntaOpcion(opcion);
+        payload.setExamenRealizado(examen);
+        payload.setPreguntaOpcion(opcion);
 
         when(examenRealizadoDAO.leer(examenId)).thenReturn(examen);
         when(preguntaOpcionDAO.leer(opcionId)).thenReturn(opcion);
