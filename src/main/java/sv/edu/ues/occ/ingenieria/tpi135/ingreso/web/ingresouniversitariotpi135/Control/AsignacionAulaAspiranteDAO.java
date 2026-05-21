@@ -23,11 +23,11 @@ public class AsignacionAulaAspiranteDAO extends IngresoDefaultDataAccess<Asignac
 
     @Override
     public void crear(AsignacionAulaAspirante entity) {
-        if (entity == null || entity.getIdInscripcion() == null || entity.getDisponibilidad() == null) {
+        if (entity == null || entity.getRelacionInscripcion() == null || entity.getDisponibilidad() == null) {
             throw new IllegalArgumentException("La asignación, la inscripción y la disponibilidad de aula son requeridas.");
         }
 
-        UUID idInscripcion = entity.getIdInscripcion().getIdInscripcionPrueba();
+        UUID idInscripcion = entity.getRelacionInscripcion().getIdInscripcionPrueba();
         UUID idAula = entity.getDisponibilidad().getIdAula().getIdAula();
         UUID idTurno = entity.getDisponibilidad().getIdTurno().getIdTurnoExamen();
 

@@ -61,7 +61,7 @@ class AsignacionAulaAspiranteResourceHardeningTest {
         AsignacionAulaAspirante payload = crearPayload();
         UUID idAula = payload.getDisponibilidad().getIdAula().getIdAula();
         UUID idTurno = payload.getDisponibilidad().getIdTurno().getIdTurnoExamen();
-        UUID idInscripcion = payload.getIdInscripcion().getIdInscripcionPrueba();
+        UUID idInscripcion = payload.getRelacionInscripcion().getIdInscripcionPrueba();
 
         when(disponibilidadAulaTurnoDAO.existsByAulaAndTurno(idAula, idTurno)).thenReturn(false);
 
@@ -78,7 +78,7 @@ class AsignacionAulaAspiranteResourceHardeningTest {
         AsignacionAulaAspirante payload = crearPayload();
         UUID idAula = payload.getDisponibilidad().getIdAula().getIdAula();
         UUID idTurno = payload.getDisponibilidad().getIdTurno().getIdTurnoExamen();
-        UUID idInscripcion = payload.getIdInscripcion().getIdInscripcionPrueba();
+        UUID idInscripcion = payload.getRelacionInscripcion().getIdInscripcionPrueba();
 
         when(disponibilidadAulaTurnoDAO.existsByAulaAndTurno(idAula, idTurno)).thenReturn(true);
         when(asignacionAulaAspiranteDAO.existsByInscripcionAndTurno(idInscripcion, idTurno)).thenReturn(true);
@@ -96,7 +96,7 @@ class AsignacionAulaAspiranteResourceHardeningTest {
         AsignacionAulaAspirante payload = crearPayload();
         UUID idAula = payload.getDisponibilidad().getIdAula().getIdAula();
         UUID idTurno = payload.getDisponibilidad().getIdTurno().getIdTurnoExamen();
-        UUID idInscripcion = payload.getIdInscripcion().getIdInscripcionPrueba();
+        UUID idInscripcion = payload.getRelacionInscripcion().getIdInscripcionPrueba();
 
         Aula aula = payload.getDisponibilidad().getIdAula();
         aula.setCapacidadFisica(1);
@@ -118,7 +118,7 @@ class AsignacionAulaAspiranteResourceHardeningTest {
         AsignacionAulaAspirante payload = crearPayload();
         UUID idAula = payload.getDisponibilidad().getIdAula().getIdAula();
         UUID idTurno = payload.getDisponibilidad().getIdTurno().getIdTurnoExamen();
-        UUID idInscripcion = payload.getIdInscripcion().getIdInscripcionPrueba();
+        UUID idInscripcion = payload.getRelacionInscripcion().getIdInscripcionPrueba();
 
         when(disponibilidadAulaTurnoDAO.existsByAulaAndTurno(idAula, idTurno)).thenReturn(true);
         when(asignacionAulaAspiranteDAO.existsByInscripcionAndTurno(idInscripcion, idTurno)).thenReturn(false);
@@ -139,7 +139,7 @@ class AsignacionAulaAspiranteResourceHardeningTest {
 
         InscripcionesPrueba inscripcion = new InscripcionesPrueba();
         inscripcion.setIdInscripcionPrueba(UUID.randomUUID());
-        payload.setIdInscripcion(inscripcion);
+        payload.setRelacionInscripcion(inscripcion);
 
         Aula aula = new Aula();
         aula.setIdAula(UUID.randomUUID());

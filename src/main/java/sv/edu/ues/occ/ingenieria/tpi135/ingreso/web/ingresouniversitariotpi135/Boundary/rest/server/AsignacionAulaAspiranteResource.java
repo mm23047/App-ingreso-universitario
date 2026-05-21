@@ -71,8 +71,8 @@ public class AsignacionAulaAspiranteResource extends AbstractResource<Asignacion
     public Response create(AsignacionAulaAspirante entity, @Context UriInfo uriInfo) {
         if (entity != null
                 && entity.getIdAsignacionAulaAspirante() == null
-                && entity.getIdInscripcion() != null
-                && entity.getIdInscripcion().getIdInscripcionPrueba() != null
+                && entity.getRelacionInscripcion() != null
+                && entity.getRelacionInscripcion().getIdInscripcionPrueba() != null
                 && entity.getDisponibilidad() != null
                 && entity.getDisponibilidad().getIdAula() != null
                 && entity.getDisponibilidad().getIdAula().getIdAula() != null
@@ -81,7 +81,7 @@ public class AsignacionAulaAspiranteResource extends AbstractResource<Asignacion
             try {
                 UUID idAula = entity.getDisponibilidad().getIdAula().getIdAula();
                 UUID idTurno = entity.getDisponibilidad().getIdTurno().getIdTurnoExamen();
-                UUID idInscripcion = entity.getIdInscripcion().getIdInscripcionPrueba();
+                UUID idInscripcion = entity.getRelacionInscripcion().getIdInscripcionPrueba();
 
                 if (!disponibilidadAulaTurnoDAO.existsByAulaAndTurno(idAula, idTurno)) {
                     return Response.status(Response.Status.CONFLICT)
