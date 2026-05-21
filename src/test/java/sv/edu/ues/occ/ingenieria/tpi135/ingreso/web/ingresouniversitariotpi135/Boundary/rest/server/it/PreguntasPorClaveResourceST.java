@@ -188,7 +188,7 @@ public class PreguntasPorClaveResourceST extends AbstractResourceST {
         PreguntasPorClave nueva = new PreguntasPorClave();
         BancoPregunta pregunta = new BancoPregunta();
         pregunta.setIdBancoPregunta(ID_PREGUNTA_1);
-        nueva.setIdPregunta(pregunta);
+        nueva.setBancoPregunta(pregunta);
         // Falta: idClave
 
         Response response = post("preguntas_por_clave", nueva);
@@ -205,7 +205,7 @@ public class PreguntasPorClaveResourceST extends AbstractResourceST {
         PreguntasPorClave nueva = new PreguntasPorClave();
         ClavesExamen clave = new ClavesExamen();
         clave.setIdClaveExaman(ID_CLAVE_A);
-        nueva.setIdClave(clave);
+        nueva.setClaveExamen(clave);
         // Falta: idPregunta
 
         Response response = post("preguntas_por_clave", nueva);
@@ -290,8 +290,8 @@ public class PreguntasPorClaveResourceST extends AbstractResourceST {
         clave.setIdClaveExaman(idClave);
         BancoPregunta pregunta = new BancoPregunta();
         pregunta.setIdBancoPregunta(idPregunta);
-        pc.setIdClave(clave);
-        pc.setIdPregunta(pregunta);
+        pc.setClaveExamen(clave);
+        pc.setBancoPregunta(pregunta);
         
         return pc;
     }

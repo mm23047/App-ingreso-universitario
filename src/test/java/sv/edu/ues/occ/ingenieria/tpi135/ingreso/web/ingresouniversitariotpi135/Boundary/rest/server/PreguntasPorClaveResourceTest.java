@@ -54,8 +54,8 @@ class PreguntasPorClaveResourceTest {
 
         entidad = new PreguntasPorClave();
         entidad.setIdPreguntaPorClave(pk);
-        entidad.setIdClave(claveEntidad);
-        entidad.setIdPregunta(preguntaEntidad);
+        entidad.setClaveExamen(claveEntidad);
+        entidad.setBancoPregunta(preguntaEntidad);
     }
 
     // ==================== findRange (GET /) ====================
@@ -161,8 +161,8 @@ class PreguntasPorClaveResourceTest {
     void create_ConEntidadValida_DebeRetornar201() {
         PreguntasPorClave nueva = new PreguntasPorClave();
         nueva.setIdPreguntaPorClave(entidad.getIdPreguntaPorClave());
-        nueva.setIdClave(claveEntidad);
-        nueva.setIdPregunta(preguntaEntidad);
+        nueva.setClaveExamen(claveEntidad);
+        nueva.setBancoPregunta(preguntaEntidad);
 
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
@@ -199,8 +199,8 @@ class PreguntasPorClaveResourceTest {
 
         PreguntasPorClave nueva = new PreguntasPorClave();
         nueva.setIdPreguntaPorClave(pkInvalido);
-        nueva.setIdClave(claveEntidad);
-        nueva.setIdPregunta(preguntaEntidad);
+        nueva.setClaveExamen(claveEntidad);
+        nueva.setBancoPregunta(preguntaEntidad);
 
         Response response = resource.create(nueva, uriInfo);
 
@@ -216,8 +216,8 @@ class PreguntasPorClaveResourceTest {
 
         PreguntasPorClave nueva = new PreguntasPorClave();
         nueva.setIdPreguntaPorClave(pkInvalido);
-        nueva.setIdClave(claveEntidad);
-        nueva.setIdPregunta(preguntaEntidad);
+        nueva.setClaveExamen(claveEntidad);
+        nueva.setBancoPregunta(preguntaEntidad);
 
         Response response = resource.create(nueva, uriInfo);
 
@@ -229,8 +229,8 @@ class PreguntasPorClaveResourceTest {
     void create_SinEntidadClave_DebeRetornar422() {
         PreguntasPorClave nueva = new PreguntasPorClave();
         nueva.setIdPreguntaPorClave(entidad.getIdPreguntaPorClave());
-        nueva.setIdClave(null);
-        nueva.setIdPregunta(preguntaEntidad);
+        nueva.setClaveExamen(null);
+        nueva.setBancoPregunta(preguntaEntidad);
 
         Response response = resource.create(nueva, uriInfo);
 
@@ -242,8 +242,8 @@ class PreguntasPorClaveResourceTest {
     void create_SinEntidadPregunta_DebeRetornar422() {
         PreguntasPorClave nueva = new PreguntasPorClave();
         nueva.setIdPreguntaPorClave(entidad.getIdPreguntaPorClave());
-        nueva.setIdClave(claveEntidad);
-        nueva.setIdPregunta(null);
+        nueva.setClaveExamen(claveEntidad);
+        nueva.setBancoPregunta(null);
 
         Response response = resource.create(nueva, uriInfo);
 
@@ -255,8 +255,8 @@ class PreguntasPorClaveResourceTest {
     void create_ConExcepcionEnDAO_DebeRetornar500() {
         PreguntasPorClave nueva = new PreguntasPorClave();
         nueva.setIdPreguntaPorClave(entidad.getIdPreguntaPorClave());
-        nueva.setIdClave(claveEntidad);
-        nueva.setIdPregunta(preguntaEntidad);
+        nueva.setClaveExamen(claveEntidad);
+        nueva.setBancoPregunta(preguntaEntidad);
 
         doThrow(new RuntimeException("BD error")).when(preguntasPorClaveDAO).crear(any());
 

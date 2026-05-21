@@ -94,8 +94,8 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
             PreguntasPorClave nuevo = new PreguntasPorClave();
             nuevo.setIdPreguntaPorClave(id);
-            nuevo.setIdClave(clave);
-            nuevo.setIdPregunta(pregunta);
+            nuevo.setClaveExamen(clave);
+            nuevo.setBancoPregunta(pregunta);
 
             cut.crear(nuevo);
 
@@ -190,8 +190,8 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
             PreguntasPorClave nuevo = new PreguntasPorClave();
             nuevo.setIdPreguntaPorClave(id);
-            nuevo.setIdClave(clave);
-            nuevo.setIdPregunta(pregunta);
+            nuevo.setClaveExamen(clave);
+            nuevo.setBancoPregunta(pregunta);
 
             cut.crear(nuevo);
             assertEquals(5, cut.count());

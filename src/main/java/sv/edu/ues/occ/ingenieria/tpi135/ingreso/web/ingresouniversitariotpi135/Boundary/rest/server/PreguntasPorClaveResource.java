@@ -69,8 +69,8 @@ public class PreguntasPorClaveResource extends AbstractResource<PreguntasPorClav
         if (entity != null && entity.getIdPreguntaPorClave() != null
                 && entity.getIdPreguntaPorClave().getIdClave() != null
                 && entity.getIdPreguntaPorClave().getIdPregunta() != null
-                && entity.getIdClave() != null
-                && entity.getIdPregunta() != null) {
+                && entity.getClaveExamen() != null
+                && entity.getBancoPregunta() != null) {
             try {
                 preguntasPorClaveDAO.crear(entity);
                 return Response.created(

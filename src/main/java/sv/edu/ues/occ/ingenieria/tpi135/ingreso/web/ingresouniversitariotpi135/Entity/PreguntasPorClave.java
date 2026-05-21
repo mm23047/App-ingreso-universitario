@@ -14,7 +14,7 @@ import java.util.Objects;
         ),
         @NamedQuery(
                 name = "PreguntasPorClave.findPreguntasByClave",
-                query = "SELECT p FROM PreguntasPorClave p JOIN FETCH p.idPregunta WHERE p.idPreguntaPorClave.idClave = :idClave"
+                query = "SELECT p FROM PreguntasPorClave p JOIN FETCH p.bancoPregunta WHERE p.idPreguntaPorClave.idClave = :idClave"
         )
 })
 public class PreguntasPorClave implements Serializable {
@@ -26,12 +26,12 @@ public class PreguntasPorClave implements Serializable {
     @MapsId("idClave")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_clave", nullable = false)
-    private ClavesExamen idClave;
+    private ClavesExamen claveExamen;
 
     @MapsId("idPregunta")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_pregunta", nullable = false)
-    private BancoPregunta idPregunta;
+    private BancoPregunta bancoPregunta;
 
     public PreguntasPorClaveId getIdPreguntaPorClave() {
         return idPreguntaPorClave;
@@ -41,20 +41,20 @@ public class PreguntasPorClave implements Serializable {
         this.idPreguntaPorClave = id;
     }
 
-    public ClavesExamen getIdClave() {
-        return idClave;
+    public ClavesExamen getClaveExamen() {
+        return claveExamen;
     }
 
-    public void setIdClave(ClavesExamen idClave) {
-        this.idClave = idClave;
+    public void setClaveExamen(ClavesExamen idClave) {
+        this.claveExamen = idClave;
     }
 
-    public BancoPregunta getIdPregunta() {
-        return idPregunta;
+    public BancoPregunta getBancoPregunta() {
+        return bancoPregunta;
     }
 
-    public void setIdPregunta(BancoPregunta idPregunta) {
-        this.idPregunta = idPregunta;
+    public void setBancoPregunta(BancoPregunta idPregunta) {
+        this.bancoPregunta = idPregunta;
     }
 
     // CORRECCIÓN: Métodos indispensables para el manejo de colecciones en JPA
