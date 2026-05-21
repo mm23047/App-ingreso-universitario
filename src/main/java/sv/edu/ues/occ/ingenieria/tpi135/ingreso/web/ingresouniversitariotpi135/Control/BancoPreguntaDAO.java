@@ -33,7 +33,7 @@ public class BancoPreguntaDAO extends IngresoDefaultDataAccess<BancoPregunta> im
         if (entity == null || entity.getEnunciado() == null || entity.getEnunciado().isBlank()) {
             throw new IllegalArgumentException("El enunciado de la pregunta es requerido.");
         }
-        if (entity.getTema() == null || entity.getTema().getIdArea() == null) {
+        if (entity.getTema() == null || entity.getTema().getAreaConocimiento() == null) {
             throw new IllegalArgumentException("La pregunta debe estar asociada a un Tema y Área válidos.");
         }
 
@@ -42,7 +42,7 @@ public class BancoPreguntaDAO extends IngresoDefaultDataAccess<BancoPregunta> im
         // 1. VALIDACIÓN SEMÁNTICA: Si ya existe en otra área, arroja un error descriptivo de negocio
         Long areasEnConflicto = em.createNamedQuery("BancoPregunta.countConflictosArea", Long.class)
                 .setParameter("enunciado", enunciadoSaneado)
-                .setParameter("idAreaActual", entity.getTema().getIdArea().getIdAreaConocimiento())
+                .setParameter("idAreaActual", entity.getTema().getAreaConocimiento().getIdAreaConocimiento())
                 .getSingleResult();
 
         if (areasEnConflicto > 0) {

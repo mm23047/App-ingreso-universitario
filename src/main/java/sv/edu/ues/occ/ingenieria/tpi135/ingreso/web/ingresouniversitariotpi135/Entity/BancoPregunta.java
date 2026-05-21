@@ -26,7 +26,7 @@ import java.util.UUID;
         ),
         @NamedQuery(
                 name = "BancoPregunta.countConflictosArea",
-                query = "SELECT COUNT(bp) FROM BancoPregunta bp WHERE UPPER(TRIM(bp.enunciado)) = UPPER(TRIM(:enunciado)) AND bp.tema.idArea.idAreaConocimiento <> :idAreaActual"
+                query = "SELECT COUNT(bp) FROM BancoPregunta bp WHERE UPPER(TRIM(bp.enunciado)) = UPPER(TRIM(:enunciado)) AND bp.tema.areaConocimiento.idAreaConocimiento <> :idAreaActual"
         )
 })
 public class BancoPregunta implements Serializable {
@@ -68,7 +68,7 @@ public class BancoPregunta implements Serializable {
     // TODO: FASE 2 - Bridge temporal por migración. Revisar eliminación tras refactor REST.
     @Transient
     public AreasConocimiento getIdArea() {
-        return tema != null ? tema.getIdArea() : null;
+        return tema != null ? tema.getAreaConocimiento() : null;
     }
 
     // TODO: FASE 2 - Bridge temporal por migración. Revisar eliminación tras refactor REST.
@@ -80,7 +80,7 @@ public class BancoPregunta implements Serializable {
         if (this.tema == null) {
             this.tema = new Tema();
         }
-        this.tema.setIdArea(idArea);
+        this.tema.setAreaConocimiento(idArea);
     }
 
     public String getEnunciado() {

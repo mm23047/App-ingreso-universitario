@@ -31,7 +31,7 @@ import java.util.UUID;
         // NUEVAS CONSULTAS DE NEGOCIO
         @NamedQuery(
                 name = "Tema.findByArea",
-                query = "SELECT t FROM Tema t WHERE t.idArea.idAreaConocimiento = :idArea ORDER BY t.nombreTema ASC"
+                query = "SELECT t FROM Tema t WHERE t.areaConocimiento.idAreaConocimiento = :idArea ORDER BY t.nombreTema ASC"
         ),
         @NamedQuery(
                 name = "Tema.findByTemaPadre",
@@ -39,7 +39,7 @@ import java.util.UUID;
         ),
         @NamedQuery(
                 name = "Tema.findRaicesByArea",
-                query = "SELECT t FROM Tema t WHERE t.idArea.idAreaConocimiento = :idArea AND t.idTemaPadre IS NULL ORDER BY t.nombreTema ASC"
+                query = "SELECT t FROM Tema t WHERE t.areaConocimiento.idAreaConocimiento = :idArea AND t.idTemaPadre IS NULL ORDER BY t.nombreTema ASC"
         )
 })
 public class Tema implements Serializable {
@@ -53,7 +53,7 @@ public class Tema implements Serializable {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_area", nullable = false)
-    private AreasConocimiento idArea;
+    private AreasConocimiento areaConocimiento;
 
     @Size(max = 100)
     @NotNull
@@ -72,12 +72,12 @@ public class Tema implements Serializable {
         this.idTema = id;
     }
 
-    public AreasConocimiento getIdArea() {
-        return idArea;
+    public AreasConocimiento getAreaConocimiento() {
+        return areaConocimiento;
     }
 
-    public void setIdArea(AreasConocimiento idArea) {
-        this.idArea = idArea;
+    public void setAreaConocimiento(AreasConocimiento idArea) {
+        this.areaConocimiento = idArea;
     }
 
     public String getNombreTema() {

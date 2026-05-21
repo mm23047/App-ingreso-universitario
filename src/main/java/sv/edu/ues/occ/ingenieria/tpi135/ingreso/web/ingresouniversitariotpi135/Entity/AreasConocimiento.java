@@ -30,14 +30,14 @@ import java.util.UUID;
         @NamedQuery(
                 name = "AreasConocimiento.findConPreguntas",
                 query = "SELECT a FROM AreasConocimiento a WHERE EXISTS (" +
-                        "  SELECT t FROM Tema t WHERE t.idArea = a AND EXISTS (" +
+                        "  SELECT t FROM Tema t WHERE t.areaConocimiento = a AND EXISTS (" +
                         "    SELECT bp FROM BancoPregunta bp WHERE bp.tema = t" +
                         "  )" +
                         ") ORDER BY a.nombreArea ASC"
         ),
         @NamedQuery(
                 name = "AreasConocimiento.countDependencias",
-                query = "SELECT COUNT(t) FROM Tema t WHERE t.idArea.idAreaConocimiento = :idArea"
+                query = "SELECT COUNT(t) FROM Tema t WHERE t.areaConocimiento.idAreaConocimiento = :idArea"
         )
 })
 public class AreasConocimiento implements Serializable {

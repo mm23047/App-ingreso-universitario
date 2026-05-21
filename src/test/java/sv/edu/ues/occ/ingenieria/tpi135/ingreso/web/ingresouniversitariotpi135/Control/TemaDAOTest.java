@@ -67,11 +67,11 @@ class TemaDAOTest {
 
         Tema padre = new Tema();
         padre.setIdTema(UUID.randomUUID());
-        padre.setIdArea(area);
+        padre.setAreaConocimiento(area);
         padre.setNombreTema("Padre");
 
         Tema tema = new Tema();
-        tema.setIdArea(area);
+        tema.setAreaConocimiento(area);
         tema.setNombreTema("Hijo");
         tema.setIdTemaPadre(padre);
 
