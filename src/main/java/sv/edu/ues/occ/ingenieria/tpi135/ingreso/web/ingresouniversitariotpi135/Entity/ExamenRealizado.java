@@ -15,11 +15,11 @@ import java.util.UUID;
 @NamedQueries({
         @NamedQuery(
                 name = "ExamenRealizado.findByAspiranteId",
-                query = "SELECT e FROM ExamenRealizado e JOIN e.idInscripcion i WHERE i.idAspirante.id = :aspiranteId"
+                query = "SELECT e FROM ExamenRealizado e JOIN e.inscripcionesPrueba i WHERE i.idAspirante.id = :aspiranteId"
         ),
         @NamedQuery(
                 name = "ExamenRealizado.findByPruebaId",
-                query = "SELECT e FROM ExamenRealizado e WHERE e.idClave.pruebaAdmision.idPruebaAdmision = :pruebaId"
+                query = "SELECT e FROM ExamenRealizado e WHERE e.claveExamen.pruebaAdmision.idPruebaAdmision = :pruebaId"
         ),
         @NamedQuery(
                 name = "ExamenRealizado.countPreguntasByClave",
@@ -31,7 +31,7 @@ import java.util.UUID;
         ),
         @NamedQuery(
                 name = "ExamenRealizado.findRankingByPruebaAndEtapa",
-                query = "SELECT e FROM ExamenRealizado e WHERE e.idClave.pruebaAdmision.idPruebaAdmision = :idPrueba AND e.idEtapa.idEtapaAdmision = :idEtapa AND e.puntajeFinal IS NOT NULL ORDER BY e.puntajeFinal DESC"
+                query = "SELECT e FROM ExamenRealizado e WHERE e.claveExamen.pruebaAdmision.idPruebaAdmision = :idPrueba AND e.etapaAdmision.idEtapaAdmision = :idEtapa AND e.puntajeFinal IS NOT NULL ORDER BY e.puntajeFinal DESC"
         )
 })
 public class ExamenRealizado implements Serializable {
@@ -45,17 +45,17 @@ public class ExamenRealizado implements Serializable {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_inscripcion", nullable = false)
-    private InscripcionesPrueba idInscripcion;
+    private InscripcionesPrueba inscripcionesPrueba;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_clave", nullable = false)
-    private ClavesExamen idClave;
+    private ClavesExamen claveExamen;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_etapa", nullable = false)
-    private EtapasAdmision idEtapa;
+    private EtapasAdmision etapaAdmision;
 
     @Column(name = "puntaje_final", precision = 5, scale = 2)
     private BigDecimal puntajeFinal;
@@ -72,28 +72,28 @@ public class ExamenRealizado implements Serializable {
         this.idExamenRealizado = id;
     }
 
-    public InscripcionesPrueba getIdInscripcion() {
-        return idInscripcion;
+    public InscripcionesPrueba getInscripcionesPrueba() {
+        return inscripcionesPrueba;
     }
 
-    public void setIdInscripcion(InscripcionesPrueba idInscripcion) {
-        this.idInscripcion = idInscripcion;
+    public void setInscripcionesPrueba(InscripcionesPrueba idInscripcion) {
+        this.inscripcionesPrueba = idInscripcion;
     }
 
-    public ClavesExamen getIdClave() {
-        return idClave;
+    public ClavesExamen getClaveExamen() {
+        return claveExamen;
     }
 
-    public void setIdClave(ClavesExamen idClave) {
-        this.idClave = idClave;
+    public void setClaveExamen(ClavesExamen idClave) {
+        this.claveExamen = idClave;
     }
 
-    public EtapasAdmision getIdEtapa() {
-        return idEtapa;
+    public EtapasAdmision getEtapaAdmision() {
+        return etapaAdmision;
     }
 
-    public void setIdEtapa(EtapasAdmision idEtapa) {
-        this.idEtapa = idEtapa;
+    public void setEtapaAdmision(EtapasAdmision idEtapa) {
+        this.etapaAdmision = idEtapa;
     }
 
     public BigDecimal getPuntajeFinal() {

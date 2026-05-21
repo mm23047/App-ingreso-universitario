@@ -21,7 +21,7 @@ import java.util.UUID;
         // NUEVA CONSULTA: Trae los procesos de aspirantes pendientes filtrados por nota final (ExamenRealizado) de mayor a menor
         @NamedQuery(
                 name = "ProcesoAdmisionAspirante.findPendientesPorPuntaje",
-                query = "SELECT p FROM ProcesoAdmisionAspirante p JOIN ExamenRealizado er ON er.idInscripcion = p.idProcesoAdmisionAspirante WHERE p.idEtapaActual.idEtapaAdmision = :idEtapa AND p.estado = 'PENDIENTE' ORDER BY er.puntajeFinal DESC"
+                query = "SELECT p FROM ProcesoAdmisionAspirante p JOIN ExamenRealizado er ON er.inscripcionesPrueba = p.idProcesoAdmisionAspirante WHERE p.idEtapaActual.idEtapaAdmision = :idEtapa AND p.estado = 'PENDIENTE' ORDER BY er.puntajeFinal DESC"
         )
 })
 public class ProcesoAdmisionAspirante implements Serializable {

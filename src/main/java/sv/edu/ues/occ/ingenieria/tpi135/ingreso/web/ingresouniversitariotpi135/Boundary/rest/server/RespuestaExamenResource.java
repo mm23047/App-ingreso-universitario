@@ -138,7 +138,7 @@ public class RespuestaExamenResource extends AbstractResource<RespuestaExamen> {
                 }
 
                 UUID preguntaId = opcion.getIdPregunta().getIdBancoPregunta();
-                if (!preguntasPorClaveDAO.existsByClaveAndPregunta(examen.getIdClave().getIdClaveExaman(), preguntaId)) {
+                if (!preguntasPorClaveDAO.existsByClaveAndPregunta(examen.getClaveExamen().getIdClaveExaman(), preguntaId)) {
                     return Response.status(422)
                             .header(MISSING_PARAMETER, "pregunta does not belong to examen.clave")
                             .build();

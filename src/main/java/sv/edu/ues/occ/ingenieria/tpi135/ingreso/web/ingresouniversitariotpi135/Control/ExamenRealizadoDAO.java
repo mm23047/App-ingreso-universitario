@@ -89,7 +89,7 @@ public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado
             }
 
             // CORRECCIÓN: Extracción correcta del ID de la clave
-            UUID claveId = examen.getIdClave().getIdClaveExaman();
+            UUID claveId = examen.getClaveExamen().getIdClaveExaman();
 
             // 1. Llamada al NamedQuery para el total de preguntas
             Long totalPreguntasClave = em.createNamedQuery("ExamenRealizado.countPreguntasByClave", Long.class)
@@ -102,8 +102,8 @@ public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado
                     .setParameter("idClave", claveId)
                     .getSingleResult();
 
-            BigDecimal puntajeMaximo = examen.getIdEtapa() != null && examen.getIdEtapa().getPuntajeMaximo() != null
-                    ? examen.getIdEtapa().getPuntajeMaximo()
+            BigDecimal puntajeMaximo = examen.getEtapaAdmision() != null && examen.getEtapaAdmision().getPuntajeMaximo() != null
+                    ? examen.getEtapaAdmision().getPuntajeMaximo()
                     : BigDecimal.TEN;
 
             BigDecimal puntajeCalculado = BigDecimal.ZERO;
@@ -115,8 +115,8 @@ public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado
 
             examen.setPuntajeFinal(puntajeCalculado);
 
-            if (examen.getIdInscripcion() != null) {
-                InscripcionesPrueba inscripcion = examen.getIdInscripcion();
+            if (examen.getInscripcionesPrueba() != null) {
+                InscripcionesPrueba inscripcion = examen.getInscripcionesPrueba();
                 inscripcion.setEstado("CALIFICADO");
                 em.merge(inscripcion);
             }
