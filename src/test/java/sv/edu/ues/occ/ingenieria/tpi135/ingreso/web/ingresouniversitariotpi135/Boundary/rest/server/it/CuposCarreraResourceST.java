@@ -176,9 +176,9 @@ public class CuposCarreraResourceST extends AbstractResourceST {
         entidad.setIdCupoCarrera(pk);
 
         // Usamos referencias completas para no contaminar el cache JPA con entidades parciales.
-        entidad.setIdPrueba(construirReferenciaPrueba(idPrueba));
-        entidad.setIdCarrera(construirReferenciaCarrera(idCarrera));
-        entidad.setIdEtapa(construirReferenciaEtapa(idEtapa));
+        entidad.setPruebaAdmision(construirReferenciaPrueba(idPrueba));
+        entidad.setCatalogoCarrera(construirReferenciaCarrera(idCarrera));
+        entidad.setEtapaAdmision(construirReferenciaEtapa(idEtapa));
 
         // Setear el valor nativo
         entidad.setCupos(cantidadCupos);

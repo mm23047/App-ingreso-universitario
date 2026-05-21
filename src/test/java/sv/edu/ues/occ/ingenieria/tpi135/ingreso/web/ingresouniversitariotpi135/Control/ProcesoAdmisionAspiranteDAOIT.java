@@ -274,9 +274,9 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             cuposICSId.setIdEtapa(etapaAsignacion.getIdEtapaAdmision());
             CuposCarrera cuposICS = new CuposCarrera();
             cuposICS.setIdCupoCarrera(cuposICSId);
-            cuposICS.setIdPrueba(prueba);
-            cuposICS.setIdCarrera(carreraICS);
-            cuposICS.setIdEtapa(etapaAsignacion);
+            cuposICS.setPruebaAdmision(prueba);
+            cuposICS.setCatalogoCarrera(carreraICS);
+            cuposICS.setEtapaAdmision(etapaAsignacion);
             cuposICS.setCupos(0);
             em.persist(cuposICS);
 
@@ -286,9 +286,9 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             cuposISIId.setIdEtapa(etapaAsignacion.getIdEtapaAdmision());
             CuposCarrera cuposISI = new CuposCarrera();
             cuposISI.setIdCupoCarrera(cuposISIId);
-            cuposISI.setIdPrueba(prueba);
-            cuposISI.setIdCarrera(carreraISI);
-            cuposISI.setIdEtapa(etapaAsignacion);
+            cuposISI.setPruebaAdmision(prueba);
+            cuposISI.setCatalogoCarrera(carreraISI);
+            cuposISI.setEtapaAdmision(etapaAsignacion);
             cuposISI.setCupos(2);
             em.persist(cuposISI);
 
@@ -381,9 +381,9 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             cuposICSId.setIdEtapa(etapaAsignacion.getIdEtapaAdmision());
             CuposCarrera cuposICS = new CuposCarrera();
             cuposICS.setIdCupoCarrera(cuposICSId);
-            cuposICS.setIdPrueba(prueba);
-            cuposICS.setIdCarrera(carreraICS);
-            cuposICS.setIdEtapa(etapaAsignacion);
+            cuposICS.setPruebaAdmision(prueba);
+            cuposICS.setCatalogoCarrera(carreraICS);
+            cuposICS.setEtapaAdmision(etapaAsignacion);
             cuposICS.setCupos(0);
             em.persist(cuposICS);
 

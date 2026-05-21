@@ -72,9 +72,9 @@ public class CuposCarreraResource extends AbstractResource<CuposCarrera> {
                 && entity.getIdCupoCarrera().getIdPrueba() != null
                 && entity.getIdCupoCarrera().getIdCarrera() != null
                 && entity.getIdCupoCarrera().getIdEtapa() != null
-                && entity.getIdPrueba() != null
-                && entity.getIdCarrera() != null
-                && entity.getIdEtapa() != null
+                && entity.getPruebaAdmision() != null
+                && entity.getCatalogoCarrera() != null
+                && entity.getEtapaAdmision() != null
                 && entity.getCupos() != null) {
             try {
                 cuposCarreraDAO.crear(entity);
@@ -115,9 +115,9 @@ public class CuposCarreraResource extends AbstractResource<CuposCarrera> {
                     entity.setIdCupoCarrera(pk);
                     // Preserve existing managed relations to avoid side effects when
                     // request payload sends partial nested entities (only ids).
-                    entity.setIdPrueba(existing.getIdPrueba());
-                    entity.setIdCarrera(existing.getIdCarrera());
-                    entity.setIdEtapa(existing.getIdEtapa());
+                    entity.setPruebaAdmision(existing.getPruebaAdmision());
+                    entity.setCatalogoCarrera(existing.getCatalogoCarrera());
+                    entity.setEtapaAdmision(existing.getEtapaAdmision());
                     cuposCarreraDAO.actualizar(entity);
                     return Response.ok(entity).build();
                 }

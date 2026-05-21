@@ -10,12 +10,12 @@ import java.util.Objects;
 @NamedQueries({
         @NamedQuery(
                 name = "CuposCarrera.findByCarrera",
-                query = "SELECT c FROM CuposCarrera c WHERE c.idCarrera.idCarrera = :idCarrera"
+                query = "SELECT c FROM CuposCarrera c WHERE c.catalogoCarrera.idCarrera = :idCarrera"
         ),
         // NUEVO: Permite buscar la cuota exacta cruzando los tres criterios de selección
         @NamedQuery(
                 name = "CuposCarrera.findUniqueCupo",
-                query = "SELECT c.cupos FROM CuposCarrera c WHERE c.idPrueba.idPruebaAdmision = :idPrueba AND c.idCarrera.idCarrera = :idCarrera AND c.idEtapa.idEtapaAdmision = :idEtapa"
+                query = "SELECT c.cupos FROM CuposCarrera c WHERE c.pruebaAdmision.idPruebaAdmision = :idPrueba AND c.catalogoCarrera.idCarrera = :idCarrera AND c.etapaAdmision.idEtapaAdmision = :idEtapa"
         )
 })
 public class CuposCarrera implements Serializable {
@@ -28,17 +28,17 @@ public class CuposCarrera implements Serializable {
     @MapsId("idPrueba")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_prueba", nullable = false)
-    private PruebasAdmision idPrueba;
+    private PruebasAdmision pruebaAdmision;
 
     @MapsId("idCarrera")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_carrera", nullable = false)
-    private CatalogoCarrera idCarrera;
+    private CatalogoCarrera catalogoCarrera;
 
     @MapsId("idEtapa")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_etapa", nullable = false)
-    private EtapasAdmision idEtapa;
+    private EtapasAdmision etapaAdmision;
 
     @NotNull
     @Column(name = "cupos", nullable = false)
@@ -52,28 +52,28 @@ public class CuposCarrera implements Serializable {
         this.idCupoCarrera = id;
     }
 
-    public PruebasAdmision getIdPrueba() {
-        return idPrueba;
+    public PruebasAdmision getPruebaAdmision() {
+        return pruebaAdmision;
     }
 
-    public void setIdPrueba(PruebasAdmision idPrueba) {
-        this.idPrueba = idPrueba;
+    public void setPruebaAdmision(PruebasAdmision idPrueba) {
+        this.pruebaAdmision = idPrueba;
     }
 
-    public CatalogoCarrera getIdCarrera() {
-        return idCarrera;
+    public CatalogoCarrera getCatalogoCarrera() {
+        return catalogoCarrera;
     }
 
-    public void setIdCarrera(CatalogoCarrera idCarrera) {
-        this.idCarrera = idCarrera;
+    public void setCatalogoCarrera(CatalogoCarrera idCarrera) {
+        this.catalogoCarrera = idCarrera;
     }
 
-    public EtapasAdmision getIdEtapa() {
-        return idEtapa;
+    public EtapasAdmision getEtapaAdmision() {
+        return etapaAdmision;
     }
 
-    public void setIdEtapa(EtapasAdmision idEtapa) {
-        this.idEtapa = idEtapa;
+    public void setEtapaAdmision(EtapasAdmision idEtapa) {
+        this.etapaAdmision = idEtapa;
     }
 
     public Integer getCupos() {
@@ -92,11 +92,11 @@ public class CuposCarrera implements Serializable {
 
     // CORRECCIÓN: Garantiza que la llave compuesta interna esté en perfecta sincronía con los objetos asignados
     private void sincronizarId() {
-        if (this.idCupoCarrera == null && this.idPrueba != null && this.idCarrera != null && this.idEtapa != null) {
+        if (this.idCupoCarrera == null && this.pruebaAdmision != null && this.catalogoCarrera != null && this.etapaAdmision != null) {
             CuposCarreraId compuesto = new CuposCarreraId();
-            compuesto.setIdPrueba(this.idPrueba.getIdPruebaAdmision());
-            compuesto.setIdCarrera(this.idCarrera.getIdCarrera());
-            compuesto.setIdEtapa(this.idEtapa.getIdEtapaAdmision());
+            compuesto.setIdPrueba(this.pruebaAdmision.getIdPruebaAdmision());
+            compuesto.setIdCarrera(this.catalogoCarrera.getIdCarrera());
+            compuesto.setIdEtapa(this.etapaAdmision.getIdEtapaAdmision());
             this.idCupoCarrera = compuesto;
         }
     }

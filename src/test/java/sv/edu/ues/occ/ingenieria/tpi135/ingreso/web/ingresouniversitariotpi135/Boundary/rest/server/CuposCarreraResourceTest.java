@@ -60,9 +60,9 @@ class CuposCarreraResourceTest {
 
         entidad = new CuposCarrera();
         entidad.setIdCupoCarrera(pk);
-    entidad.setIdPrueba(prueba);
-    entidad.setIdCarrera(carrera);
-    entidad.setIdEtapa(etapa);
+    entidad.setPruebaAdmision(prueba);
+    entidad.setCatalogoCarrera(carrera);
+    entidad.setEtapaAdmision(etapa);
         entidad.setCupos(50);
     }
 
@@ -176,9 +176,9 @@ class CuposCarreraResourceTest {
     void create_ConEntidadValida_DebeRetornar201() {
         CuposCarrera nueva = new CuposCarrera();
         nueva.setIdCupoCarrera(entidad.getIdCupoCarrera());
-        nueva.setIdPrueba(prueba);
-        nueva.setIdCarrera(carrera);
-        nueva.setIdEtapa(etapa);
+        nueva.setPruebaAdmision(prueba);
+        nueva.setCatalogoCarrera(carrera);
+        nueva.setEtapaAdmision(etapa);
         nueva.setCupos(60);
 
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
@@ -213,9 +213,9 @@ class CuposCarreraResourceTest {
     void create_SinCupos_DebeRetornar422() {
         CuposCarrera nueva = new CuposCarrera();
         nueva.setIdCupoCarrera(entidad.getIdCupoCarrera());
-        nueva.setIdPrueba(prueba);
-        nueva.setIdCarrera(carrera);
-        nueva.setIdEtapa(etapa);
+        nueva.setPruebaAdmision(prueba);
+        nueva.setCatalogoCarrera(carrera);
+        nueva.setEtapaAdmision(etapa);
 
         Response response = resource.create(nueva, uriInfo);
 
@@ -232,9 +232,9 @@ class CuposCarreraResourceTest {
 
         CuposCarrera nueva = new CuposCarrera();
         nueva.setIdCupoCarrera(pkInvalido);
-        nueva.setIdPrueba(prueba);
-        nueva.setIdCarrera(carrera);
-        nueva.setIdEtapa(etapa);
+        nueva.setPruebaAdmision(prueba);
+        nueva.setCatalogoCarrera(carrera);
+        nueva.setEtapaAdmision(etapa);
         nueva.setCupos(10);
 
         Response response = resource.create(nueva, uriInfo);
@@ -252,9 +252,9 @@ class CuposCarreraResourceTest {
 
         CuposCarrera nueva = new CuposCarrera();
         nueva.setIdCupoCarrera(pkInvalido);
-        nueva.setIdPrueba(prueba);
-        nueva.setIdCarrera(carrera);
-        nueva.setIdEtapa(etapa);
+        nueva.setPruebaAdmision(prueba);
+        nueva.setCatalogoCarrera(carrera);
+        nueva.setEtapaAdmision(etapa);
         nueva.setCupos(10);
 
         Response response = resource.create(nueva, uriInfo);
@@ -272,9 +272,9 @@ class CuposCarreraResourceTest {
 
         CuposCarrera nueva = new CuposCarrera();
         nueva.setIdCupoCarrera(pkInvalido);
-        nueva.setIdPrueba(prueba);
-        nueva.setIdCarrera(carrera);
-        nueva.setIdEtapa(etapa);
+        nueva.setPruebaAdmision(prueba);
+        nueva.setCatalogoCarrera(carrera);
+        nueva.setEtapaAdmision(etapa);
         nueva.setCupos(10);
 
         Response response = resource.create(nueva, uriInfo);
@@ -287,9 +287,9 @@ class CuposCarreraResourceTest {
     void create_SinEntidadPrueba_DebeRetornar422() {
         CuposCarrera nueva = new CuposCarrera();
         nueva.setIdCupoCarrera(entidad.getIdCupoCarrera());
-        nueva.setIdPrueba(null);
-        nueva.setIdCarrera(carrera);
-        nueva.setIdEtapa(etapa);
+        nueva.setPruebaAdmision(null);
+        nueva.setCatalogoCarrera(carrera);
+        nueva.setEtapaAdmision(etapa);
         nueva.setCupos(10);
 
         Response response = resource.create(nueva, uriInfo);
@@ -302,9 +302,9 @@ class CuposCarreraResourceTest {
     void create_SinEntidadCarrera_DebeRetornar422() {
         CuposCarrera nueva = new CuposCarrera();
         nueva.setIdCupoCarrera(entidad.getIdCupoCarrera());
-        nueva.setIdPrueba(prueba);
-        nueva.setIdCarrera(null);
-        nueva.setIdEtapa(etapa);
+        nueva.setPruebaAdmision(prueba);
+        nueva.setCatalogoCarrera(null);
+        nueva.setEtapaAdmision(etapa);
         nueva.setCupos(10);
 
         Response response = resource.create(nueva, uriInfo);
@@ -317,9 +317,9 @@ class CuposCarreraResourceTest {
     void create_SinEntidadEtapa_DebeRetornar422() {
         CuposCarrera nueva = new CuposCarrera();
         nueva.setIdCupoCarrera(entidad.getIdCupoCarrera());
-        nueva.setIdPrueba(prueba);
-        nueva.setIdCarrera(carrera);
-        nueva.setIdEtapa(null);
+        nueva.setPruebaAdmision(prueba);
+        nueva.setCatalogoCarrera(carrera);
+        nueva.setEtapaAdmision(null);
         nueva.setCupos(10);
 
         Response response = resource.create(nueva, uriInfo);
@@ -332,9 +332,9 @@ class CuposCarreraResourceTest {
     void create_ConExcepcionEnDAO_DebeRetornar500() {
         CuposCarrera nueva = new CuposCarrera();
         nueva.setIdCupoCarrera(entidad.getIdCupoCarrera());
-        nueva.setIdPrueba(prueba);
-        nueva.setIdCarrera(carrera);
-        nueva.setIdEtapa(etapa);
+        nueva.setPruebaAdmision(prueba);
+        nueva.setCatalogoCarrera(carrera);
+        nueva.setEtapaAdmision(etapa);
         nueva.setCupos(10);
 
         doThrow(new RuntimeException("BD error")).when(cuposCarreraDAO).crear(any());

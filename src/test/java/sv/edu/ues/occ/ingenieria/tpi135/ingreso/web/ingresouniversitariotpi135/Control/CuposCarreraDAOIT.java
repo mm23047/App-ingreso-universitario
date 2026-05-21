@@ -95,9 +95,9 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
             CuposCarrera nuevo = new CuposCarrera();
             nuevo.setIdCupoCarrera(clave);
-            nuevo.setIdPrueba(prueba);
-            nuevo.setIdCarrera(carrera);
-            nuevo.setIdEtapa(etapa);
+            nuevo.setPruebaAdmision(prueba);
+            nuevo.setCatalogoCarrera(carrera);
+            nuevo.setEtapaAdmision(etapa);
             nuevo.setCupos(30);
 
             cut.crear(nuevo);
@@ -197,9 +197,9 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
             CuposCarrera cupo = new CuposCarrera();
             cupo.setIdCupoCarrera(clave);
-            cupo.setIdPrueba(prueba);
-            cupo.setIdCarrera(carrera);
-            cupo.setIdEtapa(etapa);
+            cupo.setPruebaAdmision(prueba);
+            cupo.setCatalogoCarrera(carrera);
+            cupo.setEtapaAdmision(etapa);
             cupo.setCupos(30);
 
             // Crear
