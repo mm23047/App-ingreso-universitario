@@ -31,7 +31,7 @@ import java.util.UUID;
                 query = "SELECT t FROM TurnosExamen t WHERE t.idTurnoExamen IN (" +
                         "  SELECT a.disponibilidad.idTurno.idTurnoExamen " +
                         "  FROM AsignacionAulaAspirante a " +
-                        "  WHERE a.relacionInscripcion.idAspirante.id = :idAspirante" +
+                        "  WHERE a.inscripcionPrueba.idAspirante.id = :idAspirante" +
                         ") " +
                         "AND t.fecha = :fechaActual " +
                         "AND t.horaInicio <= :horaActual " +

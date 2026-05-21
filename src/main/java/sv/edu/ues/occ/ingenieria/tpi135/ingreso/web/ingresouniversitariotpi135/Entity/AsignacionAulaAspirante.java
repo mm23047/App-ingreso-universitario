@@ -16,11 +16,11 @@ import java.util.UUID;
         ),
         @NamedQuery(
                 name = "AsignacionAulaAspirante.countByInscripcionAndTurno",
-                query = "SELECT COUNT(a) FROM AsignacionAulaAspirante a WHERE a.relacionInscripcion.idInscripcionPrueba = :idInscripcion AND a.disponibilidad.idTurno.idTurnoExamen = :idTurno"
+                query = "SELECT COUNT(a) FROM AsignacionAulaAspirante a WHERE a.inscripcionPrueba.idInscripcionPrueba = :idInscripcion AND a.disponibilidad.idTurno.idTurnoExamen = :idTurno"
         ),
         @NamedQuery(
                 name = "AsignacionAulaAspirante.findByInscripcion",
-                query = "SELECT a FROM AsignacionAulaAspirante a WHERE a.relacionInscripcion.idInscripcionPrueba = :idInscripcion"
+                query = "SELECT a FROM AsignacionAulaAspirante a WHERE a.inscripcionPrueba.idInscripcionPrueba = :idInscripcion"
         )
 })
 public class AsignacionAulaAspirante implements Serializable {
@@ -35,7 +35,7 @@ public class AsignacionAulaAspirante implements Serializable {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_inscripcion", nullable = false)
-    private InscripcionesPrueba relacionInscripcion;
+    private InscripcionesPrueba inscripcionPrueba;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -53,12 +53,12 @@ public class AsignacionAulaAspirante implements Serializable {
         this.idAsignacionAulaAspirante = id;
     }
 
-    public InscripcionesPrueba getRelacionInscripcion() {
-        return relacionInscripcion;
+    public InscripcionesPrueba getInscripcionPrueba() {
+        return inscripcionPrueba;
     }
 
-    public void setRelacionInscripcion(InscripcionesPrueba idInscripcion) {
-        this.relacionInscripcion = idInscripcion;
+    public void setInscripcionPrueba(InscripcionesPrueba idInscripcion) {
+        this.inscripcionPrueba = idInscripcion;
     }
 
     public DisponibilidadAulaTurno getDisponibilidad() {
