@@ -59,8 +59,8 @@ class AsignacionAulaAspiranteResourceHardeningTest {
     @Test
     void create_ConDisponibilidadInexistente_DebeRetornar409() {
         AsignacionAulaAspirante payload = crearPayload();
-        UUID idAula = payload.getDisponibilidad().getIdAula().getIdAula();
-        UUID idTurno = payload.getDisponibilidad().getIdTurno().getIdTurnoExamen();
+        UUID idAula = payload.getDisponibilidad().getAula().getIdAula();
+        UUID idTurno = payload.getDisponibilidad().getTurnoExamen().getIdTurnoExamen();
         UUID idInscripcion = payload.getInscripcionPrueba().getIdInscripcionPrueba();
 
         when(disponibilidadAulaTurnoDAO.existsByAulaAndTurno(idAula, idTurno)).thenReturn(false);
@@ -76,8 +76,8 @@ class AsignacionAulaAspiranteResourceHardeningTest {
     @Test
     void create_ConAsignacionDuplicada_DebeRetornar409() {
         AsignacionAulaAspirante payload = crearPayload();
-        UUID idAula = payload.getDisponibilidad().getIdAula().getIdAula();
-        UUID idTurno = payload.getDisponibilidad().getIdTurno().getIdTurnoExamen();
+        UUID idAula = payload.getDisponibilidad().getAula().getIdAula();
+        UUID idTurno = payload.getDisponibilidad().getTurnoExamen().getIdTurnoExamen();
         UUID idInscripcion = payload.getInscripcionPrueba().getIdInscripcionPrueba();
 
         when(disponibilidadAulaTurnoDAO.existsByAulaAndTurno(idAula, idTurno)).thenReturn(true);
@@ -94,11 +94,11 @@ class AsignacionAulaAspiranteResourceHardeningTest {
     @Test
     void create_ConAulaSinCapacidad_DebeRetornar409() {
         AsignacionAulaAspirante payload = crearPayload();
-        UUID idAula = payload.getDisponibilidad().getIdAula().getIdAula();
-        UUID idTurno = payload.getDisponibilidad().getIdTurno().getIdTurnoExamen();
+        UUID idAula = payload.getDisponibilidad().getAula().getIdAula();
+        UUID idTurno = payload.getDisponibilidad().getTurnoExamen().getIdTurnoExamen();
         UUID idInscripcion = payload.getInscripcionPrueba().getIdInscripcionPrueba();
 
-        Aula aula = payload.getDisponibilidad().getIdAula();
+        Aula aula = payload.getDisponibilidad().getAula();
         aula.setCapacidadFisica(1);
 
         when(disponibilidadAulaTurnoDAO.existsByAulaAndTurno(idAula, idTurno)).thenReturn(true);
@@ -116,13 +116,13 @@ class AsignacionAulaAspiranteResourceHardeningTest {
     @Test
     void create_Valido_DebeRetornar201() {
         AsignacionAulaAspirante payload = crearPayload();
-        UUID idAula = payload.getDisponibilidad().getIdAula().getIdAula();
-        UUID idTurno = payload.getDisponibilidad().getIdTurno().getIdTurnoExamen();
+        UUID idAula = payload.getDisponibilidad().getAula().getIdAula();
+        UUID idTurno = payload.getDisponibilidad().getTurnoExamen().getIdTurnoExamen();
         UUID idInscripcion = payload.getInscripcionPrueba().getIdInscripcionPrueba();
 
         when(disponibilidadAulaTurnoDAO.existsByAulaAndTurno(idAula, idTurno)).thenReturn(true);
         when(asignacionAulaAspiranteDAO.existsByInscripcionAndTurno(idInscripcion, idTurno)).thenReturn(false);
-        when(aulaDAO.leer(idAula)).thenReturn(payload.getDisponibilidad().getIdAula());
+        when(aulaDAO.leer(idAula)).thenReturn(payload.getDisponibilidad().getAula());
         when(asignacionAulaAspiranteDAO.countByAulaAndTurno(idAula, idTurno)).thenReturn(0L);
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
@@ -150,8 +150,8 @@ class AsignacionAulaAspiranteResourceHardeningTest {
         turno.setIdTurnoExamen(UUID.randomUUID());
 
         DisponibilidadAulaTurno disponibilidad = new DisponibilidadAulaTurno();
-        disponibilidad.setIdAula(aula);
-        disponibilidad.setIdTurno(turno);
+        disponibilidad.setAula(aula);
+        disponibilidad.setTurnoExamen(turno);
         payload.setDisponibilidad(disponibilidad);
 
         return payload;

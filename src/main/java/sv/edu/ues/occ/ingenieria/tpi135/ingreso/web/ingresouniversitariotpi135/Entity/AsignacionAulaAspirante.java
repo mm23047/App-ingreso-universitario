@@ -12,11 +12,11 @@ import java.util.UUID;
 @NamedQueries({
         @NamedQuery(
                 name = "AsignacionAulaAspirante.countByAulaAndTurno",
-                query = "SELECT COUNT(a) FROM AsignacionAulaAspirante a WHERE a.disponibilidad.idAula.idAula = :idAula AND a.disponibilidad.idTurno.idTurnoExamen = :idTurno"
+                query = "SELECT COUNT(a) FROM AsignacionAulaAspirante a WHERE a.disponibilidad.aula.idAula = :idAula AND a.disponibilidad.turnoExamen.idTurnoExamen = :idTurno"
         ),
         @NamedQuery(
                 name = "AsignacionAulaAspirante.countByInscripcionAndTurno",
-                query = "SELECT COUNT(a) FROM AsignacionAulaAspirante a WHERE a.inscripcionPrueba.idInscripcionPrueba = :idInscripcion AND a.disponibilidad.idTurno.idTurnoExamen = :idTurno"
+                query = "SELECT COUNT(a) FROM AsignacionAulaAspirante a WHERE a.inscripcionPrueba.idInscripcionPrueba = :idInscripcion AND a.disponibilidad.turnoExamen.idTurnoExamen = :idTurno"
         ),
         @NamedQuery(
                 name = "AsignacionAulaAspirante.findByInscripcion",
@@ -71,12 +71,12 @@ public class AsignacionAulaAspirante implements Serializable {
 
     @Transient
     public Aula getIdAula() {
-        return disponibilidad != null ? disponibilidad.getIdAula() : null;
+        return disponibilidad != null ? disponibilidad.getAula() : null;
     }
 
     @Transient
     public TurnosExamen getIdTurno() {
-        return disponibilidad != null ? disponibilidad.getIdTurno() : null;
+        return disponibilidad != null ? disponibilidad.getTurnoExamen() : null;
     }
 
     @Override

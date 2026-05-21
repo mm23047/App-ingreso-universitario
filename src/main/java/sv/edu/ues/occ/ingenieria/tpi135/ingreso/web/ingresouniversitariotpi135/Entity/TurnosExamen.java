@@ -29,7 +29,7 @@ import java.util.UUID;
         @NamedQuery(
                 name = "TurnosExamen.findTurnoActivoAspirante",
                 query = "SELECT t FROM TurnosExamen t WHERE t.idTurnoExamen IN (" +
-                        "  SELECT a.disponibilidad.idTurno.idTurnoExamen " +
+                        "  SELECT a.disponibilidad.turnoExamen.idTurnoExamen " +
                         "  FROM AsignacionAulaAspirante a " +
                         "  WHERE a.inscripcionPrueba.idAspirante.id = :idAspirante" +
                         ") " +

@@ -10,12 +10,12 @@ import java.util.Objects;
 @NamedQueries({
         @NamedQuery(
                 name = "DisponibilidadAulaTurno.countByAulaAndTurno",
-                query = "SELECT COUNT(d) FROM DisponibilidadAulaTurno d WHERE d.idAula.idAula = :idAula AND d.idTurno.idTurnoExamen = :idTurno"
+                query = "SELECT COUNT(d) FROM DisponibilidadAulaTurno d WHERE d.aula.idAula = :idAula AND d.turnoExamen.idTurnoExamen = :idTurno"
         ),
         // NUEVO: Requerimiento de negocio para calcular el aforo global por turno
         @NamedQuery(
                 name = "DisponibilidadAulaTurno.findByTurno",
-                query = "SELECT d FROM DisponibilidadAulaTurno d WHERE d.idTurno.idTurnoExamen = :idTurno"
+                query = "SELECT d FROM DisponibilidadAulaTurno d WHERE d.turnoExamen.idTurnoExamen = :idTurno"
         )
 })
 public class DisponibilidadAulaTurno implements Serializable {
@@ -28,12 +28,12 @@ public class DisponibilidadAulaTurno implements Serializable {
     @MapsId("idAula")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_aula", nullable = false)
-    private Aula idAula;
+    private Aula aula;
 
     @MapsId("idTurno")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_turno", nullable = false)
-    private TurnosExamen idTurno;
+    private TurnosExamen turnoExamen;
 
     public DisponibilidadAulaTurnoId getIdDisponibilidadAulaTurno() {
         return idDisponibilidadAulaTurno;
@@ -43,20 +43,20 @@ public class DisponibilidadAulaTurno implements Serializable {
         this.idDisponibilidadAulaTurno = id;
     }
 
-    public Aula getIdAula() {
-        return idAula;
+    public Aula getAula() {
+        return aula;
     }
 
-    public void setIdAula(Aula idAula) {
-        this.idAula = idAula;
+    public void setAula(Aula idAula) {
+        this.aula = idAula;
     }
 
-    public TurnosExamen getIdTurno() {
-        return idTurno;
+    public TurnosExamen getTurnoExamen() {
+        return turnoExamen;
     }
 
-    public void setIdTurno(TurnosExamen idTurno) {
-        this.idTurno = idTurno;
+    public void setTurnoExamen(TurnosExamen idTurno) {
+        this.turnoExamen = idTurno;
     }
     @PrePersist
     @PreUpdate
@@ -66,10 +66,10 @@ public class DisponibilidadAulaTurno implements Serializable {
 
     // CORRECCIÓN: Evita el guardado erróneo con llaves nulas en PostgreSQL mapeando los objetos asignados
     private void sincronizarId() {
-        if (this.idDisponibilidadAulaTurno == null && this.idAula != null && this.idTurno != null) {
+        if (this.idDisponibilidadAulaTurno == null && this.aula != null && this.turnoExamen != null) {
             DisponibilidadAulaTurnoId compuesto = new DisponibilidadAulaTurnoId();
-            compuesto.setIdAula(this.idAula.getIdAula());
-            compuesto.setIdTurno(this.idTurno.getIdTurnoExamen());
+            compuesto.setIdAula(this.aula.getIdAula());
+            compuesto.setIdTurno(this.turnoExamen.getIdTurnoExamen());
             this.idDisponibilidadAulaTurno = compuesto;
         }
     }

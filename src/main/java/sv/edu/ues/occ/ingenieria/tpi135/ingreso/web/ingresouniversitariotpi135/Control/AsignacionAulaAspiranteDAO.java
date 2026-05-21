@@ -28,8 +28,8 @@ public class AsignacionAulaAspiranteDAO extends IngresoDefaultDataAccess<Asignac
         }
 
         UUID idInscripcion = entity.getInscripcionPrueba().getIdInscripcionPrueba();
-        UUID idAula = entity.getDisponibilidad().getIdAula().getIdAula();
-        UUID idTurno = entity.getDisponibilidad().getIdTurno().getIdTurnoExamen();
+        UUID idAula = entity.getDisponibilidad().getAula().getIdAula();
+        UUID idTurno = entity.getDisponibilidad().getTurnoExamen().getIdTurnoExamen();
 
         // REGLA 1: Evitar choques de horario del aspirante
         if (existsByInscripcionAndTurno(idInscripcion, idTurno)) {
@@ -38,7 +38,7 @@ public class AsignacionAulaAspiranteDAO extends IngresoDefaultDataAccess<Asignac
 
         // REGLA 2: Controlar la capacidad física del aula (Overbooking)
         long estudiantesAsignados = countByAulaAndTurno(idAula, idTurno);
-        int capacidadMaxima = entity.getDisponibilidad().getIdAula().getCapacidadFisica();
+        int capacidadMaxima = entity.getDisponibilidad().getAula().getCapacidadFisica();
 
         if (estudiantesAsignados >= capacidadMaxima) {
             throw new IllegalStateException("No se puede completar la operación: El aula seleccionada ha alcanzado su capacidad máxima (" + capacidadMaxima + ").");

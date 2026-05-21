@@ -74,13 +74,13 @@ public class AsignacionAulaAspiranteResource extends AbstractResource<Asignacion
                 && entity.getInscripcionPrueba() != null
                 && entity.getInscripcionPrueba().getIdInscripcionPrueba() != null
                 && entity.getDisponibilidad() != null
-                && entity.getDisponibilidad().getIdAula() != null
-                && entity.getDisponibilidad().getIdAula().getIdAula() != null
-                && entity.getDisponibilidad().getIdTurno() != null
-                && entity.getDisponibilidad().getIdTurno().getIdTurnoExamen() != null) {
+                && entity.getDisponibilidad().getAula() != null
+                && entity.getDisponibilidad().getAula().getIdAula() != null
+                && entity.getDisponibilidad().getTurnoExamen() != null
+                && entity.getDisponibilidad().getTurnoExamen().getIdTurnoExamen() != null) {
             try {
-                UUID idAula = entity.getDisponibilidad().getIdAula().getIdAula();
-                UUID idTurno = entity.getDisponibilidad().getIdTurno().getIdTurnoExamen();
+                UUID idAula = entity.getDisponibilidad().getAula().getIdAula();
+                UUID idTurno = entity.getDisponibilidad().getTurnoExamen().getIdTurnoExamen();
                 UUID idInscripcion = entity.getInscripcionPrueba().getIdInscripcionPrueba();
 
                 if (!disponibilidadAulaTurnoDAO.existsByAulaAndTurno(idAula, idTurno)) {
