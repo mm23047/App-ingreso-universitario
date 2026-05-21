@@ -42,9 +42,8 @@ CREATE TABLE IF NOT EXISTS tema (
     id_tema UUID PRIMARY KEY,
     id_area UUID NOT NULL REFERENCES area_conocimiento(id_area),
     nombre_tema VARCHAR(100) NOT NULL UNIQUE,
-    -- LA CLAVE: Relación sobre sí misma (Recursividad)
     id_tema_padre UUID REFERENCES tema(id_tema)
-);
+    );
 
 CREATE TABLE IF NOT EXISTS banco_pregunta (
     id_pregunta UUID PRIMARY KEY,
@@ -54,10 +53,20 @@ CREATE TABLE IF NOT EXISTS banco_pregunta (
 
 CREATE TABLE IF NOT EXISTS banco_respuesta (
     id_respuesta_global UUID PRIMARY KEY,
-    texto_respuesta TEXT NOT NULL UNIQUE,
+    texto_respuesta TEXT NOT NULL,
     -- LA CLAVE: Clasificar la respuesta por área
-    id_area UUID NOT NULL REFERENCES area_conocimiento(id_area)
+    id_area UUID REFERENCES area_conocimiento(id_area)
 );
+
+-- INDICES PARCIALES: Se crean inmediatamente después de la tabla
+CREATE UNIQUE INDEX IF NOT EXISTS idx_respuesta_global_unica
+    ON banco_respuesta (UPPER(TRIM(texto_respuesta)))
+    WHERE id_area IS NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_respuesta_area_unica
+    ON banco_respuesta (UPPER(TRIM(texto_respuesta)), id_area)
+    WHERE id_area IS NOT NULL;
+
 
 CREATE TABLE IF NOT EXISTS pregunta_opcion (
     id_pregunta_opcion UUID PRIMARY KEY,
@@ -175,27 +184,6 @@ CREATE TABLE IF NOT EXISTS asignacion_aula_aspirante (
     CONSTRAINT uk_inscripcion_turno UNIQUE (id_inscripcion, id_turno)
 );
 
--- =========================================================
--- PARA GUARDAR RESPUESTAS GLOBALES
--- =========================================================
-
--- 1. Permitir que el área sea nula (para las respuestas globales)
-ALTER TABLE public.banco_respuesta
-    ALTER COLUMN id_area DROP NOT NULL;
-
--- 2. Eliminar la restricción global que tenías
-ALTER TABLE public.banco_respuesta
-DROP CONSTRAINT IF EXISTS banco_respuesta_texto_respuesta_key;
-
--- 3. REGLA 1: Solo puede existir un texto global igual (ej. un solo "Verdadero" global)
-CREATE UNIQUE INDEX idx_respuesta_global_unica
-    ON public.banco_respuesta (UPPER(TRIM(texto_respuesta)))
-    WHERE id_area IS NULL;
-
--- 4. REGLA 2: No se puede repetir la misma respuesta dentro de la misma área
-CREATE UNIQUE INDEX idx_respuesta_area_unica
-    ON public.banco_respuesta (UPPER(TRIM(texto_respuesta)), id_area)
-    WHERE id_area IS NOT NULL;
 
 -- =========================================================
 -- DATOS MAESTROS

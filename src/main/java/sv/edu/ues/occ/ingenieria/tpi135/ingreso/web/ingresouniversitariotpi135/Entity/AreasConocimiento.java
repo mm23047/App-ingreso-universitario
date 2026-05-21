@@ -79,4 +79,16 @@ public class AreasConocimiento implements Serializable {
             this.nombreArea = this.nombreArea.trim().replaceAll("\\s+", " ");
         }
     }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AreasConocimiento)) return false;
+        AreasConocimiento that = (AreasConocimiento) o;
+        return idAreaConocimiento != null && idAreaConocimiento.equals(that.getIdAreaConocimiento());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
