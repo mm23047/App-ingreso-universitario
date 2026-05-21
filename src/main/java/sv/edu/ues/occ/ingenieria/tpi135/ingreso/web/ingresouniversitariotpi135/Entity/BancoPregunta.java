@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
 import java.io.Serializable;
-import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -15,7 +14,7 @@ import java.util.UUID;
 @NamedQueries({
         @NamedQuery(
                 name = "BancoPregunta.findByTema",
-                query = "SELECT b FROM BancoPregunta b WHERE b.idTema.idTema = :idTema"
+                query = "SELECT b FROM BancoPregunta b WHERE b.tema.idTema = :idTema"
         ),
         @NamedQuery(
                 name = "BancoPregunta.countByEnunciado",
@@ -27,7 +26,7 @@ import java.util.UUID;
         ),
         @NamedQuery(
                 name = "BancoPregunta.countConflictosArea",
-                query = "SELECT COUNT(bp) FROM BancoPregunta bp WHERE UPPER(TRIM(bp.enunciado)) = UPPER(TRIM(:enunciado)) AND bp.idTema.idArea.idAreaConocimiento <> :idAreaActual"
+                query = "SELECT COUNT(bp) FROM BancoPregunta bp WHERE UPPER(TRIM(bp.enunciado)) = UPPER(TRIM(:enunciado)) AND bp.tema.idArea.idAreaConocimiento <> :idAreaActual"
         )
 })
 public class BancoPregunta implements Serializable {
@@ -43,7 +42,7 @@ public class BancoPregunta implements Serializable {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_tema", nullable = false)
-    private Tema idTema;
+    private Tema tema;
 
     @NotNull
     // CORRECCIÓN: Se elimina @Lob (que genera OIDs problemáticos en Postgres) y se define explícitamente TEXT
@@ -58,18 +57,18 @@ public class BancoPregunta implements Serializable {
         this.idBancoPregunta = id;
     }
 
-    public Tema getIdTema() {
-        return idTema;
+    public Tema getTema() {
+        return tema;
     }
 
-    public void setIdTema(Tema idTema) {
-        this.idTema = idTema;
+    public void setTema(Tema idTema) {
+        this.tema = idTema;
     }
 
     // TODO: FASE 2 - Bridge temporal por migración. Revisar eliminación tras refactor REST.
     @Transient
     public AreasConocimiento getIdArea() {
-        return idTema != null ? idTema.getIdArea() : null;
+        return tema != null ? tema.getIdArea() : null;
     }
 
     // TODO: FASE 2 - Bridge temporal por migración. Revisar eliminación tras refactor REST.
@@ -78,10 +77,10 @@ public class BancoPregunta implements Serializable {
         if (idArea == null) {
             return;
         }
-        if (this.idTema == null) {
-            this.idTema = new Tema();
+        if (this.tema == null) {
+            this.tema = new Tema();
         }
-        this.idTema.setIdArea(idArea);
+        this.tema.setIdArea(idArea);
     }
 
     public String getEnunciado() {

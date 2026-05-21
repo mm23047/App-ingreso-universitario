@@ -31,7 +31,7 @@ import java.util.UUID;
                 name = "AreasConocimiento.findConPreguntas",
                 query = "SELECT a FROM AreasConocimiento a WHERE EXISTS (" +
                         "  SELECT t FROM Tema t WHERE t.idArea = a AND EXISTS (" +
-                        "    SELECT bp FROM BancoPregunta bp WHERE bp.idTema = t" +
+                        "    SELECT bp FROM BancoPregunta bp WHERE bp.tema = t" +
                         "  )" +
                         ") ORDER BY a.nombreArea ASC"
         ),
