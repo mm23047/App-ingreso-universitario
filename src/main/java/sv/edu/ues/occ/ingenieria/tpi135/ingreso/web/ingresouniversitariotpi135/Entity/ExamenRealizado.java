@@ -15,7 +15,7 @@ import java.util.UUID;
 @NamedQueries({
         @NamedQuery(
                 name = "ExamenRealizado.findByAspiranteId",
-                query = "SELECT e FROM ExamenRealizado e JOIN e.inscripcionesPrueba i WHERE i.idAspirante.id = :aspiranteId"
+                query = "SELECT e FROM ExamenRealizado e JOIN e.inscripcionesPrueba i WHERE i.aspiranteDato.id = :aspiranteId"
         ),
         @NamedQuery(
                 name = "ExamenRealizado.findByPruebaId",

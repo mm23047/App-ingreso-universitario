@@ -109,14 +109,14 @@ public class InscripcionesPruebaResource extends AbstractResource<InscripcionesP
     @Consumes({MediaType.APPLICATION_JSON})
     public Response create(InscripcionesPrueba entity, @Context UriInfo uriInfo) {
         if (entity != null && entity.getIdInscripcionPrueba() == null
-                && entity.getIdAspirante() != null
-                && entity.getIdPrueba() != null) {
+                && entity.getAspiranteDato() != null
+                && entity.getPruebaAdmision() != null) {
 
             try {
                 //Verificamos si ya existe la inscripcion en la prueba
                 boolean existe = inscripcionesPruebaDAO.existsByAspiranteAndPrueba(
-                        entity.getIdAspirante().getId(),
-                        entity.getIdPrueba().getIdPruebaAdmision()
+                        entity.getAspiranteDato().getId(),
+                        entity.getPruebaAdmision().getIdPruebaAdmision()
                 );
                 if (existe) {
                 return Response.status(Response.Status.CONFLICT)
@@ -151,16 +151,16 @@ public class InscripcionesPruebaResource extends AbstractResource<InscripcionesP
             try {
                 InscripcionesPrueba existing = inscripcionesPruebaDAO.leer(id);
                 if (existing != null) {
-                    if (entity.getIdAspirante() != null) {
-                        existing.setIdAspirante(entity.getIdAspirante());
+                    if (entity.getAspiranteDato() != null) {
+                        existing.setAspiranteDato(entity.getAspiranteDato());
                     }
-                    if (entity.getIdPrueba() != null) {
-                        existing.setIdPrueba(entity.getIdPrueba());
+                    if (entity.getPruebaAdmision() != null) {
+                        existing.setPruebaAdmision(entity.getPruebaAdmision());
                     }
-                    if (existing.getIdAspirante() != null && existing.getIdPrueba() != null
+                    if (existing.getAspiranteDato() != null && existing.getPruebaAdmision() != null
                             && inscripcionesPruebaDAO.existsByAspiranteAndPruebaExcludingId(
-                            existing.getIdAspirante().getId(),
-                            existing.getIdPrueba().getIdPruebaAdmision(),
+                            existing.getAspiranteDato().getId(),
+                            existing.getPruebaAdmision().getIdPruebaAdmision(),
                             id)) {
                         return Response.status(Response.Status.CONFLICT)
                                 .header(CONFLICT_REASON, "duplicate inscription for aspirante and prueba")

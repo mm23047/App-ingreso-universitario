@@ -96,8 +96,8 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             EtapasAdmision etapa1    = em.find(EtapasAdmision.class, ID_ETAPA_1);
 
             InscripcionesPrueba nuevaIn = new InscripcionesPrueba();
-            nuevaIn.setIdAspirante(aspirante);
-            nuevaIn.setIdPrueba(prueba);
+            nuevaIn.setAspiranteDato(aspirante);
+            nuevaIn.setPruebaAdmision(prueba);
             nuevaIn.setEstado("INSCRITO");
 
             em.persist(nuevaIn);
@@ -187,8 +187,8 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             EtapasAdmision etapa1    = em.find(EtapasAdmision.class, ID_ETAPA_1);
 
             InscripcionesPrueba nuevaIn = new InscripcionesPrueba();
-            nuevaIn.setIdAspirante(aspirante);
-            nuevaIn.setIdPrueba(prueba);
+            nuevaIn.setAspiranteDato(aspirante);
+            nuevaIn.setPruebaAdmision(prueba);
             nuevaIn.setEstado("INSCRITO");
 
             em.persist(nuevaIn);
@@ -230,8 +230,8 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             em.flush();
 
             InscripcionesPrueba inscripcion = new InscripcionesPrueba();
-            inscripcion.setIdAspirante(aspirante);
-            inscripcion.setIdPrueba(prueba);
+            inscripcion.setAspiranteDato(aspirante);
+            inscripcion.setPruebaAdmision(prueba);
             inscripcion.setEstado("INSCRITO");
             em.persist(inscripcion);
             em.flush();
@@ -334,8 +334,8 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             em.flush();
 
             InscripcionesPrueba inscripcion = new InscripcionesPrueba();
-            inscripcion.setIdAspirante(aspirante);
-            inscripcion.setIdPrueba(prueba);
+            inscripcion.setAspiranteDato(aspirante);
+            inscripcion.setPruebaAdmision(prueba);
             inscripcion.setEstado("INSCRITO");
             em.persist(inscripcion);
             em.flush();

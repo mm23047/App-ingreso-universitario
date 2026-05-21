@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.io.Serializable;
-import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -15,24 +14,24 @@ import java.util.UUID;
 @NamedQueries({
         @NamedQuery(
                 name = "InscripcionesPrueba.findByAspiranteId",
-                query = "SELECT i FROM InscripcionesPrueba i WHERE i.idAspirante.id = :idAspirante"
+                query = "SELECT i FROM InscripcionesPrueba i WHERE i.aspiranteDato.id = :idAspirante"
         ),
         @NamedQuery(
                 name = "InscripcionesPrueba.findByPruebaId",
-                query = "SELECT i FROM InscripcionesPrueba i WHERE i.idPrueba.idPruebaAdmision = :idPrueba"
+                query = "SELECT i FROM InscripcionesPrueba i WHERE i.pruebaAdmision.idPruebaAdmision = :idPrueba"
         ),
         @NamedQuery(
                 name = "InscripcionesPrueba.countByAspiranteAndPrueba",
-                query = "SELECT COUNT(i) FROM InscripcionesPrueba i WHERE i.idAspirante.id = :idAspirante AND i.idPrueba.idPruebaAdmision = :idPrueba"
+                query = "SELECT COUNT(i) FROM InscripcionesPrueba i WHERE i.aspiranteDato.id = :idAspirante AND i.pruebaAdmision.idPruebaAdmision = :idPrueba"
         ),
         @NamedQuery(
                 name = "InscripcionesPrueba.countByAspiranteAndPruebaExcludingId",
-                query = "SELECT COUNT(i) FROM InscripcionesPrueba i WHERE i.idAspirante.id = :idAspirante AND i.idPrueba.idPruebaAdmision = :idPrueba AND i.idInscripcionPrueba <> :excludeId"
+                query = "SELECT COUNT(i) FROM InscripcionesPrueba i WHERE i.aspiranteDato.id = :idAspirante AND i.pruebaAdmision.idPruebaAdmision = :idPrueba AND i.idInscripcionPrueba <> :excludeId"
         ),
         // NUEVO: Query táctico para el control de la logística pre-examen y distribución de butacas
         @NamedQuery(
                 name = "InscripcionesPrueba.findByPruebaAndEstado",
-                query = "SELECT i FROM InscripcionesPrueba i WHERE i.idPrueba.idPruebaAdmision = :idPrueba AND UPPER(TRIM(i.estado)) = UPPER(TRIM(:estado))"
+                query = "SELECT i FROM InscripcionesPrueba i WHERE i.pruebaAdmision.idPruebaAdmision = :idPrueba AND UPPER(TRIM(i.estado)) = UPPER(TRIM(:estado))"
         )
 })
 public class InscripcionesPrueba implements Serializable {
@@ -46,12 +45,12 @@ public class InscripcionesPrueba implements Serializable {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_aspirante", nullable = false)
-    private AspirantesDato idAspirante;
+    private AspirantesDato aspiranteDato;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_prueba", nullable = false)
-    private PruebasAdmision idPrueba;
+    private PruebasAdmision pruebaAdmision;
 
     @Size(max = 20)
     @Column(name = "estado", length = 20)
@@ -65,20 +64,20 @@ public class InscripcionesPrueba implements Serializable {
         this.idInscripcionPrueba = id;
     }
 
-    public AspirantesDato getIdAspirante() {
-        return idAspirante;
+    public AspirantesDato getAspiranteDato() {
+        return aspiranteDato;
     }
 
-    public void setIdAspirante(AspirantesDato idAspirante) {
-        this.idAspirante = idAspirante;
+    public void setAspiranteDato(AspirantesDato idAspirante) {
+        this.aspiranteDato = idAspirante;
     }
 
-    public PruebasAdmision getIdPrueba() {
-        return idPrueba;
+    public PruebasAdmision getPruebaAdmision() {
+        return pruebaAdmision;
     }
 
-    public void setIdPrueba(PruebasAdmision idPrueba) {
-        this.idPrueba = idPrueba;
+    public void setPruebaAdmision(PruebasAdmision idPrueba) {
+        this.pruebaAdmision = idPrueba;
     }
 
     public String getEstado() {

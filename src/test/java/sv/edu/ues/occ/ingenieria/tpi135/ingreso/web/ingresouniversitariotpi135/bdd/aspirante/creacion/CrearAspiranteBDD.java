@@ -74,10 +74,10 @@ public class CrearAspiranteBDD {
             InscripcionesPrueba inscripcion = new InscripcionesPrueba();
             AspirantesDato aspiranteRef = new AspirantesDato();
             aspiranteRef.setId(idAspiranteCreado);
-            inscripcion.setIdAspirante(aspiranteRef);
+            inscripcion.setAspiranteDato(aspiranteRef);
             PruebasAdmision pruebaRef = new PruebasAdmision();
             pruebaRef.setIdPruebaAdmision(ID_PRUEBA_SEMILLA);
-            inscripcion.setIdPrueba(pruebaRef);
+            inscripcion.setPruebaAdmision(pruebaRef);
             inscripcion.setEstado("INSCRITO");
 
             Response respuestaInscripcion = target

@@ -55,7 +55,7 @@ public class ProcesoAdmisionAspiranteDAO extends IngresoDefaultDataAccess<Proces
             return null;
         }
 
-        UUID idPrueba = proceso.getInscripcionesPrueba().getIdPrueba().getIdPruebaAdmision();
+        UUID idPrueba = proceso.getInscripcionesPrueba().getPruebaAdmision().getIdPruebaAdmision();
         UUID idEtapa = proceso.getIdEtapaActual().getIdEtapaAdmision();
 
         List<CarrerasElegida> elegidas = em.createNamedQuery("ProcesoAdmisionAspirante.findCarrerasElegidas", CarrerasElegida.class)

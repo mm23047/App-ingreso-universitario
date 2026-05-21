@@ -33,7 +33,7 @@ public class InscripcionesPruebaDAO extends IngresoDefaultDataAccess<Inscripcion
         validarReglasDeInscripcion(entity);
 
         // REGLA DE NEGOCIO: Bloqueo preventivo de doble registro activo por aspirante y prueba
-        if (existsByAspiranteAndPrueba(entity.getIdAspirante().getId(), entity.getIdPrueba().getIdPruebaAdmision())) {
+        if (existsByAspiranteAndPrueba(entity.getAspiranteDato().getId(), entity.getPruebaAdmision().getIdPruebaAdmision())) {
             throw new IllegalArgumentException("Violación de integridad: El aspirante ya cuenta con una inscripción activa registrada para esta prueba.");
         }
         super.crear(entity);
@@ -47,7 +47,7 @@ public class InscripcionesPruebaDAO extends IngresoDefaultDataAccess<Inscripcion
         }
 
         // REGLA DE NEGOCIO: Impedir colisiones de duplicidad con registros de terceros durante modificaciones
-        if (existsByAspiranteAndPruebaExcludingId(entity.getIdAspirante().getId(), entity.getIdPrueba().getIdPruebaAdmision(), entity.getIdInscripcionPrueba())) {
+        if (existsByAspiranteAndPruebaExcludingId(entity.getAspiranteDato().getId(), entity.getPruebaAdmision().getIdPruebaAdmision(), entity.getIdInscripcionPrueba())) {
             throw new IllegalArgumentException("Conflicto en actualización: Los cambios asignados colisionan con otra inscripción ya registrada en el sistema.");
         }
         return super.actualizar(entity);
@@ -57,10 +57,10 @@ public class InscripcionesPruebaDAO extends IngresoDefaultDataAccess<Inscripcion
         if (entity == null) {
             throw new IllegalArgumentException("La entidad de inscripción de pruebas no puede ser nula.");
         }
-        if (entity.getIdAspirante() == null || entity.getIdAspirante().getId() == null) {
+        if (entity.getAspiranteDato() == null || entity.getAspiranteDato().getId() == null) {
             throw new IllegalArgumentException("Toda inscripción requiere asociar una entidad Aspirante válida.");
         }
-        if (entity.getIdPrueba() == null || entity.getIdPrueba().getIdPruebaAdmision() == null) {
+        if (entity.getPruebaAdmision() == null || entity.getPruebaAdmision().getIdPruebaAdmision() == null) {
             throw new IllegalArgumentException("Toda inscripción requiere asociar una entidad Prueba de Admisión válida.");
         }
     }

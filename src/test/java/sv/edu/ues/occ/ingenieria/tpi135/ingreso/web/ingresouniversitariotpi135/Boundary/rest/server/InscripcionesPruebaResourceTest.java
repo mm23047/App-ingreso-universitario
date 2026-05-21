@@ -42,8 +42,8 @@ class InscripcionesPruebaResourceTest {
 
         entidad = new InscripcionesPrueba();
         entidad.setIdInscripcionPrueba(testId);
-        entidad.setIdAspirante(new AspirantesDato());
-        entidad.setIdPrueba(new PruebasAdmision());
+        entidad.setAspiranteDato(new AspirantesDato());
+        entidad.setPruebaAdmision(new PruebasAdmision());
         entidad.setEstado("ACTIVO");
     }
 
@@ -239,8 +239,8 @@ class InscripcionesPruebaResourceTest {
     @Test
     void create_ConEntidadValida_DebeRetornar201() {
         InscripcionesPrueba nueva = new InscripcionesPrueba();
-        nueva.setIdAspirante(new AspirantesDato());
-        nueva.setIdPrueba(new PruebasAdmision());
+        nueva.setAspiranteDato(new AspirantesDato());
+        nueva.setPruebaAdmision(new PruebasAdmision());
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
         when(uriBuilder.build()).thenReturn(URI.create("http://localhost/inscripciones/1"));
@@ -268,7 +268,7 @@ class InscripcionesPruebaResourceTest {
     @Test
     void create_SinAspirante_DebeRetornar422() {
         InscripcionesPrueba nueva = new InscripcionesPrueba();
-        nueva.setIdPrueba(new PruebasAdmision());
+        nueva.setPruebaAdmision(new PruebasAdmision());
         Response response = resource.create(nueva, uriInfo);
         assertEquals(422, response.getStatus());
         verifyNoInteractions(inscripcionesPruebaDAO);
@@ -277,7 +277,7 @@ class InscripcionesPruebaResourceTest {
     @Test
     void create_SinPrueba_DebeRetornar422() {
         InscripcionesPrueba nueva = new InscripcionesPrueba();
-        nueva.setIdAspirante(new AspirantesDato());
+        nueva.setAspiranteDato(new AspirantesDato());
         Response response = resource.create(nueva, uriInfo);
         assertEquals(422, response.getStatus());
         verifyNoInteractions(inscripcionesPruebaDAO);
@@ -286,8 +286,8 @@ class InscripcionesPruebaResourceTest {
     @Test
     void create_ConExcepcionEnDAO_DebeRetornar500() {
         InscripcionesPrueba nueva = new InscripcionesPrueba();
-        nueva.setIdAspirante(new AspirantesDato());
-        nueva.setIdPrueba(new PruebasAdmision());
+        nueva.setAspiranteDato(new AspirantesDato());
+        nueva.setPruebaAdmision(new PruebasAdmision());
         doThrow(new RuntimeException("BD error")).when(inscripcionesPruebaDAO).crear(any());
         Response response = resource.create(nueva, uriInfo);
         assertEquals(500, response.getStatus());
@@ -305,8 +305,8 @@ class InscripcionesPruebaResourceTest {
         prueba.setIdPruebaAdmision(pruebaId);
 
         InscripcionesPrueba nueva = new InscripcionesPrueba();
-        nueva.setIdAspirante(aspirante);
-        nueva.setIdPrueba(prueba);
+        nueva.setAspiranteDato(aspirante);
+        nueva.setPruebaAdmision(prueba);
 
         when(inscripcionesPruebaDAO.existsByAspiranteAndPrueba(aspiranteId, pruebaId)).thenReturn(true);
 

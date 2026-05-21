@@ -83,8 +83,8 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
                 UUID.fromString("d1000000-0000-0000-0000-000000000002"));
 
             InscripcionesPrueba nueva = new InscripcionesPrueba();
-            nueva.setIdAspirante(aspirante);
-            nueva.setIdPrueba(prueba);
+            nueva.setAspiranteDato(aspirante);
+            nueva.setPruebaAdmision(prueba);
             nueva.setEstado("PENDIENTE");
 
             cut.crear(nueva);
@@ -167,8 +167,8 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
                     UUID.fromString("d1000000-0000-0000-0000-000000000002"));
 
             InscripcionesPrueba nueva = new InscripcionesPrueba();
-            nueva.setIdAspirante(aspirante);
-            nueva.setIdPrueba(prueba);
+            nueva.setAspiranteDato(aspirante);
+            nueva.setPruebaAdmision(prueba);
             nueva.setEstado("PENDIENTE");
 
             cut.crear(nueva);
