@@ -29,7 +29,7 @@ public class ClavesExamanDAO extends IngresoDefaultDataAccess<ClavesExamen> impl
     @Override
     public void crear(ClavesExamen entity) {
         validarCampos(entity);
-        if (existsByPruebaAndNombre(entity.getIdPrueba().getIdPruebaAdmision(), entity.getNombreClave().trim())) {
+        if (existsByPruebaAndNombre(entity.getPruebaAdmision().getIdPruebaAdmision(), entity.getNombreClave().trim())) {
             throw new IllegalArgumentException("Ya existe una clave con el nombre '" + entity.getNombreClave() + "' registrada para esta prueba de admisión.");
         }
         super.crear(entity);
@@ -43,7 +43,7 @@ public class ClavesExamanDAO extends IngresoDefaultDataAccess<ClavesExamen> impl
         validarCampos(entity);
 
         Long duplicados = em.createNamedQuery("ClavesExaman.countByPruebaAndNombreNotId", Long.class)
-                .setParameter("idPrueba", entity.getIdPrueba().getIdPruebaAdmision())
+                .setParameter("idPrueba", entity.getPruebaAdmision().getIdPruebaAdmision())
                 .setParameter("nombreClave", entity.getNombreClave().trim())
                 .setParameter("idClave", entity.getIdClaveExaman())
                 .getSingleResult();
@@ -55,7 +55,7 @@ public class ClavesExamanDAO extends IngresoDefaultDataAccess<ClavesExamen> impl
     }
 
     private void validarCampos(ClavesExamen entity) {
-        if (entity == null || entity.getIdPrueba() == null || entity.getNombreClave() == null || entity.getNombreClave().isBlank()) {
+        if (entity == null || entity.getPruebaAdmision() == null || entity.getNombreClave() == null || entity.getNombreClave().isBlank()) {
             throw new IllegalArgumentException("La prueba asociada y el nombre de la clave son campos estrictamente obligatorios.");
         }
     }

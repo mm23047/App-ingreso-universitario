@@ -60,7 +60,7 @@ public class ClavesExamanResource extends AbstractResource<ClavesExamen> {
     @Consumes({MediaType.APPLICATION_JSON})
     public Response create(ClavesExamen entity, @Context UriInfo uriInfo) {
         if (entity != null && entity.getIdClaveExaman() == null
-                && entity.getIdPrueba() != null
+                && entity.getPruebaAdmision() != null
                 && entity.getNombreClave() != null
                 && !entity.getNombreClave().isBlank()) {
             try {

@@ -15,19 +15,19 @@ import java.util.UUID;
 @NamedQueries({
         @NamedQuery(
                 name = "ClavesExaman.findByPrueba",
-                query = "SELECT c FROM ClavesExamen c WHERE c.idPrueba.idPruebaAdmision = :idPrueba"
+                query = "SELECT c FROM ClavesExamen c WHERE c.pruebaAdmision.idPruebaAdmision = :idPrueba"
         ),
         @NamedQuery(
                 name = "ClavesExaman.countByPrueba",
-                query = "SELECT COUNT(c) FROM ClavesExamen c WHERE c.idPrueba.idPruebaAdmision = :idPrueba"
+                query = "SELECT COUNT(c) FROM ClavesExamen c WHERE c.pruebaAdmision.idPruebaAdmision = :idPrueba"
         ),
         @NamedQuery(
                 name = "ClavesExaman.countByPruebaAndNombre",
-                query = "SELECT COUNT(c) FROM ClavesExamen c WHERE c.idPrueba.idPruebaAdmision = :idPrueba AND c.nombreClave = :nombreClave"
+                query = "SELECT COUNT(c) FROM ClavesExamen c WHERE c.pruebaAdmision.idPruebaAdmision = :idPrueba AND c.nombreClave = :nombreClave"
         ),
         @NamedQuery(
                 name = "ClavesExaman.countByPruebaAndNombreNotId",
-                query = "SELECT COUNT(c) FROM ClavesExamen c WHERE c.idPrueba.idPruebaAdmision = :idPrueba AND c.nombreClave = :nombreClave AND c.idClaveExaman <> :idClave"
+                query = "SELECT COUNT(c) FROM ClavesExamen c WHERE c.pruebaAdmision.idPruebaAdmision = :idPrueba AND c.nombreClave = :nombreClave AND c.idClaveExaman <> :idClave"
         )
 })
 public class ClavesExamen implements Serializable {
@@ -41,7 +41,7 @@ public class ClavesExamen implements Serializable {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_prueba", nullable = false)
-    private PruebasAdmision idPrueba;
+    private PruebasAdmision pruebaAdmision;
 
     @Size(max = 50)
     @NotNull
@@ -56,12 +56,12 @@ public class ClavesExamen implements Serializable {
         this.idClaveExaman = id;
     }
 
-    public PruebasAdmision getIdPrueba() {
-        return idPrueba;
+    public PruebasAdmision getPruebaAdmision() {
+        return pruebaAdmision;
     }
 
-    public void setIdPrueba(PruebasAdmision idPrueba) {
-        this.idPrueba = idPrueba;
+    public void setPruebaAdmision(PruebasAdmision idPrueba) {
+        this.pruebaAdmision = idPrueba;
     }
 
     public String getNombreClave() {

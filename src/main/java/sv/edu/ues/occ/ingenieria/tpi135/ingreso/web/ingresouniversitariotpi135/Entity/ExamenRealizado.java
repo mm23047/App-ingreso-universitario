@@ -19,7 +19,7 @@ import java.util.UUID;
         ),
         @NamedQuery(
                 name = "ExamenRealizado.findByPruebaId",
-                query = "SELECT e FROM ExamenRealizado e WHERE e.idClave.idPrueba.idPruebaAdmision = :pruebaId"
+                query = "SELECT e FROM ExamenRealizado e WHERE e.idClave.pruebaAdmision.idPruebaAdmision = :pruebaId"
         ),
         @NamedQuery(
                 name = "ExamenRealizado.countPreguntasByClave",
@@ -31,7 +31,7 @@ import java.util.UUID;
         ),
         @NamedQuery(
                 name = "ExamenRealizado.findRankingByPruebaAndEtapa",
-                query = "SELECT e FROM ExamenRealizado e WHERE e.idClave.idPrueba.idPruebaAdmision = :idPrueba AND e.idEtapa.idEtapaAdmision = :idEtapa AND e.puntajeFinal IS NOT NULL ORDER BY e.puntajeFinal DESC"
+                query = "SELECT e FROM ExamenRealizado e WHERE e.idClave.pruebaAdmision.idPruebaAdmision = :idPrueba AND e.idEtapa.idEtapaAdmision = :idEtapa AND e.puntajeFinal IS NOT NULL ORDER BY e.puntajeFinal DESC"
         )
 })
 public class ExamenRealizado implements Serializable {

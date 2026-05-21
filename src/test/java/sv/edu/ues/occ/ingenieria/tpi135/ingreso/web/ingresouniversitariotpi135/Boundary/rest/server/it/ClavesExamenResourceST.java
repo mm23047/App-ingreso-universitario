@@ -50,8 +50,8 @@ public class ClavesExamenResourceST extends AbstractResourceST {
             if (ID_CLAVE_A.equals(clave.getIdClaveExaman())) {
                 encontroClaveA = true;
                 assertEquals("Clave A", clave.getNombreClave());
-                assertNotNull(clave.getIdPrueba());
-                assertEquals(ID_PRUEBA_1, clave.getIdPrueba().getIdPruebaAdmision());
+                assertNotNull(clave.getPruebaAdmision());
+                assertEquals(ID_PRUEBA_1, clave.getPruebaAdmision().getIdPruebaAdmision());
                 break;
             }
         }
@@ -90,8 +90,8 @@ public class ClavesExamenResourceST extends AbstractResourceST {
         assertNotNull(entidad);
         assertEquals(ID_CLAVE_A, entidad.getIdClaveExaman());
         assertEquals("Clave A", entidad.getNombreClave());
-        assertNotNull(entidad.getIdPrueba());
-        assertEquals(ID_PRUEBA_1, entidad.getIdPrueba().getIdPruebaAdmision());
+        assertNotNull(entidad.getPruebaAdmision());
+        assertEquals(ID_PRUEBA_1, entidad.getPruebaAdmision().getIdPruebaAdmision());
     }
 
     /**
@@ -133,8 +133,8 @@ public class ClavesExamenResourceST extends AbstractResourceST {
         // Verificar que al menos una clave pertenece a Prueba 1
         boolean encontroDeLaPrueba = false;
         for (ClavesExamen clave : arreglo) {
-            assertNotNull(clave.getIdPrueba());
-            if (ID_PRUEBA_1.equals(clave.getIdPrueba().getIdPruebaAdmision())) {
+            assertNotNull(clave.getPruebaAdmision());
+            if (ID_PRUEBA_1.equals(clave.getPruebaAdmision().getIdPruebaAdmision())) {
                 encontroDeLaPrueba = true;
                 break;
             }
@@ -165,7 +165,7 @@ public class ClavesExamenResourceST extends AbstractResourceST {
         assertNotNull(creado);
         assertEquals(idCreado, creado.getIdClaveExaman());
         assertEquals("Clave Test", creado.getNombreClave());
-        assertEquals(ID_PRUEBA_2, creado.getIdPrueba().getIdPruebaAdmision());
+        assertEquals(ID_PRUEBA_2, creado.getPruebaAdmision().getIdPruebaAdmision());
     }
 
     /**
@@ -191,7 +191,7 @@ public class ClavesExamenResourceST extends AbstractResourceST {
         ClavesExamen nueva = new ClavesExamen();
         PruebasAdmision prueba = new PruebasAdmision();
         prueba.setIdPruebaAdmision(ID_PRUEBA_1);
-        nueva.setIdPrueba(prueba);
+        nueva.setPruebaAdmision(prueba);
         // Falta: nombreClave
 
         Response response = post("claves_examen", nueva);
@@ -281,7 +281,7 @@ public class ClavesExamenResourceST extends AbstractResourceST {
         ClavesExamen clave = new ClavesExamen();
         PruebasAdmision prueba = new PruebasAdmision();
         prueba.setIdPruebaAdmision(idPrueba);
-        clave.setIdPrueba(prueba);
+        clave.setPruebaAdmision(prueba);
         clave.setNombreClave(nombreClave);
         return clave;
     }

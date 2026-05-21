@@ -42,7 +42,7 @@ class ClavesExamenResourceTest {
 
         entidad = new ClavesExamen();
         entidad.setIdClaveExaman(testId);
-        entidad.setIdPrueba(prueba);
+        entidad.setPruebaAdmision(prueba);
         entidad.setNombreClave("Clave A");
     }
 
@@ -133,7 +133,7 @@ class ClavesExamenResourceTest {
     @Test
     void create_ConEntidadValida_DebeRetornar201() {
         ClavesExamen nueva = new ClavesExamen();
-        nueva.setIdPrueba(new PruebasAdmision());
+        nueva.setPruebaAdmision(new PruebasAdmision());
         nueva.setNombreClave("Clave B");
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
@@ -171,7 +171,7 @@ class ClavesExamenResourceTest {
     @Test
     void create_SinNombreClave_DebeRetornar422() {
         ClavesExamen nueva = new ClavesExamen();
-        nueva.setIdPrueba(new PruebasAdmision());
+        nueva.setPruebaAdmision(new PruebasAdmision());
         Response response = resource.create(nueva, uriInfo);
         assertEquals(422, response.getStatus());
         verifyNoInteractions(clavesExamanDAO);
@@ -180,7 +180,7 @@ class ClavesExamenResourceTest {
     @Test
     void create_ConNombreClaveEnBlanco_DebeRetornar422() {
         ClavesExamen nueva = new ClavesExamen();
-        nueva.setIdPrueba(new PruebasAdmision());
+        nueva.setPruebaAdmision(new PruebasAdmision());
         nueva.setNombreClave("   ");
         Response response = resource.create(nueva, uriInfo);
         assertEquals(422, response.getStatus());
@@ -190,7 +190,7 @@ class ClavesExamenResourceTest {
     @Test
     void create_ConExcepcionEnDAO_DebeRetornar500() {
         ClavesExamen nueva = new ClavesExamen();
-        nueva.setIdPrueba(new PruebasAdmision());
+        nueva.setPruebaAdmision(new PruebasAdmision());
         nueva.setNombreClave("Clave D");
         doThrow(new RuntimeException("BD error")).when(clavesExamanDAO).crear(any());
         Response response = resource.create(nueva, uriInfo);
@@ -203,7 +203,7 @@ class ClavesExamenResourceTest {
     void update_ConIdYEntidadValidos_DebeRetornar200() {
         when(clavesExamanDAO.leer(testId)).thenReturn(entidad);
         ClavesExamen actualizada = new ClavesExamen();
-        actualizada.setIdPrueba(new PruebasAdmision());
+        actualizada.setPruebaAdmision(new PruebasAdmision());
         actualizada.setNombreClave("Clave A modificada");
 
         Response response = resource.update(testId, actualizada);

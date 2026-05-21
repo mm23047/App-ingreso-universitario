@@ -65,7 +65,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
             assertNotNull(prueba);
 
             ClavesExamen nueva = new ClavesExamen();
-            nueva.setIdPrueba(prueba);
+            nueva.setPruebaAdmision(prueba);
             nueva.setNombreClave("Clave C");
 
             cut.crear(nueva);
@@ -124,7 +124,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
             assertNotNull(prueba);
 
             ClavesExamen nueva = new ClavesExamen();
-            nueva.setIdPrueba(prueba);
+            nueva.setPruebaAdmision(prueba);
             nueva.setNombreClave("Clave para eliminar");
 
             cut.crear(nueva);
