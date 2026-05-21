@@ -161,7 +161,7 @@ class ProcesoAdmisionAspiranteResourceTest {
         ProcesoAdmisionAspirante nuevo = new ProcesoAdmisionAspirante();
         nuevo.setEstado("PENDIENTE");
         nuevo.setInscripcionesPrueba(new InscripcionesPrueba());
-        nuevo.setIdEtapaActual(new EtapasAdmision());
+        nuevo.setEtapaAdmision(new EtapasAdmision());
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
         when(uriBuilder.build()).thenReturn(URI.create("http://localhost/proceso_admision_aspirante/null"));
@@ -176,7 +176,7 @@ class ProcesoAdmisionAspiranteResourceTest {
     void create_SinInscripcion_DebeRetornar422() {
         ProcesoAdmisionAspirante nuevo = new ProcesoAdmisionAspirante();
         nuevo.setEstado("PENDIENTE");
-        nuevo.setIdEtapaActual(new EtapasAdmision());
+        nuevo.setEtapaAdmision(new EtapasAdmision());
         // inscripcionesPrueba ausente
 
         Response response = resource.create(nuevo, uriInfo);
@@ -204,7 +204,7 @@ class ProcesoAdmisionAspiranteResourceTest {
     void create_SinEstado_DebeRetornar422() {
         ProcesoAdmisionAspirante nuevo = new ProcesoAdmisionAspirante();
         nuevo.setInscripcionesPrueba(new InscripcionesPrueba());
-        nuevo.setIdEtapaActual(new EtapasAdmision());
+        nuevo.setEtapaAdmision(new EtapasAdmision());
         // estado ausente
 
         Response response = resource.create(nuevo, uriInfo);
@@ -236,7 +236,7 @@ class ProcesoAdmisionAspiranteResourceTest {
         ProcesoAdmisionAspirante nuevo = new ProcesoAdmisionAspirante();
         nuevo.setEstado("PENDIENTE");
         nuevo.setInscripcionesPrueba(new InscripcionesPrueba());
-        nuevo.setIdEtapaActual(new EtapasAdmision());
+        nuevo.setEtapaAdmision(new EtapasAdmision());
         doThrow(new RuntimeException("Error de BD")).when(procesoAdmisionAspiranteDAO).crear(any());
 
         Response response = resource.create(nuevo, uriInfo);

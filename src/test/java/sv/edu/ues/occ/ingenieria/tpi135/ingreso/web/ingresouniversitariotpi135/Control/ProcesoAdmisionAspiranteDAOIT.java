@@ -106,7 +106,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             ProcesoAdmisionAspirante nuevoProceso = new ProcesoAdmisionAspirante();
             nuevoProceso.setInscripcionesPrueba(nuevaIn);
             nuevoProceso.setIdProcesoAdmisionAspirante(nuevaIn.getIdInscripcionPrueba()); // @MapsId: el PK debe coincidir
-            nuevoProceso.setIdEtapaActual(etapa1);
+            nuevoProceso.setEtapaAdmision(etapa1);
             nuevoProceso.setEstado("EN_PROCESO");
 
             cut.crear(nuevoProceso);
@@ -141,7 +141,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
             assertNotNull(resultado);
             assertEquals("EN_PROCESO", resultado.getEstado());
-            assertEquals(ID_ETAPA_1, resultado.getIdEtapaActual().getIdEtapaAdmision());
+            assertEquals(ID_ETAPA_1, resultado.getEtapaAdmision().getIdEtapaAdmision());
 
             return null;
         });
@@ -197,7 +197,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             ProcesoAdmisionAspirante nuevoProceso = new ProcesoAdmisionAspirante();
             nuevoProceso.setInscripcionesPrueba(nuevaIn);
             nuevoProceso.setIdProcesoAdmisionAspirante(nuevaIn.getIdInscripcionPrueba());
-            nuevoProceso.setIdEtapaActual(etapa1);
+            nuevoProceso.setEtapaAdmision(etapa1);
             nuevoProceso.setEstado("EN_PROCESO");
 
             cut.crear(nuevoProceso);
@@ -239,7 +239,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             ProcesoAdmisionAspirante proceso = new ProcesoAdmisionAspirante();
             proceso.setInscripcionesPrueba(inscripcion);
             proceso.setIdProcesoAdmisionAspirante(inscripcion.getIdInscripcionPrueba());
-            proceso.setIdEtapaActual(etapaAsignacion);
+            proceso.setEtapaAdmision(etapaAsignacion);
             proceso.setEstado("EN_PROCESO");
             em.persist(proceso);
 
@@ -343,7 +343,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             ProcesoAdmisionAspirante proceso = new ProcesoAdmisionAspirante();
             proceso.setInscripcionesPrueba(inscripcion);
             proceso.setIdProcesoAdmisionAspirante(inscripcion.getIdInscripcionPrueba());
-            proceso.setIdEtapaActual(etapaAsignacion);
+            proceso.setEtapaAdmision(etapaAsignacion);
             proceso.setEstado("EN_PROCESO");
             em.persist(proceso);
 

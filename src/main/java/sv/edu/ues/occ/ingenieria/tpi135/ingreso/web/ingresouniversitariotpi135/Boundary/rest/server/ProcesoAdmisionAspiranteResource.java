@@ -60,7 +60,7 @@ public class ProcesoAdmisionAspiranteResource extends AbstractResource<ProcesoAd
     public Response create(ProcesoAdmisionAspirante entity, @Context UriInfo uriInfo) {
         if (entity != null && entity.getIdProcesoAdmisionAspirante() == null
                 && entity.getInscripcionesPrueba() != null
-                && entity.getIdEtapaActual() != null
+                && entity.getEtapaAdmision() != null
                 && entity.getEstado() != null
                 && !entity.getEstado().isBlank()) {
             try {

@@ -21,7 +21,7 @@ import java.util.UUID;
         // NUEVA CONSULTA: Trae los procesos de aspirantes pendientes filtrados por nota final (ExamenRealizado) de mayor a menor
         @NamedQuery(
                 name = "ProcesoAdmisionAspirante.findPendientesPorPuntaje",
-                query = "SELECT p FROM ProcesoAdmisionAspirante p JOIN ExamenRealizado er ON er.inscripcionesPrueba = p.idProcesoAdmisionAspirante WHERE p.idEtapaActual.idEtapaAdmision = :idEtapa AND p.estado = 'PENDIENTE' ORDER BY er.puntajeFinal DESC"
+                query = "SELECT p FROM ProcesoAdmisionAspirante p JOIN ExamenRealizado er ON er.inscripcionesPrueba = p.idProcesoAdmisionAspirante WHERE p.etapaAdmision.idEtapaAdmision = :idEtapa AND p.estado = 'PENDIENTE' ORDER BY er.puntajeFinal DESC"
         )
 })
 public class ProcesoAdmisionAspirante implements Serializable {
@@ -40,7 +40,7 @@ public class ProcesoAdmisionAspirante implements Serializable {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_etapa_actual", nullable = false)
-    private EtapasAdmision idEtapaActual;
+    private EtapasAdmision etapaAdmision;
 
     @Size(max = 20)
     @NotNull
@@ -67,12 +67,12 @@ public class ProcesoAdmisionAspirante implements Serializable {
         this.inscripcionesPrueba = inscripcionesPrueba;
     }
 
-    public EtapasAdmision getIdEtapaActual() {
-        return idEtapaActual;
+    public EtapasAdmision getEtapaAdmision() {
+        return etapaAdmision;
     }
 
-    public void setIdEtapaActual(EtapasAdmision idEtapaActual) {
-        this.idEtapaActual = idEtapaActual;
+    public void setEtapaAdmision(EtapasAdmision idEtapaActual) {
+        this.etapaAdmision = idEtapaActual;
     }
 
     public String getEstado() {
