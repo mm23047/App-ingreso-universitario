@@ -63,13 +63,13 @@ public class CarrerasElegidaResource extends AbstractResource<CarrerasElegida> {
     @Consumes({MediaType.APPLICATION_JSON})
     public Response create(CarrerasElegida entity, @Context UriInfo uriInfo) {
         if (entity != null
-            && entity.getIdInscripcion() != null
-            && entity.getIdInscripcion().getIdInscripcionPrueba() != null
-                && entity.getIdCarrera() != null
-            && entity.getIdCarrera().getIdCarrera() != null
+            && entity.getInscripcionesPrueba() != null
+            && entity.getInscripcionesPrueba().getIdInscripcionPrueba() != null
+                && entity.getCatalogoCarrera() != null
+            && entity.getCatalogoCarrera().getIdCarrera() != null
                 && entity.getPrioridad() != null) {
             try {
-            if (carrerasElegidaDAO.existsByInscripcionAndPrioridad(entity.getIdInscripcion().getIdInscripcionPrueba(), entity.getPrioridad())) {
+            if (carrerasElegidaDAO.existsByInscripcionAndPrioridad(entity.getInscripcionesPrueba().getIdInscripcionPrueba(), entity.getPrioridad())) {
                 return Response.status(Response.Status.CONFLICT)
                             .header(CONFLICT_REASON, "prioridad already exists for inscripcion")
                     .build();
@@ -77,8 +77,8 @@ public class CarrerasElegidaResource extends AbstractResource<CarrerasElegida> {
                 carrerasElegidaDAO.crear(entity);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()
-                    .path(String.valueOf(entity.getIdInscripcion().getIdInscripcionPrueba()))
-                    .path(entity.getIdCarrera().getIdCarrera())
+                    .path(String.valueOf(entity.getInscripcionesPrueba().getIdInscripcionPrueba()))
+                    .path(entity.getCatalogoCarrera().getIdCarrera())
                                 .build())
                         .build();
             } catch (Exception ex) {

@@ -253,8 +253,8 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             pk1.setIdCarrera("ICS");
             CarrerasElegida elegida1 = new CarrerasElegida();
             elegida1.setIdCarreraElegida(pk1);
-            elegida1.setIdInscripcion(inscripcion);
-            elegida1.setIdCarrera(carreraICS);
+            elegida1.setInscripcionesPrueba(inscripcion);
+            elegida1.setCatalogoCarrera(carreraICS);
             elegida1.setPrioridad((short) 1);
             em.persist(elegida1);
 
@@ -263,8 +263,8 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             pk2.setIdCarrera("ISI");
             CarrerasElegida elegida2 = new CarrerasElegida();
             elegida2.setIdCarreraElegida(pk2);
-            elegida2.setIdInscripcion(inscripcion);
-            elegida2.setIdCarrera(carreraISI);
+            elegida2.setInscripcionesPrueba(inscripcion);
+            elegida2.setCatalogoCarrera(carreraISI);
             elegida2.setPrioridad((short) 2);
             em.persist(elegida2);
 
@@ -358,8 +358,8 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             pk1.setIdCarrera("ICS");
             CarrerasElegida elegida1 = new CarrerasElegida();
             elegida1.setIdCarreraElegida(pk1);
-            elegida1.setIdInscripcion(inscripcion);
-            elegida1.setIdCarrera(carreraICS);
+            elegida1.setInscripcionesPrueba(inscripcion);
+            elegida1.setCatalogoCarrera(carreraICS);
             elegida1.setPrioridad((short) 1);
             em.persist(elegida1);
 
@@ -369,8 +369,8 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             pk2.setIdCarrera("ISI");
             CarrerasElegida elegida2 = new CarrerasElegida();
             elegida2.setIdCarreraElegida(pk2);
-            elegida2.setIdInscripcion(inscripcion);
-            elegida2.setIdCarrera(carreraISI);
+            elegida2.setInscripcionesPrueba(inscripcion);
+            elegida2.setCatalogoCarrera(carreraISI);
             elegida2.setPrioridad((short) 2);
             em.persist(elegida2);
 

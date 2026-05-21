@@ -63,7 +63,7 @@ public class ProcesoAdmisionAspiranteDAO extends IngresoDefaultDataAccess<Proces
                 .getResultList();
 
         for (CarrerasElegida elegida : elegidas) {
-            String idCarrera = elegida.getIdCarrera().getIdCarrera();
+            String idCarrera = elegida.getCatalogoCarrera().getIdCarrera();
             CuposCarrera cupos = buscarCupos(idPrueba, idCarrera, idEtapa);
 
             if (cupos != null && cupos.getCupos() != null && cupos.getCupos() > 0) {

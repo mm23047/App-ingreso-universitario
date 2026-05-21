@@ -89,8 +89,8 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
             CarrerasElegida nueva = new CarrerasElegida();
             nueva.setIdCarreraElegida(clave);
-            nueva.setIdInscripcion(inscripcion);
-            nueva.setIdCarrera(carrera);
+            nueva.setInscripcionesPrueba(inscripcion);
+            nueva.setCatalogoCarrera(carrera);
             nueva.setPrioridad((short) 3);
 
             cut.crear(nueva);
@@ -186,8 +186,8 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
             CarrerasElegida nueva = new CarrerasElegida();
             nueva.setIdCarreraElegida(clave);
-            nueva.setIdInscripcion(inscripcion);
-            nueva.setIdCarrera(carrera);
+            nueva.setInscripcionesPrueba(inscripcion);
+            nueva.setCatalogoCarrera(carrera);
             nueva.setPrioridad((short) 3);
 
             cut.crear(nueva);

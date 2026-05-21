@@ -97,11 +97,11 @@ public class CrearAspiranteBDD {
 
             InscripcionesPrueba inscripcionRef = new InscripcionesPrueba();
             inscripcionRef.setIdInscripcionPrueba(idInscripcionCreada);
-            carreraElegida.setIdInscripcion(inscripcionRef);
+            carreraElegida.setInscripcionesPrueba(inscripcionRef);
 
             CatalogoCarrera carreraRef = new CatalogoCarrera();
             carreraRef.setIdCarrera(ID_CARRERA_SEMILLA);
-            carreraElegida.setIdCarrera(carreraRef);
+            carreraElegida.setCatalogoCarrera(carreraRef);
             carreraElegida.setPrioridad((short) 1);
 
             Response respuestaCarrera = target

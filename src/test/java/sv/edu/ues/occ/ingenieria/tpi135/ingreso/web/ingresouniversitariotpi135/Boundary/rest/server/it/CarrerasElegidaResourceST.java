@@ -174,11 +174,11 @@ public class CarrerasElegidaResourceST extends AbstractResourceST{
         // Inicializamos los objetos relacionales asignándoles su ID respectivo
         InscripcionesPrueba inscripcion = new InscripcionesPrueba();
         inscripcion.setIdInscripcionPrueba(idInscripcion);
-        entidad.setIdInscripcion(inscripcion);
+        entidad.setInscripcionesPrueba(inscripcion);
 
         CatalogoCarrera carrera = new CatalogoCarrera();
         carrera.setIdCarrera(idCarrera);
-        entidad.setIdCarrera(carrera);
+        entidad.setCatalogoCarrera(carrera);
 
         // Setear el valor nativo
         entidad.setPrioridad(prioridad);

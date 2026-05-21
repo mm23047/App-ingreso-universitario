@@ -12,7 +12,7 @@ import java.util.UUID;
 @NamedQueries({
         @NamedQuery(
                 name = "ProcesoAdmisionAspirante.findCarrerasElegidas",
-                query = "SELECT ce FROM CarrerasElegida ce WHERE ce.idInscripcion.idInscripcionPrueba = :idInscripcion ORDER BY ce.prioridad ASC"
+                query = "SELECT ce FROM CarrerasElegida ce WHERE ce.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion ORDER BY ce.prioridad ASC"
         ),
         @NamedQuery(
                 name = "ProcesoAdmisionAspirante.findCuposCarrera",

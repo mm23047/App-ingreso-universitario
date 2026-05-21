@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotNull;
 
 import java.io.Serializable;
 import java.util.Objects;
-import java.util.UUID;
 
 @Entity
 @Table(name = "carrera_elegida", schema = "public", uniqueConstraints = {
@@ -14,20 +13,20 @@ import java.util.UUID;
 @NamedQueries({
         @NamedQuery(
                 name = "CarrerasElegida.countByInscripcionAndPrioridad",
-                query = "SELECT COUNT(c) FROM CarrerasElegida c WHERE c.idInscripcion.idInscripcionPrueba = :idInscripcion AND c.prioridad = :prioridad"
+                query = "SELECT COUNT(c) FROM CarrerasElegida c WHERE c.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion AND c.prioridad = :prioridad"
         ),
         @NamedQuery(
                 name = "CarrerasElegida.countByInscripcionAndPrioridadNotId",
-                query = "SELECT COUNT(c) FROM CarrerasElegida c WHERE c.idInscripcion.idInscripcionPrueba = :idInscripcion AND c.prioridad = :prioridad AND c.idCarrera.idCarrera <> :idCarrera"
+                query = "SELECT COUNT(c) FROM CarrerasElegida c WHERE c.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion AND c.prioridad = :prioridad AND c.catalogoCarrera.idCarrera <> :idCarrera"
         ),
         @NamedQuery(
                 name = "CarrerasElegida.findByInscripcionAndCarrera",
-                query = "SELECT c FROM CarrerasElegida c WHERE c.idInscripcion.idInscripcionPrueba = :idInscripcion AND c.idCarrera.idCarrera = :idCarrera"
+                query = "SELECT c FROM CarrerasElegida c WHERE c.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion AND c.catalogoCarrera.idCarrera = :idCarrera"
         ),
         // NUEVO: Requerimiento de negocio para el algoritmo de asignación de cupos
         @NamedQuery(
                 name = "CarrerasElegida.findByInscripcionOrderByPrioridad",
-                query = "SELECT c FROM CarrerasElegida c WHERE c.idInscripcion.idInscripcionPrueba = :idInscripcion ORDER BY c.prioridad ASC"
+                query = "SELECT c FROM CarrerasElegida c WHERE c.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion ORDER BY c.prioridad ASC"
         )
 })
 
@@ -41,13 +40,13 @@ public class CarrerasElegida implements Serializable {
     @MapsId("idInscripcion")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_inscripcion", nullable = false)
-    private InscripcionesPrueba idInscripcion;
+    private InscripcionesPrueba inscripcionesPrueba;
 
     @MapsId("idCarrera")
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_carrera", nullable = false)
-    private CatalogoCarrera idCarrera;
+    private CatalogoCarrera catalogoCarrera;
 
     @NotNull
     @Column(name = "prioridad", nullable = false)
@@ -60,34 +59,34 @@ public class CarrerasElegida implements Serializable {
     public void setIdCarreraElegida(CarrerasElegidaId id) {
         this.idCarreraElegida = id;
         if (id != null) {
-            if (this.idInscripcion == null) {
+            if (this.inscripcionesPrueba == null) {
                 InscripcionesPrueba inscripcion = new InscripcionesPrueba();
                 inscripcion.setIdInscripcionPrueba(id.getIdInscripcion());
-                this.idInscripcion = inscripcion;
+                this.inscripcionesPrueba = inscripcion;
             }
-            if (this.idCarrera == null) {
+            if (this.catalogoCarrera == null) {
                 CatalogoCarrera carrera = new CatalogoCarrera();
                 carrera.setIdCarrera(id.getIdCarrera());
-                this.idCarrera = carrera;
+                this.catalogoCarrera = carrera;
             }
         }
     }
 
-    public InscripcionesPrueba getIdInscripcion() {
-        return idInscripcion;
+    public InscripcionesPrueba getInscripcionesPrueba() {
+        return inscripcionesPrueba;
     }
 
-    public void setIdInscripcion(InscripcionesPrueba idInscripcion) {
-        this.idInscripcion = idInscripcion;
+    public void setInscripcionesPrueba(InscripcionesPrueba idInscripcion) {
+        this.inscripcionesPrueba = idInscripcion;
         sincronizarId();
     }
 
-    public CatalogoCarrera getIdCarrera() {
-        return idCarrera;
+    public CatalogoCarrera getCatalogoCarrera() {
+        return catalogoCarrera;
     }
 
-    public void setIdCarrera(CatalogoCarrera idCarrera) {
-        this.idCarrera = idCarrera;
+    public void setCatalogoCarrera(CatalogoCarrera idCarrera) {
+        this.catalogoCarrera = idCarrera;
         sincronizarId();
     }
 
@@ -106,10 +105,10 @@ public class CarrerasElegida implements Serializable {
     }
 
     private void sincronizarId() {
-        if (this.idCarreraElegida == null && this.idInscripcion != null && this.idCarrera != null) {
+        if (this.idCarreraElegida == null && this.inscripcionesPrueba != null && this.catalogoCarrera != null) {
             CarrerasElegidaId compuesto = new CarrerasElegidaId();
-            compuesto.setIdInscripcion(this.idInscripcion.getIdInscripcionPrueba());
-            compuesto.setIdCarrera(this.idCarrera.getIdCarrera());
+            compuesto.setIdInscripcion(this.inscripcionesPrueba.getIdInscripcionPrueba());
+            compuesto.setIdCarrera(this.catalogoCarrera.getIdCarrera());
             this.idCarreraElegida = compuesto;
         }
     }
