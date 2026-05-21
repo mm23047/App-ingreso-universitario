@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
 import java.io.Serializable;
-import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -14,19 +13,19 @@ import java.util.UUID;
         // 2. NUEVAS CONSULTAS: Para validar duplicados separando la lógica Global vs Local
         @NamedQuery(
                 name = "BancoRespuesta.countGlobalByTexto",
-                query = "SELECT COUNT(b) FROM BancoRespuesta b WHERE UPPER(TRIM(b.textoRespuesta)) = UPPER(TRIM(:textoRespuesta)) AND b.idArea IS NULL"
+                query = "SELECT COUNT(b) FROM BancoRespuesta b WHERE UPPER(TRIM(b.textoRespuesta)) = UPPER(TRIM(:textoRespuesta)) AND b.areaConocimiento IS NULL"
         ),
         @NamedQuery(
                 name = "BancoRespuesta.countLocalByTexto",
-                query = "SELECT COUNT(b) FROM BancoRespuesta b WHERE UPPER(TRIM(b.textoRespuesta)) = UPPER(TRIM(:textoRespuesta)) AND b.idArea.idAreaConocimiento = :idArea"
+                query = "SELECT COUNT(b) FROM BancoRespuesta b WHERE UPPER(TRIM(b.textoRespuesta)) = UPPER(TRIM(:textoRespuesta)) AND b.areaConocimiento.idAreaConocimiento = :idArea"
         ),
         @NamedQuery(
                 name = "BancoRespuesta.countGlobalByTextoAndNotId",
-                query = "SELECT COUNT(b) FROM BancoRespuesta b WHERE UPPER(TRIM(b.textoRespuesta)) = UPPER(TRIM(:textoRespuesta)) AND b.idArea IS NULL AND b.idBancoRespuesta <> :idBancoRespuesta"
+                query = "SELECT COUNT(b) FROM BancoRespuesta b WHERE UPPER(TRIM(b.textoRespuesta)) = UPPER(TRIM(:textoRespuesta)) AND b.areaConocimiento IS NULL AND b.idBancoRespuesta <> :idBancoRespuesta"
         ),
         @NamedQuery(
                 name = "BancoRespuesta.countLocalByTextoAndNotId",
-                query = "SELECT COUNT(b) FROM BancoRespuesta b WHERE UPPER(TRIM(b.textoRespuesta)) = UPPER(TRIM(:textoRespuesta)) AND b.idArea.idAreaConocimiento = :idArea AND b.idBancoRespuesta <> :idBancoRespuesta"
+                query = "SELECT COUNT(b) FROM BancoRespuesta b WHERE UPPER(TRIM(b.textoRespuesta)) = UPPER(TRIM(:textoRespuesta)) AND b.areaConocimiento.idAreaConocimiento = :idArea AND b.idBancoRespuesta <> :idBancoRespuesta"
         )
 })
 @NamedNativeQueries({
@@ -60,7 +59,7 @@ public class BancoRespuesta implements Serializable {
     // ACTUALIZADO: optional = true y nullable = true. ¡Esto hace la magia de las respuestas globales!
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "id_area", nullable = true)
-    private AreasConocimiento idArea;
+    private AreasConocimiento areaConocimiento;
 
     public UUID getIdBancoRespuesta() {
         return idBancoRespuesta;
@@ -78,12 +77,12 @@ public class BancoRespuesta implements Serializable {
         this.textoRespuesta = textoRespuesta;
     }
 
-    public AreasConocimiento getIdArea() {
-        return idArea;
+    public AreasConocimiento getAreaConocimiento() {
+        return areaConocimiento;
     }
 
-    public void setIdArea(AreasConocimiento idArea) {
-        this.idArea = idArea;
+    public void setAreaConocimiento(AreasConocimiento idArea) {
+        this.areaConocimiento = idArea;
     }
 
     @PrePersist

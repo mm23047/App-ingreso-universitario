@@ -3,7 +3,6 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoRespuesta;
 
@@ -36,7 +35,7 @@ public class BancoRespuestaDAO extends IngresoDefaultDataAccess<BancoRespuesta> 
         }
 
         String textoSaneado = entity.getTextoRespuesta().trim();
-        boolean esGlobal = (entity.getIdArea() == null || entity.getIdArea().getIdAreaConocimiento() == null);
+        boolean esGlobal = (entity.getAreaConocimiento() == null || entity.getAreaConocimiento().getIdAreaConocimiento() == null);
 
         if (esGlobal) {
             Long conteo = em.createNamedQuery("BancoRespuesta.countGlobalByTexto", Long.class)
@@ -48,7 +47,7 @@ public class BancoRespuestaDAO extends IngresoDefaultDataAccess<BancoRespuesta> 
         } else {
             Long conteo = em.createNamedQuery("BancoRespuesta.countLocalByTexto", Long.class)
                     .setParameter("textoRespuesta", textoSaneado)
-                    .setParameter("idArea", entity.getIdArea().getIdAreaConocimiento())
+                    .setParameter("idArea", entity.getAreaConocimiento().getIdAreaConocimiento())
                     .getSingleResult();
             if (conteo > 0) {
                 throw new IllegalArgumentException("Esta respuesta ya existe dentro de esta Área de Conocimiento.");
@@ -68,7 +67,7 @@ public class BancoRespuestaDAO extends IngresoDefaultDataAccess<BancoRespuesta> 
         }
 
         String textoSaneado = entity.getTextoRespuesta().trim();
-        boolean esGlobal = (entity.getIdArea() == null || entity.getIdArea().getIdAreaConocimiento() == null);
+        boolean esGlobal = (entity.getAreaConocimiento() == null || entity.getAreaConocimiento().getIdAreaConocimiento() == null);
         Long conteo;
 
         if (esGlobal) {
@@ -79,7 +78,7 @@ public class BancoRespuestaDAO extends IngresoDefaultDataAccess<BancoRespuesta> 
         } else {
             conteo = em.createNamedQuery("BancoRespuesta.countLocalByTextoAndNotId", Long.class)
                     .setParameter("textoRespuesta", textoSaneado)
-                    .setParameter("idArea", entity.getIdArea().getIdAreaConocimiento())
+                    .setParameter("idArea", entity.getAreaConocimiento().getIdAreaConocimiento())
                     .setParameter("idBancoRespuesta", entity.getIdBancoRespuesta())
                     .getSingleResult();
         }
