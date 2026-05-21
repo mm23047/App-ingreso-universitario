@@ -15,7 +15,7 @@ import java.util.UUID;
 @NamedQueries({
         @NamedQuery(
                 name = "TurnosExamen.findByPrueba",
-                query = "SELECT t FROM TurnosExamen t WHERE t.idPrueba.idPruebaAdmision = :idPrueba ORDER BY t.fecha, t.horaInicio"
+                query = "SELECT t FROM TurnosExamen t WHERE t.pruebaAdmision.idPruebaAdmision = :idPrueba ORDER BY t.fecha, t.horaInicio"
         ),
         @NamedQuery(
                 name = "TurnosExamen.findByFecha",
@@ -24,7 +24,7 @@ import java.util.UUID;
         // NUEVA CONSULTA: Detecta traslapes de tiempo matemáticamente
         @NamedQuery(
                 name = "TurnosExamen.countTraslapes",
-                query = "SELECT COUNT(t) FROM TurnosExamen t WHERE t.idPrueba.idPruebaAdmision = :idPrueba AND t.fecha = :fecha AND (t.horaInicio < :horaFin AND t.horaFin > :horaInicio) AND (:idIgnorado IS NULL OR t.idTurnoExamen <> :idIgnorado)"
+                query = "SELECT COUNT(t) FROM TurnosExamen t WHERE t.pruebaAdmision.idPruebaAdmision = :idPrueba AND t.fecha = :fecha AND (t.horaInicio < :horaFin AND t.horaFin > :horaInicio) AND (:idIgnorado IS NULL OR t.idTurnoExamen <> :idIgnorado)"
         ),
         @NamedQuery(
                 name = "TurnosExamen.findTurnoActivoAspirante",
@@ -50,7 +50,7 @@ public class TurnosExamen implements Serializable { // CORRECCIÓN: Nombre y Ser
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_prueba", nullable = false)
-    private PruebasAdmision idPrueba;
+    private PruebasAdmision pruebaAdmision;
 
     @Size(max = 50)
     @NotNull
@@ -86,12 +86,12 @@ public class TurnosExamen implements Serializable { // CORRECCIÓN: Nombre y Ser
         this.idTurnoExamen = id;
     }
 
-    public PruebasAdmision getIdPrueba() {
-        return idPrueba;
+    public PruebasAdmision getPruebaAdmision() {
+        return pruebaAdmision;
     }
 
-    public void setIdPrueba(PruebasAdmision idPrueba) {
-        this.idPrueba = idPrueba;
+    public void setPruebaAdmision(PruebasAdmision idPrueba) {
+        this.pruebaAdmision = idPrueba;
     }
 
     public String getNombreTurno() {

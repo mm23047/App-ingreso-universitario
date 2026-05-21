@@ -68,7 +68,7 @@ public class TurnosExamenDAOIT extends AbstractBaseIT {
 
             TurnosExamen nuevoTurno = new TurnosExamen();
             nuevoTurno.setNombreTurno("Turno Matutino");
-            nuevoTurno.setIdPrueba(pruebasAdmision);
+            nuevoTurno.setPruebaAdmision(pruebasAdmision);
             nuevoTurno.setFecha(LocalDate.now());
             nuevoTurno.setHoraInicio(LocalTime.now());
             nuevoTurno.setHoraFin(LocalTime.now().plusHours(2));
@@ -157,7 +157,7 @@ public class TurnosExamenDAOIT extends AbstractBaseIT {
             // Creamos el dato temporal
             TurnosExamen turnoTemporal = new TurnosExamen();
             turnoTemporal.setNombreTurno("Turno Temporal a Eliminar");
-            turnoTemporal.setIdPrueba(pruebasAdmision);
+            turnoTemporal.setPruebaAdmision(pruebasAdmision);
             turnoTemporal.setFecha(LocalDate.now());
             turnoTemporal.setHoraInicio(LocalTime.now());
             turnoTemporal.setHoraFin(LocalTime.now().plusHours(2));

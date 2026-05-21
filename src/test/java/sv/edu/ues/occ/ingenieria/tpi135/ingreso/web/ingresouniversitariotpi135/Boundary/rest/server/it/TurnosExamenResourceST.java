@@ -166,7 +166,7 @@ public class TurnosExamenResourceST extends AbstractResourceST {
         assertNotNull(creado);
         assertEquals(idCreado, creado.getIdTurnoExamen());
         assertEquals("Turno Test", creado.getNombreTurno());
-        assertEquals(ID_PRUEBA_2, creado.getIdPrueba().getIdPruebaAdmision());
+        assertEquals(ID_PRUEBA_2, creado.getPruebaAdmision().getIdPruebaAdmision());
     }
 
     /**
@@ -191,7 +191,7 @@ public class TurnosExamenResourceST extends AbstractResourceST {
             assertEquals(200, responseConsulta.getStatus());
 
             TurnosExamen creado = responseConsulta.readEntity(TurnosExamen.class);
-            assertEquals(ID_PRUEBA_1, creado.getIdPrueba().getIdPruebaAdmision());
+            assertEquals(ID_PRUEBA_1, creado.getPruebaAdmision().getIdPruebaAdmision());
             assertEquals(LocalDate.of(2026, 4, 21), creado.getFecha());
             assertEquals(LocalTime.of(14, 0), creado.getHoraInicio());
             assertEquals(LocalTime.of(17, 0), creado.getHoraFin());
@@ -294,7 +294,7 @@ public class TurnosExamenResourceST extends AbstractResourceST {
         TurnosExamen turno = new TurnosExamen();
         PruebasAdmision prueba = new PruebasAdmision();
         prueba.setIdPruebaAdmision(idPrueba);
-        turno.setIdPrueba(prueba);
+        turno.setPruebaAdmision(prueba);
         turno.setNombreTurno(nombreTurno);
         turno.setFecha(fecha);
         turno.setHoraInicio(horaInicio);
