@@ -2,7 +2,7 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExamen;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
 import java.util.UUID;
@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * incluyendo filtros por prueba, validaciones de FK, y persistencia.
  * Recurso de acceso restringido (sensible) para administradores.
  */
-public class ClavesExamanResourceST extends AbstractResourceST {
+public class ClavesExamenResourceST extends AbstractResourceST {
 
     // UUIDs de claves del init.sql
     private static final UUID ID_CLAVE_A = UUID.fromString("08000000-0000-0000-0000-000000000001");
@@ -35,7 +35,7 @@ public class ClavesExamanResourceST extends AbstractResourceST {
 
         assertEquals(200, response.getStatus());
 
-        ClavesExaman[] arreglo = response.readEntity(ClavesExaman[].class);
+        ClavesExamen[] arreglo = response.readEntity(ClavesExamen[].class);
         assertNotNull(arreglo);
         assertTrue(arreglo.length >= 2, "Debe haber al menos 2 claves iniciales");
 
@@ -46,12 +46,12 @@ public class ClavesExamanResourceST extends AbstractResourceST {
 
         // Verificar que está Clave A
         boolean encontroClaveA = false;
-        for (ClavesExaman clave : arreglo) {
-            if (ID_CLAVE_A.equals(clave.getId())) {
+        for (ClavesExamen clave : arreglo) {
+            if (ID_CLAVE_A.equals(clave.getIdClaveExaman())) {
                 encontroClaveA = true;
                 assertEquals("Clave A", clave.getNombreClave());
                 assertNotNull(clave.getIdPrueba());
-                assertEquals(ID_PRUEBA_1, clave.getIdPrueba().getId());
+                assertEquals(ID_PRUEBA_1, clave.getIdPrueba().getIdPruebaAdmision());
                 break;
             }
         }
@@ -67,7 +67,7 @@ public class ClavesExamanResourceST extends AbstractResourceST {
 
         assertEquals(200, response.getStatus());
 
-        ClavesExaman[] arreglo = response.readEntity(ClavesExaman[].class);
+        ClavesExamen[] arreglo = response.readEntity(ClavesExamen[].class);
         assertNotNull(arreglo);
         assertEquals(1, arreglo.length, "Debe retornar exactamente 1 registro");
 
@@ -86,12 +86,12 @@ public class ClavesExamanResourceST extends AbstractResourceST {
 
         assertEquals(200, response.getStatus());
 
-        ClavesExaman entidad = response.readEntity(ClavesExaman.class);
+        ClavesExamen entidad = response.readEntity(ClavesExamen.class);
         assertNotNull(entidad);
-        assertEquals(ID_CLAVE_A, entidad.getId());
+        assertEquals(ID_CLAVE_A, entidad.getIdClaveExaman());
         assertEquals("Clave A", entidad.getNombreClave());
         assertNotNull(entidad.getIdPrueba());
-        assertEquals(ID_PRUEBA_1, entidad.getIdPrueba().getId());
+        assertEquals(ID_PRUEBA_1, entidad.getIdPrueba().getIdPruebaAdmision());
     }
 
     /**
@@ -126,15 +126,15 @@ public class ClavesExamanResourceST extends AbstractResourceST {
 
         assertEquals(200, response.getStatus());
 
-        ClavesExaman[] arreglo = response.readEntity(ClavesExaman[].class);
+        ClavesExamen[] arreglo = response.readEntity(ClavesExamen[].class);
         assertNotNull(arreglo);
         assertTrue(arreglo.length >= 2, "Prueba 1 debe tener al menos 2 claves");
 
         // Verificar que al menos una clave pertenece a Prueba 1
         boolean encontroDeLaPrueba = false;
-        for (ClavesExaman clave : arreglo) {
+        for (ClavesExamen clave : arreglo) {
             assertNotNull(clave.getIdPrueba());
-            if (ID_PRUEBA_1.equals(clave.getIdPrueba().getId())) {
+            if (ID_PRUEBA_1.equals(clave.getIdPrueba().getIdPruebaAdmision())) {
                 encontroDeLaPrueba = true;
                 break;
             }
@@ -147,7 +147,7 @@ public class ClavesExamanResourceST extends AbstractResourceST {
      */
     @Test
     void create_ConEntidadValida_DebeRetornar201_YPermitirConsultar() {
-        ClavesExaman nueva = crearClave(ID_PRUEBA_2, "Clave Test");
+        ClavesExamen nueva = crearClave(ID_PRUEBA_2, "Clave Test");
 
         Response responseCreacion = post("claves_examen", nueva);
 
@@ -161,11 +161,11 @@ public class ClavesExamanResourceST extends AbstractResourceST {
         Response responseConsulta = get("claves_examen/" + idCreado);
         assertEquals(200, responseConsulta.getStatus());
 
-        ClavesExaman creado = responseConsulta.readEntity(ClavesExaman.class);
+        ClavesExamen creado = responseConsulta.readEntity(ClavesExamen.class);
         assertNotNull(creado);
-        assertEquals(idCreado, creado.getId());
+        assertEquals(idCreado, creado.getIdClaveExaman());
         assertEquals("Clave Test", creado.getNombreClave());
-        assertEquals(ID_PRUEBA_2, creado.getIdPrueba().getId());
+        assertEquals(ID_PRUEBA_2, creado.getIdPrueba().getIdPruebaAdmision());
     }
 
     /**
@@ -173,7 +173,7 @@ public class ClavesExamanResourceST extends AbstractResourceST {
      */
     @Test
     void create_ConEntidadInvalida_SinPrueba_DebeRetornar422() {
-        ClavesExaman nueva = new ClavesExaman();
+        ClavesExamen nueva = new ClavesExamen();
         nueva.setNombreClave("Clave sin prueba");
         // Falta: idPrueba
 
@@ -188,9 +188,9 @@ public class ClavesExamanResourceST extends AbstractResourceST {
      */
     @Test
     void create_ConEntidadInvalida_SinNombre_DebeRetornar422() {
-        ClavesExaman nueva = new ClavesExaman();
+        ClavesExamen nueva = new ClavesExamen();
         PruebasAdmision prueba = new PruebasAdmision();
-        prueba.setId(ID_PRUEBA_1);
+        prueba.setIdPruebaAdmision(ID_PRUEBA_1);
         nueva.setIdPrueba(prueba);
         // Falta: nombreClave
 
@@ -207,22 +207,22 @@ public class ClavesExamanResourceST extends AbstractResourceST {
     void update_ConEntidadValida_DebeRetornar200() {
         UUID idCreado = crearClaveReal(ID_PRUEBA_1, "Clave Original");
 
-        ClavesExaman actualizada = crearClave(ID_PRUEBA_1, "Clave Actualizada");
+        ClavesExamen actualizada = crearClave(ID_PRUEBA_1, "Clave Actualizada");
 
         Response responsePut = put("claves_examen/" + idCreado, actualizada);
 
         assertEquals(200, responsePut.getStatus());
 
-        ClavesExaman actualizado = responsePut.readEntity(ClavesExaman.class);
+        ClavesExamen actualizado = responsePut.readEntity(ClavesExamen.class);
         assertNotNull(actualizado);
-        assertEquals(idCreado, actualizado.getId());
+        assertEquals(idCreado, actualizado.getIdClaveExaman());
         assertEquals("Clave Actualizada", actualizado.getNombreClave());
 
         // Verificar persistencia
         Response responseConsulta = get("claves_examen/" + idCreado);
         assertEquals(200, responseConsulta.getStatus());
 
-        ClavesExaman consultado = responseConsulta.readEntity(ClavesExaman.class);
+        ClavesExamen consultado = responseConsulta.readEntity(ClavesExamen.class);
         assertEquals("Clave Actualizada", consultado.getNombreClave());
     }
 
@@ -232,7 +232,7 @@ public class ClavesExamanResourceST extends AbstractResourceST {
     @Test
     void update_ConIdInexistente_DebeRetornar404() {
         UUID idInexistente = UUID.fromString("ffffffff-0000-0000-0000-000000000000");
-        ClavesExaman actualizada = crearClave(ID_PRUEBA_1, "No importa");
+        ClavesExamen actualizada = crearClave(ID_PRUEBA_1, "No importa");
 
         Response response = put("claves_examen/" + idInexistente, actualizada);
 
@@ -277,10 +277,10 @@ public class ClavesExamanResourceST extends AbstractResourceST {
      * Construye una entidad ClavesExaman válida con los parámetros dados.
      * No ejecuta el POST, solo prepara el payload.
      */
-    private ClavesExaman crearClave(UUID idPrueba, String nombreClave) {
-        ClavesExaman clave = new ClavesExaman();
+    private ClavesExamen crearClave(UUID idPrueba, String nombreClave) {
+        ClavesExamen clave = new ClavesExamen();
         PruebasAdmision prueba = new PruebasAdmision();
-        prueba.setId(idPrueba);
+        prueba.setIdPruebaAdmision(idPrueba);
         clave.setIdPrueba(prueba);
         clave.setNombreClave(nombreClave);
         return clave;
@@ -292,7 +292,7 @@ public class ClavesExamanResourceST extends AbstractResourceST {
      * Falla si el POST no retorna 201.
      */
     private UUID crearClaveReal(UUID idPrueba, String nombreClave) {
-        ClavesExaman clave = crearClave(idPrueba, nombreClave);
+        ClavesExamen clave = crearClave(idPrueba, nombreClave);
 
         Response responseCreacion = post("claves_examen", clave);
         assertEquals(201, responseCreacion.getStatus(),

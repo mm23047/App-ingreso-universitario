@@ -9,16 +9,42 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
-
 @Stateless
 @LocalBean
 public class AsignacionAulaAspiranteDAO extends IngresoDefaultDataAccess<AsignacionAulaAspirante> implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
 
     public AsignacionAulaAspiranteDAO() {
         super(AsignacionAulaAspirante.class);
+    }
+
+    @Override
+    public void crear(AsignacionAulaAspirante entity) {
+        if (entity == null || entity.getIdInscripcion() == null || entity.getDisponibilidad() == null) {
+            throw new IllegalArgumentException("La asignación, la inscripción y la disponibilidad de aula son requeridas.");
+        }
+
+        UUID idInscripcion = entity.getIdInscripcion().getIdInscripcionPrueba();
+        UUID idAula = entity.getDisponibilidad().getIdAula().getIdAula();
+        UUID idTurno = entity.getDisponibilidad().getIdTurno().getIdTurnoExamen();
+
+        // REGLA 1: Evitar choques de horario del aspirante
+        if (existsByInscripcionAndTurno(idInscripcion, idTurno)) {
+            throw new IllegalStateException("El aspirante ya cuenta con un aula asignada para este turno de examen.");
+        }
+
+        // REGLA 2: Controlar la capacidad física del aula (Overbooking)
+        long estudiantesAsignados = countByAulaAndTurno(idAula, idTurno);
+        int capacidadMaxima = entity.getDisponibilidad().getIdAula().getCapacidadFisica();
+
+        if (estudiantesAsignados >= capacidadMaxima) {
+            throw new IllegalStateException("No se puede completar la operación: El aula seleccionada ha alcanzado su capacidad máxima (" + capacidadMaxima + ").");
+        }
+
+        super.crear(entity);
     }
 
     @Override
@@ -30,9 +56,7 @@ public class AsignacionAulaAspiranteDAO extends IngresoDefaultDataAccess<Asignac
         if (idAula == null || idTurno == null) {
             throw new IllegalArgumentException("idAula and idTurno must not be null");
         }
-        return em.createQuery(
-                        "SELECT COUNT(a) FROM AsignacionAulaAspirante a WHERE a.disponibilidad.idAula.id = :idAula AND a.disponibilidad.idTurno.id = :idTurno",
-                        Long.class)
+        return em.createNamedQuery("AsignacionAulaAspirante.countByAulaAndTurno", Long.class)
                 .setParameter("idAula", idAula)
                 .setParameter("idTurno", idTurno)
                 .getSingleResult();
@@ -42,9 +66,7 @@ public class AsignacionAulaAspiranteDAO extends IngresoDefaultDataAccess<Asignac
         if (idInscripcion == null || idTurno == null) {
             throw new IllegalArgumentException("idInscripcion and idTurno must not be null");
         }
-        Long count = em.createQuery(
-                        "SELECT COUNT(a) FROM AsignacionAulaAspirante a WHERE a.idInscripcion.id = :idInscripcion AND a.disponibilidad.idTurno.id = :idTurno",
-                        Long.class)
+        Long count = em.createNamedQuery("AsignacionAulaAspirante.countByInscripcionAndTurno", Long.class)
                 .setParameter("idInscripcion", idInscripcion)
                 .setParameter("idTurno", idTurno)
                 .getSingleResult();
@@ -55,9 +77,7 @@ public class AsignacionAulaAspiranteDAO extends IngresoDefaultDataAccess<Asignac
         if (idInscripcion == null) {
             throw new IllegalArgumentException("idInscripcion must not be null");
         }
-        return em.createQuery(
-                        "SELECT a FROM AsignacionAulaAspirante a WHERE a.idInscripcion.id = :idInscripcion",
-                        AsignacionAulaAspirante.class)
+        return em.createNamedQuery("AsignacionAulaAspirante.findByInscripcion", AsignacionAulaAspirante.class)
                 .setParameter("idInscripcion", idInscripcion)
                 .getResultList();
     }

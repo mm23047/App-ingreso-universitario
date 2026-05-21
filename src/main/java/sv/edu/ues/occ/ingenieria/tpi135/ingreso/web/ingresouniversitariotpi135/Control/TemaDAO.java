@@ -8,13 +8,13 @@ import jakarta.persistence.PersistenceContext;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.Tema;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.Set;
+import java.util.*;
 
 @Stateless
 @LocalBean
 public class TemaDAO extends IngresoDefaultDataAccess<Tema> implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
@@ -45,9 +45,7 @@ public class TemaDAO extends IngresoDefaultDataAccess<Tema> implements Serializa
             throw new IllegalArgumentException("nombreTema must not be null or blank");
         }
         try {
-            return em.createQuery(
-                            "SELECT t FROM Tema t WHERE t.nombreTema = :nombreTema",
-                            Tema.class)
+            return em.createNamedQuery("Tema.findByNombreTema", Tema.class)
                     .setParameter("nombreTema", nombreTema)
                     .getSingleResult();
         } catch (NoResultException ex) {
@@ -63,7 +61,7 @@ public class TemaDAO extends IngresoDefaultDataAccess<Tema> implements Serializa
         if (padre == null) {
             return;
         }
-        if (padre == tema || (tema.getId() != null && tema.getId().equals(padre.getId()))) {
+        if (padre == tema || (tema.getIdTema() != null && tema.getIdTema().equals(padre.getIdTema()))) {
             throw new IllegalArgumentException("Tema no puede ser su propio padre");
         }
         Set<Tema> visitados = Collections.newSetFromMap(new IdentityHashMap<>());
@@ -73,10 +71,48 @@ public class TemaDAO extends IngresoDefaultDataAccess<Tema> implements Serializa
             if (!visitados.add(cursor)) {
                 throw new IllegalArgumentException("La jerarquia de temas contiene un ciclo");
             }
-            if (tema.getId() != null && tema.getId().equals(cursor.getId())) {
+            if (tema.getIdTema() != null && tema.getIdTema().equals(cursor.getIdTema())) {
                 throw new IllegalArgumentException("La jerarquia de temas contiene un ciclo");
             }
             cursor = cursor.getIdTemaPadre();
         }
+    }
+
+    /**
+     * REGLA DE NEGOCIO (FASE DE CONFIGURACIÓN):
+     * Busca todos los temas (sin importar su jerarquía) pertenecientes a un Área de Conocimiento.
+     */
+    public List<Tema> findByArea(UUID idArea) {
+        if (idArea == null) {
+            return Collections.emptyList();
+        }
+        return em.createNamedQuery("Tema.findByArea", Tema.class)
+                .setParameter("idArea", idArea)
+                .getResultList();
+    }
+    /**
+     * REGLA DE NEGOCIO Opcional:
+     * Busca únicamente los temas principales/raíces (sin padre) de un Área específica.
+     * Ideal para cargar el primer nivel de un menú jerárquico.
+     */
+    public List<Tema> findRaicesByArea(UUID idArea) {
+        if (idArea == null) {
+            return Collections.emptyList();
+        }
+        return em.createNamedQuery("Tema.findRaicesByArea", Tema.class)
+                .setParameter("idArea", idArea)
+                .getResultList();
+    }
+    /**
+     * REGLA DE NEGOCIO (FASE DE CONFIGURACIÓN):
+     * Busca todos los nodos hijos de un Tema en específico (Despliegue del árbol).
+     */
+    public List<Tema> findByTemaPadre(UUID idTemaPadre) {
+        if (idTemaPadre == null) {
+            return Collections.emptyList();
+        }
+        return em.createNamedQuery("Tema.findByTemaPadre", Tema.class)
+                .setParameter("idTemaPadre", idTemaPadre)
+                .getResultList();
     }
 }

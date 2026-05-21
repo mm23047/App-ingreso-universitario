@@ -34,7 +34,7 @@ class OpcionesRespuestaDAOTest {
 
         UUID id = UUID.randomUUID();
         PreguntaOpcion entity = new PreguntaOpcion();
-        entity.setId(id);
+        entity.setIdPreguntaOpcion(id);
 
         when(entityManager.find(eq(PreguntaOpcion.class), eq(id))).thenReturn(entity);
 
@@ -65,8 +65,9 @@ class OpcionesRespuestaDAOTest {
 
         UUID preguntaId = UUID.randomUUID();
 
-        String expectedQuery = "SELECT p FROM PreguntaOpcion p WHERE p.idPregunta.id = :idPregunta ORDER BY p.id";
-        when(entityManager.createQuery(eq(expectedQuery), eq(PreguntaOpcion.class))).thenReturn(queryOpciones);
+        // CAMBIO AQUÍ: Cambiamos createQuery por createNamedQuery.
+        // Usamos anyString() para que la prueba no se rompa si decides cambiar el nombre del NamedQuery en el futuro.
+        when(entityManager.createNamedQuery(anyString(), eq(PreguntaOpcion.class))).thenReturn(queryOpciones);
         when(queryOpciones.setParameter(eq("idPregunta"), eq(preguntaId))).thenReturn(queryOpciones);
 
         List<PreguntaOpcion> esperado = List.of(new PreguntaOpcion());
@@ -75,7 +76,9 @@ class OpcionesRespuestaDAOTest {
         List<PreguntaOpcion> result = cut.findByPregunta(preguntaId);
 
         assertSame(esperado, result);
-        verify(entityManager).createQuery(expectedQuery, PreguntaOpcion.class);
+
+        // Verificamos que se haya llamado a createNamedQuery
+        verify(entityManager).createNamedQuery(anyString(), eq(PreguntaOpcion.class));
         verify(queryOpciones).setParameter("idPregunta", preguntaId);
         verify(queryOpciones).getResultList();
     }
@@ -88,7 +91,8 @@ class OpcionesRespuestaDAOTest {
         UUID preguntaId = UUID.randomUUID();
         UUID respuestaId = UUID.randomUUID();
 
-        when(entityManager.createQuery(anyString(), eq(Long.class))).thenReturn(queryLong);
+        // CAMBIO AQUÍ: Cambiamos createQuery por createNamedQuery.
+        when(entityManager.createNamedQuery(anyString(), eq(Long.class))).thenReturn(queryLong);
         when(queryLong.setParameter(eq("idPregunta"), eq(preguntaId))).thenReturn(queryLong);
         when(queryLong.setParameter(eq("idRespuestaGlobal"), eq(respuestaId))).thenReturn(queryLong);
         when(queryLong.getSingleResult()).thenReturn(2L);
@@ -105,7 +109,8 @@ class OpcionesRespuestaDAOTest {
         UUID preguntaId = UUID.randomUUID();
         UUID respuestaId = UUID.randomUUID();
 
-        when(entityManager.createQuery(anyString(), eq(Long.class))).thenReturn(queryLong);
+        // CAMBIO AQUÍ: Cambiamos createQuery por createNamedQuery.
+        when(entityManager.createNamedQuery(anyString(), eq(Long.class))).thenReturn(queryLong);
         when(queryLong.setParameter(eq("idPregunta"), eq(preguntaId))).thenReturn(queryLong);
         when(queryLong.setParameter(eq("idRespuestaGlobal"), eq(respuestaId))).thenReturn(queryLong);
         when(queryLong.getSingleResult()).thenReturn(0L);

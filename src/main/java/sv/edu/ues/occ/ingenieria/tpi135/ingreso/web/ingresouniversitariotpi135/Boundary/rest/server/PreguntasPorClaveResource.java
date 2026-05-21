@@ -66,17 +66,17 @@ public class PreguntasPorClaveResource extends AbstractResource<PreguntasPorClav
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
     public Response create(PreguntasPorClave entity, @Context UriInfo uriInfo) {
-        if (entity != null && entity.getId() != null
-                && entity.getId().getIdClave() != null
-                && entity.getId().getIdPregunta() != null
+        if (entity != null && entity.getIdPreguntaPorClave() != null
+                && entity.getIdPreguntaPorClave().getIdClave() != null
+                && entity.getIdPreguntaPorClave().getIdPregunta() != null
                 && entity.getIdClave() != null
                 && entity.getIdPregunta() != null) {
             try {
                 preguntasPorClaveDAO.crear(entity);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()
-                                .path(String.valueOf(entity.getId().getIdClave()))
-                                .path(String.valueOf(entity.getId().getIdPregunta()))
+                                .path(String.valueOf(entity.getIdPreguntaPorClave().getIdClave()))
+                                .path(String.valueOf(entity.getIdPreguntaPorClave().getIdPregunta()))
                                 .build())
                         .build();
             } catch (Exception ex) {
@@ -104,7 +104,7 @@ public class PreguntasPorClaveResource extends AbstractResource<PreguntasPorClav
                 pk.setIdPregunta(idPregunta);
                 PreguntasPorClave existing = preguntasPorClaveDAO.leer(pk);
                 if (existing != null) {
-                    entity.setId(pk);
+                    entity.setIdPreguntaPorClave(pk);
                     preguntasPorClaveDAO.actualizar(entity);
                     return Response.ok(entity).build();
                 }

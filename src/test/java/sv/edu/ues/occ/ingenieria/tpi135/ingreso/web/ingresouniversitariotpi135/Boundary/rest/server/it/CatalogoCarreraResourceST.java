@@ -40,7 +40,7 @@ public class CatalogoCarreraResourceST extends AbstractResourceST {
         assertNotNull(entidad);
 
         assertEquals(ID_CARRERA_1, entidad.getIdCarrera());
-        assertEquals("Ingeniería en Ciencias de la Computación", entidad.getNombre());
+        assertEquals("Ingeniería en Ciencias de la Computación", entidad.getNombreCatalogoCarrera());
     }
 
     @Test
@@ -62,7 +62,7 @@ public class CatalogoCarreraResourceST extends AbstractResourceST {
         CatalogoCarrera nuevaCarrera = new CatalogoCarrera();
         // El ID es String, debemos enviarlo en el payload
         nuevaCarrera.setIdCarrera("IND");
-        nuevaCarrera.setNombre("Ingeniería Industrial");
+        nuevaCarrera.setNombreCatalogoCarrera("Ingeniería Industrial");
 
         Response responseCreacion = post("catalogo_carreras", nuevaCarrera);
 
@@ -80,7 +80,7 @@ public class CatalogoCarreraResourceST extends AbstractResourceST {
 
         CatalogoCarrera creado = responseConsulta.readEntity(CatalogoCarrera.class);
         assertEquals("IND", creado.getIdCarrera());
-        assertEquals("Ingeniería Industrial", creado.getNombre());
+        assertEquals("Ingeniería Industrial", creado.getNombreCatalogoCarrera());
     }
 
     @Test
@@ -103,26 +103,26 @@ public class CatalogoCarreraResourceST extends AbstractResourceST {
 
         // Construimos el payload actualizado
         CatalogoCarrera actualizada = new CatalogoCarrera();
-        actualizada.setNombre("Carrera Modificada IT");
+        actualizada.setNombreCatalogoCarrera("Carrera Modificada IT");
 
         // Hacemos PUT
         Response responseUpdate = put("catalogo_carreras/" + idCreado, actualizada);
         assertEquals(200, responseUpdate.getStatus());
 
         CatalogoCarrera cuerpo = responseUpdate.readEntity(CatalogoCarrera.class);
-        assertEquals("Carrera Modificada IT", cuerpo.getNombre());
+        assertEquals("Carrera Modificada IT", cuerpo.getNombreCatalogoCarrera());
 
         // Verificamos la persistencia
         Response responseConsulta = get("catalogo_carreras/" + idCreado);
         assertEquals(200, responseConsulta.getStatus());
-        assertEquals("Carrera Modificada IT", responseConsulta.readEntity(CatalogoCarrera.class).getNombre());
+        assertEquals("Carrera Modificada IT", responseConsulta.readEntity(CatalogoCarrera.class).getNombreCatalogoCarrera());
     }
 
     @Test
     void update_ConIdInexistente_DebeRetornar404() {
         String idInexistente = "ERR";
         CatalogoCarrera payload = new CatalogoCarrera();
-        payload.setNombre("Intento de actualización");
+        payload.setNombreCatalogoCarrera("Intento de actualización");
 
         Response response = put("catalogo_carreras/" + idInexistente, payload);
 
@@ -159,7 +159,7 @@ public class CatalogoCarreraResourceST extends AbstractResourceST {
     private String crearCarreraReal(String idCarrera, String nombre) {
         CatalogoCarrera nueva = new CatalogoCarrera();
         nueva.setIdCarrera(idCarrera);
-        nueva.setNombre(nombre);
+        nueva.setNombreCatalogoCarrera(nombre);
 
         Response responseCreacion = post("catalogo_carreras", nueva);
         assertEquals(201, responseCreacion.getStatus());

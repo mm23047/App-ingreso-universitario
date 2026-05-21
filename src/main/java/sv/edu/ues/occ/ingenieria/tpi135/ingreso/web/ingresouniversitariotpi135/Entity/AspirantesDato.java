@@ -3,17 +3,43 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
 
 @Entity
 @Table(name = "aspirante_datos", schema = "public", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"dui"}),
-    @UniqueConstraint(columnNames = {"correo"})
+        @UniqueConstraint(name = "aspirante_datos_dui_key", columnNames = {"dui"}),
+        @UniqueConstraint(name = "aspirante_datos_correo_key", columnNames = {"correo"})
+})
+@NamedQueries({
+        @NamedQuery(
+                name = "AspirantesDato.findByDui",
+                query = "SELECT a FROM AspirantesDato a WHERE a.dui = :dui"
+        ),
+        @NamedQuery(
+                name = "AspirantesDato.findByCorreo",
+                query = "SELECT a FROM AspirantesDato a WHERE a.correo = :correo"
+        ),
+        // NUEVO: Query solicitado para la logística de asignación de aulas accesibles
+        @NamedQuery(
+                name = "AspirantesDato.findByUsaSillaRuedas",
+                query = "SELECT a FROM AspirantesDato a WHERE a.usaSillaRuedas = :usaSilla ORDER BY a.apellidos ASC, a.nombres ASC"
+        ),
+        // NUEVOS: Queries optimizados para conteo de duplicados
+        @NamedQuery(
+                name = "AspirantesDato.countByDuiAndNotId",
+                query = "SELECT COUNT(a) FROM AspirantesDato a WHERE a.dui = :dui AND a.id <> :id"
+        ),
+        @NamedQuery(
+                name = "AspirantesDato.countByCorreoAndNotId",
+                query = "SELECT COUNT(a) FROM AspirantesDato a WHERE a.correo = :correo AND a.id <> :id"
+        )
 })
 public class AspirantesDato {
+
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id_aspirante", nullable = false)
@@ -29,18 +55,18 @@ public class AspirantesDato {
     @Column(name = "apellidos", nullable = false, length = 100)
     private String apellidos;
 
-    @Size(max = 12)
-    @NotNull
-    @Column(name = "dui", nullable = false, unique = true, length = 12)
-    private String dui;
-
     @NotNull
     @Column(name = "fecha_nacimiento", nullable = false)
     private LocalDate fechaNacimiento;
 
+    @Size(max = 12)
+    @NotNull
+    @Column(name = "dui", nullable = false, length = 12)
+    private String dui;
+
     @Size(max = 100)
     @NotNull
-    @Column(name = "correo", nullable = false, unique = true, length = 100)
+    @Column(name = "correo", nullable = false, length = 100)
     private String correo;
 
     @Column(name = "fecha_creacion_perfil")
@@ -49,6 +75,24 @@ public class AspirantesDato {
     @NotNull
     @Column(name = "usa_silla_ruedas", nullable = false)
     private Boolean usaSillaRuedas = false;
+
+    // Callbacks de ciclo de vida para automatizar reglas básicas de datos
+    @PrePersist
+    protected void onCreate() {
+        this.fechaCreacionPerfil = LocalDate.now();
+        normalizarTextos();
+    }
+    @PreUpdate
+    protected void onUpdate() {
+        normalizarTextos();
+    }
+
+    private void normalizarTextos() {
+        if (this.nombres != null) this.nombres = this.nombres.trim().replaceAll("\\s+", " ");
+        if (this.apellidos != null) this.apellidos = this.apellidos.trim().replaceAll("\\s+", " ");
+        if (this.dui != null) this.dui = this.dui.trim();
+        if (this.correo != null) this.correo = this.correo.trim().toLowerCase();
+    }
 
     public UUID getId() {
         return id;
@@ -116,19 +160,14 @@ public class AspirantesDato {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        AspirantesDato that = (AspirantesDato) o;
-        return Objects.equals(id, that.id);
+        if (this == o) return true;
+        if (!(o instanceof AspirantesDato)) return false;
+        AspirantesDato other = (AspirantesDato) o;
+        return id != null && id.equals(other.getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return getClass().hashCode();
     }
-
 }

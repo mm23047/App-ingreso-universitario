@@ -43,7 +43,7 @@ public class PruebasAdmisionResourceST extends AbstractResourceST {
         // Verificar que al menos está Prueba 1 con datos válidos
         boolean encontroPrueba1 = false;
         for (PruebasAdmision prueba : arreglo) {
-            if (ID_PRUEBA_1.equals(prueba.getId())) {
+            if (ID_PRUEBA_1.equals(prueba.getIdPruebaAdmision())) {
                 encontroPrueba1 = true;
                 assertNotNull(prueba.getNombrePrueba(), "Prueba 1 debe tener nombre");
                 assertEquals(2026, prueba.getAnio());
@@ -86,7 +86,7 @@ public class PruebasAdmisionResourceST extends AbstractResourceST {
 
         PruebasAdmision entidad = response.readEntity(PruebasAdmision.class);
         assertNotNull(entidad);
-        assertEquals(ID_PRUEBA_1, entidad.getId());
+        assertEquals(ID_PRUEBA_1, entidad.getIdPruebaAdmision());
         assertEquals("Prueba de Admisión 2026 - Ciclo 01", entidad.getNombrePrueba());
         assertEquals(2026, entidad.getAnio());
         assertTrue(entidad.getActiva());
@@ -142,7 +142,7 @@ public class PruebasAdmisionResourceST extends AbstractResourceST {
 
         PruebasAdmision creado = responseConsulta.readEntity(PruebasAdmision.class);
         assertNotNull(creado);
-        assertEquals(idCreado, creado.getId());
+        assertEquals(idCreado, creado.getIdPruebaAdmision());
         assertEquals("Prueba Test 2027", creado.getNombrePrueba());
         assertEquals(2027, creado.getAnio());
         assertTrue(creado.getActiva());
@@ -202,7 +202,7 @@ public class PruebasAdmisionResourceST extends AbstractResourceST {
 
         PruebasAdmision actualizado = responsePut.readEntity(PruebasAdmision.class);
         assertNotNull(actualizado);
-        assertEquals(idCreado, actualizado.getId());
+        assertEquals(idCreado, actualizado.getIdPruebaAdmision());
         assertEquals("Prueba actualizada", actualizado.getNombrePrueba());
         assertTrue(actualizado.getActiva());
 

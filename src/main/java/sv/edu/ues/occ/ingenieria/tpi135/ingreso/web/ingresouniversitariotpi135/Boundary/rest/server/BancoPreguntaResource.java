@@ -58,12 +58,12 @@ public class BancoPreguntaResource extends AbstractResource<BancoPregunta> {
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
     public Response create(BancoPregunta entity, @Context UriInfo uriInfo) {
-        if (entity != null && entity.getId() == null && entity.getIdArea() != null) {
+        if (entity != null && entity.getIdBancoPregunta() == null && entity.getIdArea() != null) {
             try {
                 bancoPreguntaDAO.crear(entity);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()
-                                .path(String.valueOf(entity.getId()))
+                                .path(String.valueOf(entity.getIdBancoPregunta()))
                                 .build())
                         .build();
             } catch (Exception ex) {
@@ -86,7 +86,7 @@ public class BancoPreguntaResource extends AbstractResource<BancoPregunta> {
             try {
                 BancoPregunta existing = bancoPreguntaDAO.leer(id);
                 if (existing != null) {
-                    entity.setId(id);
+                    entity.setIdBancoPregunta(id);
                     bancoPreguntaDAO.actualizar(entity);
                     return Response.ok(entity).build();
                 }

@@ -11,7 +11,6 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -22,7 +21,6 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AsignacionAulaAspirante;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.Aula;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.DisponibilidadAulaTurno;
 
 import java.util.UUID;
 
@@ -72,18 +70,18 @@ public class AsignacionAulaAspiranteResource extends AbstractResource<Asignacion
     @Consumes({MediaType.APPLICATION_JSON})
     public Response create(AsignacionAulaAspirante entity, @Context UriInfo uriInfo) {
         if (entity != null
-                && entity.getId() == null
+                && entity.getIdAsignacionAulaAspirante() == null
                 && entity.getIdInscripcion() != null
-                && entity.getIdInscripcion().getId() != null
+                && entity.getIdInscripcion().getIdInscripcionPrueba() != null
                 && entity.getDisponibilidad() != null
                 && entity.getDisponibilidad().getIdAula() != null
-                && entity.getDisponibilidad().getIdAula().getId() != null
+                && entity.getDisponibilidad().getIdAula().getIdAula() != null
                 && entity.getDisponibilidad().getIdTurno() != null
-                && entity.getDisponibilidad().getIdTurno().getId() != null) {
+                && entity.getDisponibilidad().getIdTurno().getIdTurnoExamen() != null) {
             try {
-                UUID idAula = entity.getDisponibilidad().getIdAula().getId();
-                UUID idTurno = entity.getDisponibilidad().getIdTurno().getId();
-                UUID idInscripcion = entity.getIdInscripcion().getId();
+                UUID idAula = entity.getDisponibilidad().getIdAula().getIdAula();
+                UUID idTurno = entity.getDisponibilidad().getIdTurno().getIdTurnoExamen();
+                UUID idInscripcion = entity.getIdInscripcion().getIdInscripcionPrueba();
 
                 if (!disponibilidadAulaTurnoDAO.existsByAulaAndTurno(idAula, idTurno)) {
                     return Response.status(Response.Status.CONFLICT)
@@ -114,7 +112,7 @@ public class AsignacionAulaAspiranteResource extends AbstractResource<Asignacion
                 asignacionAulaAspiranteDAO.crear(entity);
                 return Response.created(
                                 uriInfo.getAbsolutePathBuilder()
-                                        .path(String.valueOf(entity.getId()))
+                                        .path(String.valueOf(entity.getIdAsignacionAulaAspirante()))
                                         .build())
                         .build();
             } catch (Exception ex) {
@@ -137,7 +135,7 @@ public class AsignacionAulaAspiranteResource extends AbstractResource<Asignacion
             try {
                 AsignacionAulaAspirante existing = asignacionAulaAspiranteDAO.leer(id);
                 if (existing != null) {
-                    entity.setId(id);
+                    entity.setIdAsignacionAulaAspirante(id);
                     asignacionAulaAspiranteDAO.actualizar(entity);
                     return Response.ok(entity).build();
                 }

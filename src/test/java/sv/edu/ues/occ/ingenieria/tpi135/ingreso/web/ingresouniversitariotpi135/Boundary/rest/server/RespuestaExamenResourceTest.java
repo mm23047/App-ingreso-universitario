@@ -44,13 +44,13 @@ class RespuestaExamenResourceTest {
         resource.preguntasPorClaveDAO = preguntasPorClaveDAO;
 
         examen = new ExamenRealizado();
-        ClavesExaman clave = new ClavesExaman();
-        clave.setId(UUID.randomUUID());
+        ClavesExamen clave = new ClavesExamen();
+        clave.setIdClaveExaman(UUID.randomUUID());
         examen.setIdClave(clave);
 
         opcion = new PreguntaOpcion();
         BancoPregunta pregunta = new BancoPregunta();
-        pregunta.setId(UUID.randomUUID());
+        pregunta.setIdBancoPregunta(UUID.randomUUID());
         opcion.setIdPregunta(pregunta);
     }
 
@@ -58,8 +58,8 @@ class RespuestaExamenResourceTest {
     void create_ConPreguntaFueraDeClave_DebeRetornar422() {
         UUID examenId = UUID.randomUUID();
         UUID opcionId = UUID.randomUUID();
-        examen.setId(examenId);
-        opcion.setId(opcionId);
+        examen.setIdExamenRealizado(examenId);
+        opcion.setIdPreguntaOpcion(opcionId);
 
         RespuestaExamen payload = new RespuestaExamen();
         payload.setIdExamen(examen);
@@ -67,7 +67,7 @@ class RespuestaExamenResourceTest {
 
         when(examenRealizadoDAO.leer(examenId)).thenReturn(examen);
         when(preguntaOpcionDAO.leer(opcionId)).thenReturn(opcion);
-        when(preguntasPorClaveDAO.existsByClaveAndPregunta(examen.getIdClave().getId(), opcion.getIdPregunta().getId())).thenReturn(false);
+        when(preguntasPorClaveDAO.existsByClaveAndPregunta(examen.getIdClave().getIdClaveExaman(), opcion.getIdPregunta().getIdBancoPregunta())).thenReturn(false);
 
         Response response = resource.create(payload, uriInfo);
 
@@ -79,8 +79,8 @@ class RespuestaExamenResourceTest {
     void create_ConDuplicado_DebeRetornar409() {
         UUID examenId = UUID.randomUUID();
         UUID opcionId = UUID.randomUUID();
-        examen.setId(examenId);
-        opcion.setId(opcionId);
+        examen.setIdExamenRealizado(examenId);
+        opcion.setIdPreguntaOpcion(opcionId);
 
         RespuestaExamen payload = new RespuestaExamen();
         payload.setIdExamen(examen);
@@ -88,8 +88,8 @@ class RespuestaExamenResourceTest {
 
         when(examenRealizadoDAO.leer(examenId)).thenReturn(examen);
         when(preguntaOpcionDAO.leer(opcionId)).thenReturn(opcion);
-        when(preguntasPorClaveDAO.existsByClaveAndPregunta(examen.getIdClave().getId(), opcion.getIdPregunta().getId())).thenReturn(true);
-        when(respuestaExamenDAO.existsByExamenAndPregunta(examenId, opcion.getIdPregunta().getId())).thenReturn(true);
+        when(preguntasPorClaveDAO.existsByClaveAndPregunta(examen.getIdClave().getIdClaveExaman(), opcion.getIdPregunta().getIdBancoPregunta())).thenReturn(true);
+        when(respuestaExamenDAO.existsByExamenAndPregunta(examenId, opcion.getIdPregunta().getIdBancoPregunta())).thenReturn(true);
 
         Response response = resource.create(payload, uriInfo);
 
@@ -101,8 +101,8 @@ class RespuestaExamenResourceTest {
     void create_Valido_DebePersistirYRetornar201() {
         UUID examenId = UUID.randomUUID();
         UUID opcionId = UUID.randomUUID();
-        examen.setId(examenId);
-        opcion.setId(opcionId);
+        examen.setIdExamenRealizado(examenId);
+        opcion.setIdPreguntaOpcion(opcionId);
 
         RespuestaExamen payload = new RespuestaExamen();
         payload.setIdExamen(examen);
@@ -110,8 +110,8 @@ class RespuestaExamenResourceTest {
 
         when(examenRealizadoDAO.leer(examenId)).thenReturn(examen);
         when(preguntaOpcionDAO.leer(opcionId)).thenReturn(opcion);
-        when(preguntasPorClaveDAO.existsByClaveAndPregunta(examen.getIdClave().getId(), opcion.getIdPregunta().getId())).thenReturn(true);
-        when(respuestaExamenDAO.existsByExamenAndPregunta(examenId, opcion.getIdPregunta().getId())).thenReturn(false);
+        when(preguntasPorClaveDAO.existsByClaveAndPregunta(examen.getIdClave().getIdClaveExaman(), opcion.getIdPregunta().getIdBancoPregunta())).thenReturn(true);
+        when(respuestaExamenDAO.existsByExamenAndPregunta(examenId, opcion.getIdPregunta().getIdBancoPregunta())).thenReturn(false);
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
         when(uriBuilder.build()).thenReturn(URI.create("http://localhost/respuesta_examen/1"));

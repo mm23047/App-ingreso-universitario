@@ -76,7 +76,7 @@ public class CrearAspiranteBDD {
             aspiranteRef.setId(idAspiranteCreado);
             inscripcion.setIdAspirante(aspiranteRef);
             PruebasAdmision pruebaRef = new PruebasAdmision();
-            pruebaRef.setId(ID_PRUEBA_SEMILLA);
+            pruebaRef.setIdPruebaAdmision(ID_PRUEBA_SEMILLA);
             inscripcion.setIdPrueba(pruebaRef);
             inscripcion.setEstado("INSCRITO");
 
@@ -93,10 +93,10 @@ public class CrearAspiranteBDD {
             pk.setIdCarrera(ID_CARRERA_SEMILLA);
 
             CarrerasElegida carreraElegida = new CarrerasElegida();
-            carreraElegida.setId(pk);
+            carreraElegida.setIdCarreraElegida(pk);
 
             InscripcionesPrueba inscripcionRef = new InscripcionesPrueba();
-            inscripcionRef.setId(idInscripcionCreada);
+            inscripcionRef.setIdInscripcionPrueba(idInscripcionCreada);
             carreraElegida.setIdInscripcion(inscripcionRef);
 
             CatalogoCarrera carreraRef = new CatalogoCarrera();
@@ -139,8 +139,8 @@ public class CrearAspiranteBDD {
 
         Assertions.assertEquals(200, respuesta.getStatus());
         CarrerasElegida encontrada = respuesta.readEntity(CarrerasElegida.class);
-        Assertions.assertEquals(idInscripcionCreada, encontrada.getId().getIdInscripcion());
-        Assertions.assertEquals(ID_CARRERA_SEMILLA, encontrada.getId().getIdCarrera());
+        Assertions.assertEquals(idInscripcionCreada, encontrada.getIdCarreraElegida().getIdInscripcion());
+        Assertions.assertEquals(ID_CARRERA_SEMILLA, encontrada.getIdCarreraElegida().getIdCarrera());
         Assertions.assertEquals(Short.valueOf((short) 1), encontrada.getPrioridad());
     }
 }

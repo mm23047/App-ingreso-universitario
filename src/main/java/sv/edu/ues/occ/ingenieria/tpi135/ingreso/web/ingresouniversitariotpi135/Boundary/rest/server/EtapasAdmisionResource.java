@@ -58,12 +58,12 @@ public class EtapasAdmisionResource extends AbstractResource<EtapasAdmision> {
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
     public Response create(EtapasAdmision entity, @Context UriInfo uriInfo) {
-        if (entity != null && entity.getId() == null) {
+        if (entity != null && entity.getIdEtapaAdmision() == null) {
             try {
                 etapasAdmisionDAO.crear(entity);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()
-                                .path(String.valueOf(entity.getId()))
+                                .path(String.valueOf(entity.getIdEtapaAdmision()))
                                 .build())
                         .build();
             } catch (Exception ex) {
@@ -86,7 +86,7 @@ public class EtapasAdmisionResource extends AbstractResource<EtapasAdmision> {
             try {
                 EtapasAdmision existing = etapasAdmisionDAO.leer(id);
                 if (existing != null) {
-                    entity.setId(id);
+                    entity.setIdEtapaAdmision(id);
                     etapasAdmisionDAO.actualizar(entity);
                     return Response.ok(entity).build();
                 }

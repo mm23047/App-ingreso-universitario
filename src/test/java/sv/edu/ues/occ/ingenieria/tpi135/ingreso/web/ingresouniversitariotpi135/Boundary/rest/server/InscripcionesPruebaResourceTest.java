@@ -41,7 +41,7 @@ class InscripcionesPruebaResourceTest {
         resource.inscripcionesPruebaDAO = inscripcionesPruebaDAO;
 
         entidad = new InscripcionesPrueba();
-        entidad.setId(testId);
+        entidad.setIdInscripcionPrueba(testId);
         entidad.setIdAspirante(new AspirantesDato());
         entidad.setIdPrueba(new PruebasAdmision());
         entidad.setEstado("ACTIVO");
@@ -302,7 +302,7 @@ class InscripcionesPruebaResourceTest {
         aspirante.setId(aspiranteId);
 
         PruebasAdmision prueba = new PruebasAdmision();
-        prueba.setId(pruebaId);
+        prueba.setIdPruebaAdmision(pruebaId);
 
         InscripcionesPrueba nueva = new InscripcionesPrueba();
         nueva.setIdAspirante(aspirante);
@@ -330,7 +330,7 @@ class InscripcionesPruebaResourceTest {
         assertEquals(200, response.getStatus());
         ArgumentCaptor<InscripcionesPrueba> captor = ArgumentCaptor.forClass(InscripcionesPrueba.class);
         verify(inscripcionesPruebaDAO).actualizar(captor.capture());
-        assertEquals(testId, captor.getValue().getId());
+        assertEquals(testId, captor.getValue().getIdInscripcionPrueba());
         assertEquals("FINALIZADO", captor.getValue().getEstado());
     }
 

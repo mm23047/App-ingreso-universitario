@@ -10,7 +10,6 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExamenRealizado;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntaOpcion;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.RespuestaExamen;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.RespuestaExamenDAO;
 
 import java.util.List;
 import java.util.UUID;
@@ -98,7 +97,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
             cut.crear(nueva);
 
-            assertNotNull(nueva.getId());
+            assertNotNull(nueva.getIdRespuestaExamen());
             assertEquals(5, cut.count());
 
             return null;
@@ -127,8 +126,8 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
             RespuestaExamen resultado = cut.leer(ID_RESPUESTA_1);
 
             assertNotNull(resultado);
-            assertEquals(ID_EXAMEN_1,   resultado.getIdExamen().getId());
-            assertEquals(ID_OPCION_2,   resultado.getIdPreguntaOpcion().getId());
+            assertEquals(ID_EXAMEN_1,   resultado.getIdExamen().getIdExamenRealizado());
+            assertEquals(ID_OPCION_2,   resultado.getIdPreguntaOpcion().getIdPreguntaOpcion());
 
             return null;
         });
@@ -153,7 +152,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
             RespuestaExamen actualizada = cut.actualizar(respuesta);
 
             assertNotNull(actualizada);
-            assertEquals(ID_OPCION_1, actualizada.getIdPreguntaOpcion().getId());
+            assertEquals(ID_OPCION_1, actualizada.getIdPreguntaOpcion().getIdPreguntaOpcion());
 
             return null;
         });
@@ -202,7 +201,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
             assertFalse(resultado.isEmpty());
             assertEquals(2, resultado.size());
             assertTrue(resultado.stream()
-                    .allMatch(r -> r.getIdExamen() != null && ID_EXAMEN_1.equals(r.getIdExamen().getId())));
+                    .allMatch(r -> r.getIdExamen() != null && ID_EXAMEN_1.equals(r.getIdExamen().getIdExamenRealizado())));
 
             // Parámetro nulo debe lanzar IllegalArgumentException
             IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,

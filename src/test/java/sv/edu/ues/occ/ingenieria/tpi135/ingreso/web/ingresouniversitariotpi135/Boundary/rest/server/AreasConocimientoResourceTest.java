@@ -42,7 +42,7 @@ class AreasConocimientoResourceTest {
         resource.areasConocimientoDAO = areasConocimientoDAO;
 
         entidad = new AreasConocimiento();
-        entidad.setId(testId);
+        entidad.setIdAreaConocimiento(testId);
         entidad.setNombreArea("Matemáticas");
     }
 
@@ -118,7 +118,7 @@ class AreasConocimientoResourceTest {
 
         assertEquals(200, response.getStatus());
         AreasConocimiento resultado = (AreasConocimiento) response.getEntity();
-        assertEquals(testId, resultado.getId());
+        assertEquals(testId, resultado.getIdAreaConocimiento());
         assertEquals("Matemáticas", resultado.getNombreArea());
         verify(areasConocimientoDAO).leer(testId);
     }

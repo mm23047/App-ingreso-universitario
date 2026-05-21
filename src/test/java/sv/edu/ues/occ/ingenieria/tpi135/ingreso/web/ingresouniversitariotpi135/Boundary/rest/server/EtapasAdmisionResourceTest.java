@@ -50,7 +50,7 @@ class EtapasAdmisionResourceTest {
         resource.etapasAdmisionDAO = etapasAdmisionDAO;
 
         entidadPrueba = new EtapasAdmision();
-        entidadPrueba.setId(testId);
+        entidadPrueba.setIdEtapaAdmision(testId);
         entidadPrueba.setNombre("Etapa Preuniversitaria");
         entidadPrueba.setPuntajeMinimo(new BigDecimal("60.00"));
         entidadPrueba.setPuntajeMaximo(new BigDecimal("100.00"));
@@ -150,7 +150,7 @@ class EtapasAdmisionResourceTest {
         // Assert
         assertEquals(200, response.getStatus());
         EtapasAdmision resultado = (EtapasAdmision) response.getEntity();
-        assertEquals(entidadPrueba.getId(), resultado.getId());
+        assertEquals(entidadPrueba.getIdEtapaAdmision(), resultado.getIdEtapaAdmision());
         assertEquals(entidadPrueba.getNombre(), resultado.getNombre());
         verify(etapasAdmisionDAO, times(1)).leer(testId);
     }
@@ -227,7 +227,7 @@ class EtapasAdmisionResourceTest {
     void create_ConEntidadConIdYaAsignado_DebeRetornar422() throws Exception {
         // Arrange - el cliente no debe proveer id en POST (la BD lo genera)
         EtapasAdmision conId = new EtapasAdmision();
-        conId.setId(testId);
+        conId.setIdEtapaAdmision(testId);
         conId.setNombre("Etapa con ID");
 
         // Act

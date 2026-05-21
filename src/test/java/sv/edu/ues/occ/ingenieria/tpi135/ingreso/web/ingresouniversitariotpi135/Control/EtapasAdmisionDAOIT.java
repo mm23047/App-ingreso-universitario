@@ -73,9 +73,9 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
 
             cut.crear(nuevo);
 
-            assertNotNull(nuevo.getId());
+            assertNotNull(nuevo.getIdEtapaAdmision());
             //Para verificar en la consola
-            System.out.println(nuevo.getId());
+            System.out.println(nuevo.getIdEtapaAdmision());
 
             return null;
         });
@@ -108,11 +108,11 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
             //Utilizamos el primer registro para hacer el test
             EtapasAdmision resultadoDesdeLaBD = cut.findRange(0,3).get(0);
 
-            EtapasAdmision resultado = cut.leer(resultadoDesdeLaBD.getId());
+            EtapasAdmision resultado = cut.leer(resultadoDesdeLaBD.getIdEtapaAdmision());
 
             System.out.println("RESULTADO: " + resultado);
             assertNotNull(resultado, "El ID del catalogo no puede ser nulo porque ya debe de existir");
-            assertEquals(resultadoDesdeLaBD.getId(),resultado.getId());
+            assertEquals(resultadoDesdeLaBD.getIdEtapaAdmision(),resultado.getIdEtapaAdmision());
 
             return null;
         });
@@ -177,8 +177,8 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
             cut.eliminar(etapa);
 
             assertEquals(cut.count(),3);
-            assertNull(cut.leer(etapa.getId()), "EL registro debbe de ser null");
-            System.out.println("Etapa eliminada: " + cut.leer(etapa.getId()));
+            assertNull(cut.leer(etapa.getIdEtapaAdmision()), "EL registro debbe de ser null");
+            System.out.println("Etapa eliminada: " + cut.leer(etapa.getIdEtapaAdmision()));
 
             return null;
         });

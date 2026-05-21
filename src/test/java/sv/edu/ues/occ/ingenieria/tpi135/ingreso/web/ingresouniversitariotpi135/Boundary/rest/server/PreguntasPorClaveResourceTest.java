@@ -10,7 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.PreguntasPorClaveDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExamen;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClave;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClaveId;
 
@@ -32,7 +32,7 @@ class PreguntasPorClaveResourceTest {
 
     private PreguntasPorClaveResource resource;
     private PreguntasPorClave entidad;
-    private ClavesExaman claveEntidad;
+    private ClavesExamen claveEntidad;
     private BancoPregunta preguntaEntidad;
     private UUID idClave;
     private UUID idPregunta;
@@ -49,11 +49,11 @@ class PreguntasPorClaveResourceTest {
         pk.setIdClave(idClave);
         pk.setIdPregunta(idPregunta);
 
-        claveEntidad = new ClavesExaman();
+        claveEntidad = new ClavesExamen();
         preguntaEntidad = new BancoPregunta();
 
         entidad = new PreguntasPorClave();
-        entidad.setId(pk);
+        entidad.setIdPreguntaPorClave(pk);
         entidad.setIdClave(claveEntidad);
         entidad.setIdPregunta(preguntaEntidad);
     }
@@ -160,7 +160,7 @@ class PreguntasPorClaveResourceTest {
     @Test
     void create_ConEntidadValida_DebeRetornar201() {
         PreguntasPorClave nueva = new PreguntasPorClave();
-        nueva.setId(entidad.getId());
+        nueva.setIdPreguntaPorClave(entidad.getIdPreguntaPorClave());
         nueva.setIdClave(claveEntidad);
         nueva.setIdPregunta(preguntaEntidad);
 
@@ -198,7 +198,7 @@ class PreguntasPorClaveResourceTest {
         pkInvalido.setIdPregunta(idPregunta);
 
         PreguntasPorClave nueva = new PreguntasPorClave();
-        nueva.setId(pkInvalido);
+        nueva.setIdPreguntaPorClave(pkInvalido);
         nueva.setIdClave(claveEntidad);
         nueva.setIdPregunta(preguntaEntidad);
 
@@ -215,7 +215,7 @@ class PreguntasPorClaveResourceTest {
         pkInvalido.setIdPregunta(null);
 
         PreguntasPorClave nueva = new PreguntasPorClave();
-        nueva.setId(pkInvalido);
+        nueva.setIdPreguntaPorClave(pkInvalido);
         nueva.setIdClave(claveEntidad);
         nueva.setIdPregunta(preguntaEntidad);
 
@@ -228,7 +228,7 @@ class PreguntasPorClaveResourceTest {
     @Test
     void create_SinEntidadClave_DebeRetornar422() {
         PreguntasPorClave nueva = new PreguntasPorClave();
-        nueva.setId(entidad.getId());
+        nueva.setIdPreguntaPorClave(entidad.getIdPreguntaPorClave());
         nueva.setIdClave(null);
         nueva.setIdPregunta(preguntaEntidad);
 
@@ -241,7 +241,7 @@ class PreguntasPorClaveResourceTest {
     @Test
     void create_SinEntidadPregunta_DebeRetornar422() {
         PreguntasPorClave nueva = new PreguntasPorClave();
-        nueva.setId(entidad.getId());
+        nueva.setIdPreguntaPorClave(entidad.getIdPreguntaPorClave());
         nueva.setIdClave(claveEntidad);
         nueva.setIdPregunta(null);
 
@@ -254,7 +254,7 @@ class PreguntasPorClaveResourceTest {
     @Test
     void create_ConExcepcionEnDAO_DebeRetornar500() {
         PreguntasPorClave nueva = new PreguntasPorClave();
-        nueva.setId(entidad.getId());
+        nueva.setIdPreguntaPorClave(entidad.getIdPreguntaPorClave());
         nueva.setIdClave(claveEntidad);
         nueva.setIdPregunta(preguntaEntidad);
 

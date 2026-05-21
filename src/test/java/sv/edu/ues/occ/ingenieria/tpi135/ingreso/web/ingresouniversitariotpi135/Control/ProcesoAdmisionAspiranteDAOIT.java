@@ -105,13 +105,13 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
             ProcesoAdmisionAspirante nuevoProceso = new ProcesoAdmisionAspirante();
             nuevoProceso.setInscripcionesPrueba(nuevaIn);
-            nuevoProceso.setId(nuevaIn.getId()); // @MapsId: el PK debe coincidir
+            nuevoProceso.setIdProcesoAdmisionAspirante(nuevaIn.getIdInscripcionPrueba()); // @MapsId: el PK debe coincidir
             nuevoProceso.setIdEtapaActual(etapa1);
             nuevoProceso.setEstado("EN_PROCESO");
 
             cut.crear(nuevoProceso);
 
-            assertNotNull(nuevoProceso.getId());
+            assertNotNull(nuevoProceso.getIdProcesoAdmisionAspirante());
             assertEquals(3, cut.count());
 
             return null;
@@ -141,7 +141,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
             assertNotNull(resultado);
             assertEquals("EN_PROCESO", resultado.getEstado());
-            assertEquals(ID_ETAPA_1, resultado.getIdEtapaActual().getId());
+            assertEquals(ID_ETAPA_1, resultado.getIdEtapaActual().getIdEtapaAdmision());
 
             return null;
         });
@@ -196,7 +196,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
             ProcesoAdmisionAspirante nuevoProceso = new ProcesoAdmisionAspirante();
             nuevoProceso.setInscripcionesPrueba(nuevaIn);
-            nuevoProceso.setId(nuevaIn.getId());
+            nuevoProceso.setIdProcesoAdmisionAspirante(nuevaIn.getIdInscripcionPrueba());
             nuevoProceso.setIdEtapaActual(etapa1);
             nuevoProceso.setEstado("EN_PROCESO");
 
@@ -238,7 +238,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
             ProcesoAdmisionAspirante proceso = new ProcesoAdmisionAspirante();
             proceso.setInscripcionesPrueba(inscripcion);
-            proceso.setId(inscripcion.getId());
+            proceso.setIdProcesoAdmisionAspirante(inscripcion.getIdInscripcionPrueba());
             proceso.setIdEtapaActual(etapaAsignacion);
             proceso.setEstado("EN_PROCESO");
             em.persist(proceso);
@@ -249,31 +249,31 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             assertNotNull(carreraISI);
 
             CarrerasElegidaId pk1 = new CarrerasElegidaId();
-            pk1.setIdInscripcion(inscripcion.getId());
+            pk1.setIdInscripcion(inscripcion.getIdInscripcionPrueba());
             pk1.setIdCarrera("ICS");
             CarrerasElegida elegida1 = new CarrerasElegida();
-            elegida1.setId(pk1);
+            elegida1.setIdCarreraElegida(pk1);
             elegida1.setIdInscripcion(inscripcion);
             elegida1.setIdCarrera(carreraICS);
             elegida1.setPrioridad((short) 1);
             em.persist(elegida1);
 
             CarrerasElegidaId pk2 = new CarrerasElegidaId();
-            pk2.setIdInscripcion(inscripcion.getId());
+            pk2.setIdInscripcion(inscripcion.getIdInscripcionPrueba());
             pk2.setIdCarrera("ISI");
             CarrerasElegida elegida2 = new CarrerasElegida();
-            elegida2.setId(pk2);
+            elegida2.setIdCarreraElegida(pk2);
             elegida2.setIdInscripcion(inscripcion);
             elegida2.setIdCarrera(carreraISI);
             elegida2.setPrioridad((short) 2);
             em.persist(elegida2);
 
             CuposCarreraId cuposICSId = new CuposCarreraId();
-            cuposICSId.setIdPrueba(prueba.getId());
+            cuposICSId.setIdPrueba(prueba.getIdPruebaAdmision());
             cuposICSId.setIdCarrera("ICS");
-            cuposICSId.setIdEtapa(etapaAsignacion.getId());
+            cuposICSId.setIdEtapa(etapaAsignacion.getIdEtapaAdmision());
             CuposCarrera cuposICS = new CuposCarrera();
-            cuposICS.setId(cuposICSId);
+            cuposICS.setIdCupoCarrera(cuposICSId);
             cuposICS.setIdPrueba(prueba);
             cuposICS.setIdCarrera(carreraICS);
             cuposICS.setIdEtapa(etapaAsignacion);
@@ -281,26 +281,26 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             em.persist(cuposICS);
 
             CuposCarreraId cuposISIId = new CuposCarreraId();
-            cuposISIId.setIdPrueba(prueba.getId());
+            cuposISIId.setIdPrueba(prueba.getIdPruebaAdmision());
             cuposISIId.setIdCarrera("ISI");
-            cuposISIId.setIdEtapa(etapaAsignacion.getId());
+            cuposISIId.setIdEtapa(etapaAsignacion.getIdEtapaAdmision());
             CuposCarrera cuposISI = new CuposCarrera();
-            cuposISI.setId(cuposISIId);
+            cuposISI.setIdCupoCarrera(cuposISIId);
             cuposISI.setIdPrueba(prueba);
             cuposISI.setIdCarrera(carreraISI);
             cuposISI.setIdEtapa(etapaAsignacion);
             cuposISI.setCupos(2);
             em.persist(cuposISI);
 
-            ProcesoAdmisionAspirante resultado = cut.asignarCarreraFinal(inscripcion.getId());
+            ProcesoAdmisionAspirante resultado = cut.asignarCarreraFinal(inscripcion.getIdInscripcionPrueba());
 
             assertNotNull(resultado);
-            assertEquals(inscripcion.getId(), resultado.getId());
+            assertEquals(inscripcion.getIdInscripcionPrueba(), resultado.getIdProcesoAdmisionAspirante());
             assertEquals("ADMITIDO", resultado.getEstado());
             assertNotNull(resultado.getCarreraAsignada());
             assertEquals("ISI", resultado.getCarreraAsignada().getIdCarrera());
 
-            ProcesoAdmisionAspirante desdeBd = em.find(ProcesoAdmisionAspirante.class, inscripcion.getId());
+            ProcesoAdmisionAspirante desdeBd = em.find(ProcesoAdmisionAspirante.class, inscripcion.getIdInscripcionPrueba());
             assertNotNull(desdeBd);
             assertEquals("ADMITIDO", desdeBd.getEstado());
             assertNotNull(desdeBd.getCarreraAsignada());
@@ -342,7 +342,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
             ProcesoAdmisionAspirante proceso = new ProcesoAdmisionAspirante();
             proceso.setInscripcionesPrueba(inscripcion);
-            proceso.setId(inscripcion.getId());
+            proceso.setIdProcesoAdmisionAspirante(inscripcion.getIdInscripcionPrueba());
             proceso.setIdEtapaActual(etapaAsignacion);
             proceso.setEstado("EN_PROCESO");
             em.persist(proceso);
@@ -354,10 +354,10 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
             // Prioridad 1: ICS (tendrá cupos=0)
             CarrerasElegidaId pk1 = new CarrerasElegidaId();
-            pk1.setIdInscripcion(inscripcion.getId());
+            pk1.setIdInscripcion(inscripcion.getIdInscripcionPrueba());
             pk1.setIdCarrera("ICS");
             CarrerasElegida elegida1 = new CarrerasElegida();
-            elegida1.setId(pk1);
+            elegida1.setIdCarreraElegida(pk1);
             elegida1.setIdInscripcion(inscripcion);
             elegida1.setIdCarrera(carreraICS);
             elegida1.setPrioridad((short) 1);
@@ -365,10 +365,10 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
             // Prioridad 2: ISI (no tendrá registro de cupos, buscarCupos devolverá null)
             CarrerasElegidaId pk2 = new CarrerasElegidaId();
-            pk2.setIdInscripcion(inscripcion.getId());
+            pk2.setIdInscripcion(inscripcion.getIdInscripcionPrueba());
             pk2.setIdCarrera("ISI");
             CarrerasElegida elegida2 = new CarrerasElegida();
-            elegida2.setId(pk2);
+            elegida2.setIdCarreraElegida(pk2);
             elegida2.setIdInscripcion(inscripcion);
             elegida2.setIdCarrera(carreraISI);
             elegida2.setPrioridad((short) 2);
@@ -376,25 +376,25 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
             // Cupos para ICS en 0
             CuposCarreraId cuposICSId = new CuposCarreraId();
-            cuposICSId.setIdPrueba(prueba.getId());
+            cuposICSId.setIdPrueba(prueba.getIdPruebaAdmision());
             cuposICSId.setIdCarrera("ICS");
-            cuposICSId.setIdEtapa(etapaAsignacion.getId());
+            cuposICSId.setIdEtapa(etapaAsignacion.getIdEtapaAdmision());
             CuposCarrera cuposICS = new CuposCarrera();
-            cuposICS.setId(cuposICSId);
+            cuposICS.setIdCupoCarrera(cuposICSId);
             cuposICS.setIdPrueba(prueba);
             cuposICS.setIdCarrera(carreraICS);
             cuposICS.setIdEtapa(etapaAsignacion);
             cuposICS.setCupos(0);
             em.persist(cuposICS);
 
-            ProcesoAdmisionAspirante resultado = cut.asignarCarreraFinal(inscripcion.getId());
+            ProcesoAdmisionAspirante resultado = cut.asignarCarreraFinal(inscripcion.getIdInscripcionPrueba());
 
             assertNotNull(resultado);
-            assertEquals(inscripcion.getId(), resultado.getId());
+            assertEquals(inscripcion.getIdInscripcionPrueba(), resultado.getIdProcesoAdmisionAspirante());
             assertEquals("NO_ADMITIDO", resultado.getEstado());
             assertNull(resultado.getCarreraAsignada());
 
-            ProcesoAdmisionAspirante desdeBd = em.find(ProcesoAdmisionAspirante.class, inscripcion.getId());
+            ProcesoAdmisionAspirante desdeBd = em.find(ProcesoAdmisionAspirante.class, inscripcion.getIdInscripcionPrueba());
             assertNotNull(desdeBd);
             assertEquals("NO_ADMITIDO", desdeBd.getEstado());
             assertNull(desdeBd.getCarreraAsignada());

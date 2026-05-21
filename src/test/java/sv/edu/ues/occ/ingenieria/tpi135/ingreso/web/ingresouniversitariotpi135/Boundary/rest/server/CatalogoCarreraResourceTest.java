@@ -44,7 +44,7 @@ class CatalogoCarreraResourceTest {
 
         entidad = new CatalogoCarrera();
         entidad.setIdCarrera("ING");
-        entidad.setNombre("Ingeniería Civil");
+        entidad.setNombreCatalogoCarrera("Ingeniería Civil");
     }
 
     // ==================== findRange (GET /) ====================
@@ -160,7 +160,7 @@ class CatalogoCarreraResourceTest {
     void create_ConEntidadValida_DebeRetornar201() {
         CatalogoCarrera nueva = new CatalogoCarrera();
         nueva.setIdCarrera("MED");
-        nueva.setNombre("Medicina");
+        nueva.setNombreCatalogoCarrera("Medicina");
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
         when(uriBuilder.build()).thenReturn(URI.create("http://localhost/catalogo_carreras/MED"));
@@ -183,7 +183,7 @@ class CatalogoCarreraResourceTest {
     @Test
     void create_ConIdCarreraNulo_DebeRetornar422() {
         CatalogoCarrera sinId = new CatalogoCarrera();
-        sinId.setNombre("Sin Id");
+        sinId.setNombreCatalogoCarrera("Sin Id");
 
         Response response = resource.create(sinId, uriInfo);
 
@@ -195,7 +195,7 @@ class CatalogoCarreraResourceTest {
     void create_ConIdCarreraVacio_DebeRetornar422() {
         CatalogoCarrera conIdVacio = new CatalogoCarrera();
         conIdVacio.setIdCarrera("   ");
-        conIdVacio.setNombre("Sin Id Válido");
+        conIdVacio.setNombreCatalogoCarrera("Sin Id Válido");
 
         Response response = resource.create(conIdVacio, uriInfo);
 
@@ -207,7 +207,7 @@ class CatalogoCarreraResourceTest {
     void create_ConExcepcionEnDAO_DebeRetornar500() {
         CatalogoCarrera nueva = new CatalogoCarrera();
         nueva.setIdCarrera("MED");
-        nueva.setNombre("Medicina");
+        nueva.setNombreCatalogoCarrera("Medicina");
         doThrow(new RuntimeException("Error de BD")).when(catalogoCarreraDAO).crear(any());
 
         Response response = resource.create(nueva, uriInfo);
@@ -222,7 +222,7 @@ class CatalogoCarreraResourceTest {
     void update_ConIdYEntidadValidos_DebeRetornar200() {
         when(catalogoCarreraDAO.leer("ING")).thenReturn(entidad);
         CatalogoCarrera actualizada = new CatalogoCarrera();
-        actualizada.setNombre("Ingeniería Industrial");
+        actualizada.setNombreCatalogoCarrera("Ingeniería Industrial");
 
         Response response = resource.update("ING", actualizada);
 

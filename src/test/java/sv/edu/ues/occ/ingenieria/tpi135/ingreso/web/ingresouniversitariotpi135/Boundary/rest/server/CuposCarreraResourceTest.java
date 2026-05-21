@@ -59,7 +59,7 @@ class CuposCarreraResourceTest {
         pk.setIdEtapa(idEtapa);
 
         entidad = new CuposCarrera();
-        entidad.setId(pk);
+        entidad.setIdCupoCarrera(pk);
     entidad.setIdPrueba(prueba);
     entidad.setIdCarrera(carrera);
     entidad.setIdEtapa(etapa);
@@ -175,7 +175,7 @@ class CuposCarreraResourceTest {
     @Test
     void create_ConEntidadValida_DebeRetornar201() {
         CuposCarrera nueva = new CuposCarrera();
-        nueva.setId(entidad.getId());
+        nueva.setIdCupoCarrera(entidad.getIdCupoCarrera());
         nueva.setIdPrueba(prueba);
         nueva.setIdCarrera(carrera);
         nueva.setIdEtapa(etapa);
@@ -212,7 +212,7 @@ class CuposCarreraResourceTest {
     @Test
     void create_SinCupos_DebeRetornar422() {
         CuposCarrera nueva = new CuposCarrera();
-        nueva.setId(entidad.getId());
+        nueva.setIdCupoCarrera(entidad.getIdCupoCarrera());
         nueva.setIdPrueba(prueba);
         nueva.setIdCarrera(carrera);
         nueva.setIdEtapa(etapa);
@@ -231,7 +231,7 @@ class CuposCarreraResourceTest {
         pkInvalido.setIdEtapa(idEtapa);
 
         CuposCarrera nueva = new CuposCarrera();
-        nueva.setId(pkInvalido);
+        nueva.setIdCupoCarrera(pkInvalido);
         nueva.setIdPrueba(prueba);
         nueva.setIdCarrera(carrera);
         nueva.setIdEtapa(etapa);
@@ -251,7 +251,7 @@ class CuposCarreraResourceTest {
         pkInvalido.setIdEtapa(idEtapa);
 
         CuposCarrera nueva = new CuposCarrera();
-        nueva.setId(pkInvalido);
+        nueva.setIdCupoCarrera(pkInvalido);
         nueva.setIdPrueba(prueba);
         nueva.setIdCarrera(carrera);
         nueva.setIdEtapa(etapa);
@@ -271,7 +271,7 @@ class CuposCarreraResourceTest {
         pkInvalido.setIdEtapa(null);
 
         CuposCarrera nueva = new CuposCarrera();
-        nueva.setId(pkInvalido);
+        nueva.setIdCupoCarrera(pkInvalido);
         nueva.setIdPrueba(prueba);
         nueva.setIdCarrera(carrera);
         nueva.setIdEtapa(etapa);
@@ -286,7 +286,7 @@ class CuposCarreraResourceTest {
     @Test
     void create_SinEntidadPrueba_DebeRetornar422() {
         CuposCarrera nueva = new CuposCarrera();
-        nueva.setId(entidad.getId());
+        nueva.setIdCupoCarrera(entidad.getIdCupoCarrera());
         nueva.setIdPrueba(null);
         nueva.setIdCarrera(carrera);
         nueva.setIdEtapa(etapa);
@@ -301,7 +301,7 @@ class CuposCarreraResourceTest {
     @Test
     void create_SinEntidadCarrera_DebeRetornar422() {
         CuposCarrera nueva = new CuposCarrera();
-        nueva.setId(entidad.getId());
+        nueva.setIdCupoCarrera(entidad.getIdCupoCarrera());
         nueva.setIdPrueba(prueba);
         nueva.setIdCarrera(null);
         nueva.setIdEtapa(etapa);
@@ -316,7 +316,7 @@ class CuposCarreraResourceTest {
     @Test
     void create_SinEntidadEtapa_DebeRetornar422() {
         CuposCarrera nueva = new CuposCarrera();
-        nueva.setId(entidad.getId());
+        nueva.setIdCupoCarrera(entidad.getIdCupoCarrera());
         nueva.setIdPrueba(prueba);
         nueva.setIdCarrera(carrera);
         nueva.setIdEtapa(null);
@@ -331,7 +331,7 @@ class CuposCarreraResourceTest {
     @Test
     void create_ConExcepcionEnDAO_DebeRetornar500() {
         CuposCarrera nueva = new CuposCarrera();
-        nueva.setId(entidad.getId());
+        nueva.setIdCupoCarrera(entidad.getIdCupoCarrera());
         nueva.setIdPrueba(prueba);
         nueva.setIdCarrera(carrera);
         nueva.setIdEtapa(etapa);

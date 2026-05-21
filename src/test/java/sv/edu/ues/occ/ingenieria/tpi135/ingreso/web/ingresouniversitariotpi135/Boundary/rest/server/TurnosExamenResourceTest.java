@@ -8,11 +8,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.BancoPreguntaDAO;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AreasConocimiento;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.TurnosExamenDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExamen;
 
 import java.net.URI;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Collections;
 import java.util.UUID;
 import java.util.List;
@@ -22,51 +23,54 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * TDD - Fase RED: estas pruebas definen el contrato de BancoPreguntaResource
+ * TDD - Fase RED: estas pruebas definen el contrato de TurnosExamanResource
  * antes de que exista la implementación.
  */
 @ExtendWith(MockitoExtension.class)
-class BancoPreguntaResourceTest {
+class TurnosExamenResourceTest {
 
-    @Mock private BancoPreguntaDAO bancoPreguntaDAO;
+    @Mock private TurnosExamenDAO turnosExamenDAO;
     @Mock private UriInfo uriInfo;
     @Mock private UriBuilder uriBuilder;
 
-    private BancoPreguntaResource resource;
-    private BancoPregunta entidad;
+    private TurnosExamanResource resource;
+    private TurnosExamen entidad;
     private UUID testId;
 
     @BeforeEach
     void setUp() {
         testId = UUID.randomUUID();
-        resource = new BancoPreguntaResource();
-        resource.bancoPreguntaDAO = bancoPreguntaDAO;
+        resource = new TurnosExamanResource();
+        resource.turnosExamenDAO = turnosExamenDAO;
 
-        entidad = new BancoPregunta();
-        entidad.setIdBancoPregunta(testId);
-        entidad.setEnunciado("¿Cuánto es 2+2?");
+        entidad = new TurnosExamen();
+        entidad.setIdTurnoExamen(testId);
+        entidad.setNombreTurno("Turno Mañana");
+        entidad.setFecha(LocalDate.of(2026, 3, 1));
+        entidad.setHoraInicio(LocalTime.of(8, 0));
+        entidad.setHoraFin(LocalTime.of(12, 0));
     }
 
     // ==================== findRange (GET /) ====================
 
     @Test
     void findRange_ConParametrosValidos_DebeRetornar200ConLista() {
-        when(bancoPreguntaDAO.count()).thenReturn(1);
-        when(bancoPreguntaDAO.findRange(0, 10)).thenReturn(List.of(entidad));
+        when(turnosExamenDAO.count()).thenReturn(1);
+        when(turnosExamenDAO.findRange(0, 10)).thenReturn(List.of(entidad));
 
         Response response = resource.findRange(0, 10);
 
         assertEquals(200, response.getStatus());
         assertNotNull(response.getEntity());
         assertEquals("1", response.getHeaderString("Total-records"));
-        verify(bancoPreguntaDAO).count();
-        verify(bancoPreguntaDAO).findRange(0, 10);
+        verify(turnosExamenDAO).count();
+        verify(turnosExamenDAO).findRange(0, 10);
     }
 
     @Test
     void findRange_ConListaVacia_DebeRetornar200ConListaVacia() {
-        when(bancoPreguntaDAO.count()).thenReturn(0);
-        when(bancoPreguntaDAO.findRange(0, 10)).thenReturn(Collections.emptyList());
+        when(turnosExamenDAO.count()).thenReturn(0);
+        when(turnosExamenDAO.findRange(0, 10)).thenReturn(Collections.emptyList());
 
         Response response = resource.findRange(0, 10);
 
@@ -80,7 +84,7 @@ class BancoPreguntaResourceTest {
 
         assertEquals(422, response.getStatus());
         assertNotNull(response.getHeaderString("Missing-parameter"));
-        verifyNoInteractions(bancoPreguntaDAO);
+        verifyNoInteractions(turnosExamenDAO);
     }
 
     @Test
@@ -88,7 +92,7 @@ class BancoPreguntaResourceTest {
         Response response = resource.findRange(0, 0);
 
         assertEquals(422, response.getStatus());
-        verifyNoInteractions(bancoPreguntaDAO);
+        verifyNoInteractions(turnosExamenDAO);
     }
 
     @Test
@@ -96,12 +100,12 @@ class BancoPreguntaResourceTest {
         Response response = resource.findRange(0, 101);
 
         assertEquals(422, response.getStatus());
-        verifyNoInteractions(bancoPreguntaDAO);
+        verifyNoInteractions(turnosExamenDAO);
     }
 
     @Test
     void findRange_ConExcepcionEnDAO_DebeRetornar500() {
-        when(bancoPreguntaDAO.count()).thenThrow(new RuntimeException("Error de BD"));
+        when(turnosExamenDAO.count()).thenThrow(new RuntimeException("Error de BD"));
 
         Response response = resource.findRange(0, 10);
 
@@ -113,19 +117,19 @@ class BancoPreguntaResourceTest {
 
     @Test
     void findById_ConIdExistente_DebeRetornar200ConEntidad() {
-        when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
+        when(turnosExamenDAO.leer(testId)).thenReturn(entidad);
 
         Response response = resource.findById(testId);
 
         assertEquals(200, response.getStatus());
-        BancoPregunta resultado = (BancoPregunta) response.getEntity();
-        assertEquals(testId, resultado.getIdBancoPregunta());
-        verify(bancoPreguntaDAO).leer(testId);
+        TurnosExamen resultado = (TurnosExamen) response.getEntity();
+        assertEquals(testId, resultado.getIdTurnoExamen());
+        verify(turnosExamenDAO).leer(testId);
     }
 
     @Test
     void findById_ConIdInexistente_DebeRetornar404() {
-        when(bancoPreguntaDAO.leer(testId)).thenReturn(null);
+        when(turnosExamenDAO.leer(testId)).thenReturn(null);
 
         Response response = resource.findById(testId);
 
@@ -139,12 +143,12 @@ class BancoPreguntaResourceTest {
 
         assertEquals(422, response.getStatus());
         assertNotNull(response.getHeaderString("Missing-parameter"));
-        verifyNoInteractions(bancoPreguntaDAO);
+        verifyNoInteractions(turnosExamenDAO);
     }
 
     @Test
     void findById_ConExcepcionEnDAO_DebeRetornar500() {
-        when(bancoPreguntaDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
+        when(turnosExamenDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
         Response response = resource.findById(testId);
 
@@ -156,19 +160,19 @@ class BancoPreguntaResourceTest {
 
     @Test
     void create_ConEntidadValida_DebeRetornar201() {
-        BancoPregunta nueva = new BancoPregunta();
-        nueva.setEnunciado("¿Cuál es la capital de El Salvador?");
-        AreasConocimiento area = new AreasConocimiento();
-        area.setIdAreaConocimiento(testId);
-        nueva.setIdArea(area);
+        TurnosExamen nuevo = new TurnosExamen();
+        nuevo.setNombreTurno("Turno Tarde");
+        nuevo.setFecha(LocalDate.of(2026, 4, 1));
+        nuevo.setHoraInicio(LocalTime.of(13, 0));
+        nuevo.setHoraFin(LocalTime.of(17, 0));
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
-        when(uriBuilder.build()).thenReturn(URI.create("http://localhost/banco_preguntas/1"));
+        when(uriBuilder.build()).thenReturn(URI.create("http://localhost/turnos_examen/1"));
 
-        Response response = resource.create(nueva, uriInfo);
+        Response response = resource.create(nuevo, uriInfo);
 
         assertEquals(201, response.getStatus());
-        verify(bancoPreguntaDAO).crear(nueva);
+        verify(turnosExamenDAO).crear(nuevo);
     }
 
     @Test
@@ -177,7 +181,7 @@ class BancoPreguntaResourceTest {
 
         assertEquals(422, response.getStatus());
         assertNotNull(response.getHeaderString("Missing-parameter"));
-        verifyNoInteractions(bancoPreguntaDAO);
+        verifyNoInteractions(turnosExamenDAO);
     }
 
     @Test
@@ -185,32 +189,19 @@ class BancoPreguntaResourceTest {
         Response response = resource.create(entidad, uriInfo);
 
         assertEquals(422, response.getStatus());
-        verifyNoInteractions(bancoPreguntaDAO);
-    }
-
-    @Test
-    void create_ConIdAreaNulo_DebeRetornar422() {
-        BancoPregunta sinArea = new BancoPregunta();
-        sinArea.setEnunciado("¿Pregunta sin área?");
-        // idArea es null → FK NOT NULL en BD
-
-        Response response = resource.create(sinArea, uriInfo);
-
-        assertEquals(422, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
-        verifyNoInteractions(bancoPreguntaDAO);
+        verifyNoInteractions(turnosExamenDAO);
     }
 
     @Test
     void create_ConExcepcionEnDAO_DebeRetornar500() {
-        BancoPregunta nueva = new BancoPregunta();
-        nueva.setEnunciado("¿Cuál es la capital de El Salvador?");
-        AreasConocimiento area = new AreasConocimiento();
-        area.setIdAreaConocimiento(testId);
-        nueva.setIdArea(area);
-        doThrow(new RuntimeException("Error de BD")).when(bancoPreguntaDAO).crear(any());
+        TurnosExamen nuevo = new TurnosExamen();
+        nuevo.setNombreTurno("Turno Tarde");
+        nuevo.setFecha(LocalDate.of(2026, 4, 1));
+        nuevo.setHoraInicio(LocalTime.of(13, 0));
+        nuevo.setHoraFin(LocalTime.of(17, 0));
+        doThrow(new RuntimeException("Error de BD")).when(turnosExamenDAO).crear(any());
 
-        Response response = resource.create(nueva, uriInfo);
+        Response response = resource.create(nuevo, uriInfo);
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
@@ -220,14 +211,17 @@ class BancoPreguntaResourceTest {
 
     @Test
     void update_ConIdYEntidadValidos_DebeRetornar200() {
-        when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
-        BancoPregunta actualizada = new BancoPregunta();
-        actualizada.setEnunciado("¿Cuánto es 3+3?");
+        when(turnosExamenDAO.leer(testId)).thenReturn(entidad);
+        TurnosExamen actualizado = new TurnosExamen();
+        actualizado.setNombreTurno("Turno Mañana Actualizado");
+        actualizado.setFecha(LocalDate.of(2026, 3, 15));
+        actualizado.setHoraInicio(LocalTime.of(7, 30));
+        actualizado.setHoraFin(LocalTime.of(11, 30));
 
-        Response response = resource.update(testId, actualizada);
+        Response response = resource.update(testId, actualizado);
 
         assertEquals(200, response.getStatus());
-        verify(bancoPreguntaDAO).actualizar(actualizada);
+        verify(turnosExamenDAO).actualizar(actualizado);
     }
 
     @Test
@@ -235,7 +229,7 @@ class BancoPreguntaResourceTest {
         Response response = resource.update(null, entidad);
 
         assertEquals(422, response.getStatus());
-        verifyNoInteractions(bancoPreguntaDAO);
+        verifyNoInteractions(turnosExamenDAO);
     }
 
     @Test
@@ -243,12 +237,12 @@ class BancoPreguntaResourceTest {
         Response response = resource.update(testId, null);
 
         assertEquals(422, response.getStatus());
-        verifyNoInteractions(bancoPreguntaDAO);
+        verifyNoInteractions(turnosExamenDAO);
     }
 
     @Test
     void update_ConIdInexistente_DebeRetornar404() {
-        when(bancoPreguntaDAO.leer(testId)).thenReturn(null);
+        when(turnosExamenDAO.leer(testId)).thenReturn(null);
 
         Response response = resource.update(testId, entidad);
 
@@ -258,7 +252,7 @@ class BancoPreguntaResourceTest {
 
     @Test
     void update_ConExcepcionEnDAO_DebeRetornar500() {
-        when(bancoPreguntaDAO.leer(testId)).thenThrow(new RuntimeException("Error de BD"));
+        when(turnosExamenDAO.leer(testId)).thenThrow(new RuntimeException("Error de BD"));
 
         Response response = resource.update(testId, entidad);
 
@@ -270,12 +264,12 @@ class BancoPreguntaResourceTest {
 
     @Test
     void delete_ConIdExistente_DebeRetornar204() {
-        when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
+        when(turnosExamenDAO.leer(testId)).thenReturn(entidad);
 
         Response response = resource.delete(testId);
 
         assertEquals(204, response.getStatus());
-        verify(bancoPreguntaDAO).eliminar(entidad);
+        verify(turnosExamenDAO).eliminar(entidad);
     }
 
     @Test
@@ -283,12 +277,12 @@ class BancoPreguntaResourceTest {
         Response response = resource.delete(null);
 
         assertEquals(422, response.getStatus());
-        verifyNoInteractions(bancoPreguntaDAO);
+        verifyNoInteractions(turnosExamenDAO);
     }
 
     @Test
     void delete_ConIdInexistente_DebeRetornar404() {
-        when(bancoPreguntaDAO.leer(testId)).thenReturn(null);
+        when(turnosExamenDAO.leer(testId)).thenReturn(null);
 
         Response response = resource.delete(testId);
 
@@ -298,7 +292,7 @@ class BancoPreguntaResourceTest {
 
     @Test
     void delete_ConExcepcionEnDAO_DebeRetornar500() {
-        when(bancoPreguntaDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
+        when(turnosExamenDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
         Response response = resource.delete(testId);
 

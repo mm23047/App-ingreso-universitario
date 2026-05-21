@@ -58,12 +58,12 @@ public class AreasConocimientoResource extends AbstractResource<AreasConocimient
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
     public Response create(AreasConocimiento entity, @Context UriInfo uriInfo) {
-        if (entity != null && entity.getId() == null) {
+        if (entity != null && entity.getIdAreaConocimiento() == null) {
             try {
                 areasConocimientoDAO.crear(entity);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()
-                                .path(String.valueOf(entity.getId()))
+                                .path(String.valueOf(entity.getIdAreaConocimiento()))
                                 .build())
                         .build();
             } catch (Exception ex) {
@@ -86,7 +86,7 @@ public class AreasConocimientoResource extends AbstractResource<AreasConocimient
             try {
                 AreasConocimiento existing = areasConocimientoDAO.leer(id);
                 if (existing != null) {
-                    entity.setId(id);
+                    entity.setIdAreaConocimiento(id);
                     areasConocimientoDAO.actualizar(entity);
                     return Response.ok(entity).build();
                 }

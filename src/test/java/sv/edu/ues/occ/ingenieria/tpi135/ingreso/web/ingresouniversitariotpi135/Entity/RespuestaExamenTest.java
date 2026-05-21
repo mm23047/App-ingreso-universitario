@@ -13,10 +13,10 @@ class RespuestaExamenTest {
         UUID id = UUID.randomUUID();
 
         RespuestaExamen primera = new RespuestaExamen();
-        primera.setId(id);
+        primera.setIdRespuestaExamen(id);
 
         RespuestaExamen segunda = new RespuestaExamen();
-        segunda.setId(id);
+        segunda.setIdRespuestaExamen(id);
 
         assertEquals(primera, segunda);
         assertEquals(primera.hashCode(), segunda.hashCode());
@@ -25,10 +25,10 @@ class RespuestaExamenTest {
     @Test
     void equals_ConIdsDistintos_DebeSerFalse() {
         RespuestaExamen primera = new RespuestaExamen();
-        primera.setId(UUID.randomUUID());
+        primera.setIdRespuestaExamen(UUID.randomUUID());
 
         RespuestaExamen segunda = new RespuestaExamen();
-        segunda.setId(UUID.randomUUID());
+        segunda.setIdRespuestaExamen(UUID.randomUUID());
 
         assertNotEquals(primera, segunda);
     }

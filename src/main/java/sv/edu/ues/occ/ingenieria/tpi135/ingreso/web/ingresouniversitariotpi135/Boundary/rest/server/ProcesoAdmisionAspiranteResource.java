@@ -58,7 +58,7 @@ public class ProcesoAdmisionAspiranteResource extends AbstractResource<ProcesoAd
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
     public Response create(ProcesoAdmisionAspirante entity, @Context UriInfo uriInfo) {
-        if (entity != null && entity.getId() == null
+        if (entity != null && entity.getIdProcesoAdmisionAspirante() == null
                 && entity.getInscripcionesPrueba() != null
                 && entity.getIdEtapaActual() != null
                 && entity.getEstado() != null
@@ -67,7 +67,7 @@ public class ProcesoAdmisionAspiranteResource extends AbstractResource<ProcesoAd
                 procesoAdmisionAspiranteDAO.crear(entity);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()
-                                .path(String.valueOf(entity.getId()))
+                                .path(String.valueOf(entity.getIdProcesoAdmisionAspirante()))
                                 .build())
                         .build();
             } catch (Exception ex) {
@@ -90,7 +90,7 @@ public class ProcesoAdmisionAspiranteResource extends AbstractResource<ProcesoAd
             try {
                 ProcesoAdmisionAspirante existing = procesoAdmisionAspiranteDAO.leer(id);
                 if (existing != null) {
-                    entity.setId(id);
+                    entity.setIdProcesoAdmisionAspirante(id);
                     procesoAdmisionAspiranteDAO.actualizar(entity);
                     return Response.ok(entity).build();
                 }

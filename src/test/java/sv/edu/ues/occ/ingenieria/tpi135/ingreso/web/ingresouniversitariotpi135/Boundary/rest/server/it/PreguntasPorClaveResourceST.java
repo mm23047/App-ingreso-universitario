@@ -4,7 +4,7 @@ import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClave;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClaveId;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExamen;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
 
 import java.util.UUID;
@@ -50,7 +50,7 @@ public class PreguntasPorClaveResourceST extends AbstractResourceST {
         // Verificar que está Clave A - Pregunta 1
         boolean encontroAsociacion = false;
         for (PreguntasPorClave pc : arreglo) {
-            if (ID_CLAVE_A.equals(pc.getId().getIdClave()) && ID_PREGUNTA_1.equals(pc.getId().getIdPregunta())) {
+            if (ID_CLAVE_A.equals(pc.getIdPreguntaPorClave().getIdClave()) && ID_PREGUNTA_1.equals(pc.getIdPreguntaPorClave().getIdPregunta())) {
                 encontroAsociacion = true;
                 break;
             }
@@ -88,8 +88,8 @@ public class PreguntasPorClaveResourceST extends AbstractResourceST {
 
         PreguntasPorClave entidad = response.readEntity(PreguntasPorClave.class);
         assertNotNull(entidad);
-        assertEquals(ID_CLAVE_A, entidad.getId().getIdClave());
-        assertEquals(ID_PREGUNTA_1, entidad.getId().getIdPregunta());
+        assertEquals(ID_CLAVE_A, entidad.getIdPreguntaPorClave().getIdClave());
+        assertEquals(ID_PREGUNTA_1, entidad.getIdPreguntaPorClave().getIdPregunta());
     }
 
     /**
@@ -122,7 +122,7 @@ public class PreguntasPorClaveResourceST extends AbstractResourceST {
         // Verificar que al menos uno pertenece a Clave A
         boolean encontrado = false;
         for (PreguntasPorClave pc : arreglo) {
-            if (ID_CLAVE_A.equals(pc.getId().getIdClave())) {
+            if (ID_CLAVE_A.equals(pc.getIdPreguntaPorClave().getIdClave())) {
                 encontrado = true;
                 break;
             }
@@ -146,7 +146,7 @@ public class PreguntasPorClaveResourceST extends AbstractResourceST {
         // Verificar que al menos uno pertenece a Pregunta 1
         boolean encontrado = false;
         for (PreguntasPorClave pc : arreglo) {
-            if (ID_PREGUNTA_1.equals(pc.getId().getIdPregunta())) {
+            if (ID_PREGUNTA_1.equals(pc.getIdPreguntaPorClave().getIdPregunta())) {
                 encontrado = true;
                 break;
             }
@@ -175,8 +175,8 @@ public class PreguntasPorClaveResourceST extends AbstractResourceST {
             
             PreguntasPorClave creado = responseConsulta.readEntity(PreguntasPorClave.class);
             assertNotNull(creado);
-            assertEquals(ID_CLAVE_B, creado.getId().getIdClave());
-            assertEquals(ID_PREGUNTA_3, creado.getId().getIdPregunta());
+            assertEquals(ID_CLAVE_B, creado.getIdPreguntaPorClave().getIdClave());
+            assertEquals(ID_PREGUNTA_3, creado.getIdPreguntaPorClave().getIdPregunta());
         }
     }
 
@@ -187,7 +187,7 @@ public class PreguntasPorClaveResourceST extends AbstractResourceST {
     void create_ConAsociacionInvalida_SinClave_DebeRetornar422() {
         PreguntasPorClave nueva = new PreguntasPorClave();
         BancoPregunta pregunta = new BancoPregunta();
-        pregunta.setId(ID_PREGUNTA_1);
+        pregunta.setIdBancoPregunta(ID_PREGUNTA_1);
         nueva.setIdPregunta(pregunta);
         // Falta: idClave
 
@@ -203,8 +203,8 @@ public class PreguntasPorClaveResourceST extends AbstractResourceST {
     @Test
     void create_ConAsociacionInvalida_SinPregunta_DebeRetornar422() {
         PreguntasPorClave nueva = new PreguntasPorClave();
-        ClavesExaman clave = new ClavesExaman();
-        clave.setId(ID_CLAVE_A);
+        ClavesExamen clave = new ClavesExamen();
+        clave.setIdClaveExaman(ID_CLAVE_A);
         nueva.setIdClave(clave);
         // Falta: idPregunta
 
@@ -283,13 +283,13 @@ public class PreguntasPorClaveResourceST extends AbstractResourceST {
         PreguntasPorClaveId id = new PreguntasPorClaveId();
         id.setIdClave(idClave);
         id.setIdPregunta(idPregunta);
-        pc.setId(id);
+        pc.setIdPreguntaPorClave(id);
         
         // Asignar los objetos de referencia
-        ClavesExaman clave = new ClavesExaman();
-        clave.setId(idClave);
+        ClavesExamen clave = new ClavesExamen();
+        clave.setIdClaveExaman(idClave);
         BancoPregunta pregunta = new BancoPregunta();
-        pregunta.setId(idPregunta);
+        pregunta.setIdBancoPregunta(idPregunta);
         pc.setIdClave(clave);
         pc.setIdPregunta(pregunta);
         

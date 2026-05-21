@@ -78,11 +78,11 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
             cut.crear(nuevoBancoPregunta);
 
             //Verificamos que se creó en esta transacción
-            System.out.println("Pregunta creada con ID: " + nuevoBancoPregunta.getId());
+            System.out.println("Pregunta creada con ID: " + nuevoBancoPregunta.getIdBancoPregunta());
             int conteoActual = cut.count();
             System.out.println("Conteo actual en transacción (Debe subir a 5): " + conteoActual);
 
-            assertNotNull(nuevoBancoPregunta.getId());
+            assertNotNull(nuevoBancoPregunta.getIdBancoPregunta());
             assertEquals(5, conteoActual);
 
             return null;
@@ -111,13 +111,13 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
 
             // Tomamos una pregunta de la BD
             BancoPregunta preguntaExistente = cut.findRange(0, 1).get(0);
-            System.out.println("Leer pregunta con ID existente: " + preguntaExistente.getId());
+            System.out.println("Leer pregunta con ID existente: " + preguntaExistente.getIdBancoPregunta());
 
-            BancoPregunta resultado = cut.leer(preguntaExistente.getId());
+            BancoPregunta resultado = cut.leer(preguntaExistente.getIdBancoPregunta());
 
             assertNotNull(resultado);
             System.out.println("RESULTADO LEER ENUNCIADO: " + resultado.getEnunciado());
-            assertEquals(preguntaExistente.getId(), resultado.getId());
+            assertEquals(preguntaExistente.getIdBancoPregunta(), resultado.getIdBancoPregunta());
 
             return null;
         });
@@ -170,7 +170,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
             preguntaTemporal.setIdArea(area);
 
             cut.crear(preguntaTemporal);
-            System.out.println("Pregunta temporal creada con ID: " + preguntaTemporal.getId());
+            System.out.println("Pregunta temporal creada con ID: " + preguntaTemporal.getIdBancoPregunta());
             System.out.println("Conteo antes de eliminar: " + cut.count());
             // Sube a 5
             assertEquals(5, cut.count());
@@ -183,7 +183,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
             System.out.println("Conteo después de eliminar (Debe ser 4): " + conteoFinal);
             assertEquals(4, conteoFinal);
 
-            BancoPregunta resultadoLectura = cut.leer(preguntaTemporal.getId());
+            BancoPregunta resultadoLectura = cut.leer(preguntaTemporal.getIdBancoPregunta());
             System.out.println("Intentando leer el ID borrado. Resultado obtenido: " + resultadoLectura);
             assertNull(resultadoLectura, "La pregunta debería retornar null tras ser eliminada");
 

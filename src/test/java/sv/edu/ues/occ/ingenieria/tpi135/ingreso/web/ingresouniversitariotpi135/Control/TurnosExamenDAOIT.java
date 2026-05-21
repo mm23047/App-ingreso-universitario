@@ -2,17 +2,17 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 
 import org.junit.jupiter.api.Test;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExaman;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExamen;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-public class TurnosExamanDAOIT extends AbstractBaseIT {
+public class TurnosExamenDAOIT extends AbstractBaseIT {
 
 
-    public TurnosExamanDAOIT() {
+    public TurnosExamenDAOIT() {
     }
 
     @Test
@@ -21,7 +21,7 @@ public class TurnosExamanDAOIT extends AbstractBaseIT {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
-            TurnosExamanDAO cut = new TurnosExamanDAO();
+            TurnosExamenDAO cut = new TurnosExamenDAO();
             cut.em = em;
 
             int resultado = cut.count();
@@ -39,10 +39,10 @@ public class TurnosExamanDAOIT extends AbstractBaseIT {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
-            TurnosExamanDAO cut = new TurnosExamanDAO();
+            TurnosExamenDAO cut = new TurnosExamenDAO();
             cut.em = em;
 
-            List<TurnosExaman> resultado = cut.findRange(0, 5);
+            List<TurnosExamen> resultado = cut.findRange(0, 5);
 
             assertNotNull(resultado);
             assertEquals(2, resultado.size());
@@ -57,7 +57,7 @@ public class TurnosExamanDAOIT extends AbstractBaseIT {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
-            TurnosExamanDAO cut = new TurnosExamanDAO();
+            TurnosExamenDAO cut = new TurnosExamenDAO();
             cut.em = em;
 
             // Obtenemos una prueba de admisión existente para asignarla al turno
@@ -66,7 +66,7 @@ public class TurnosExamanDAOIT extends AbstractBaseIT {
                     .getSingleResult();
             assertNotNull(pruebasAdmision);
 
-            TurnosExaman nuevoTurno = new TurnosExaman();
+            TurnosExamen nuevoTurno = new TurnosExamen();
             nuevoTurno.setNombreTurno("Turno Matutino");
             nuevoTurno.setIdPrueba(pruebasAdmision);
             nuevoTurno.setFecha(LocalDate.now());
@@ -76,7 +76,7 @@ public class TurnosExamanDAOIT extends AbstractBaseIT {
             // Creamos el nuevo turno
             cut.crear(nuevoTurno);
 
-            assertNotNull(nuevoTurno.getId());
+            assertNotNull(nuevoTurno.getIdTurnoExamen());
             // Sube a 3 en esta transacción
             assertEquals(3, cut.count());
 
@@ -85,7 +85,7 @@ public class TurnosExamanDAOIT extends AbstractBaseIT {
 
         // Verificamos el rollback
         ejecutarEnTransaccion(em -> {
-            TurnosExamanDAO cut = new TurnosExamanDAO();
+            TurnosExamenDAO cut = new TurnosExamenDAO();
             cut.em = em;
             // Vuelve a 2
             assertEquals(2, cut.count());
@@ -99,16 +99,16 @@ public class TurnosExamanDAOIT extends AbstractBaseIT {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
-            TurnosExamanDAO cut = new TurnosExamanDAO();
+            TurnosExamenDAO cut = new TurnosExamenDAO();
             cut.em = em;
 
             // Obtenemos un turno que ya exista en la Bd
-            TurnosExaman turnoExistente = cut.findRange(0, 1).get(0);
+            TurnosExamen turnoExistente = cut.findRange(0, 1).get(0);
 
-            TurnosExaman resultado = cut.leer(turnoExistente.getId());
+            TurnosExamen resultado = cut.leer(turnoExistente.getIdTurnoExamen());
 
             assertNotNull(resultado, "El ID del turno de examen no puede ser nulo");
-            assertEquals(turnoExistente.getId(), resultado.getId());
+            assertEquals(turnoExistente.getIdTurnoExamen(), resultado.getIdTurnoExamen());
             assertEquals(turnoExistente.getNombreTurno(), resultado.getNombreTurno());
 
             return null;
@@ -121,17 +121,17 @@ public class TurnosExamanDAOIT extends AbstractBaseIT {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
-            TurnosExamanDAO cut = new TurnosExamanDAO();
+            TurnosExamenDAO cut = new TurnosExamenDAO();
             cut.em = em;
 
             // Leemos un turno de la Bd
-            TurnosExaman turnoExistente = cut.findRange(0, 1).get(0);
+            TurnosExamen turnoExistente = cut.findRange(0, 1).get(0);
             assertNotNull(turnoExistente, "El turno de examen a actualizar no existe");
 
             // Modificamos
             turnoExistente.setNombreTurno("Turno Vespertino Modificado");
 
-            TurnosExaman turnoActualizado = cut.actualizar(turnoExistente);
+            TurnosExamen turnoActualizado = cut.actualizar(turnoExistente);
 
             assertNotNull(turnoActualizado);
             assertEquals("Turno Vespertino Modificado", turnoActualizado.getNombreTurno());
@@ -146,7 +146,7 @@ public class TurnosExamanDAOIT extends AbstractBaseIT {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
-            TurnosExamanDAO cut = new TurnosExamanDAO();
+            TurnosExamenDAO cut = new TurnosExamenDAO();
             cut.em = em;
 
             // Necesitamos una Prueba de Admision para poder crear el turno temporal
@@ -155,7 +155,7 @@ public class TurnosExamanDAOIT extends AbstractBaseIT {
                     .getSingleResult();
 
             // Creamos el dato temporal
-            TurnosExaman turnoTemporal = new TurnosExaman();
+            TurnosExamen turnoTemporal = new TurnosExamen();
             turnoTemporal.setNombreTurno("Turno Temporal a Eliminar");
             turnoTemporal.setIdPrueba(pruebasAdmision);
             turnoTemporal.setFecha(LocalDate.now());
@@ -172,9 +172,9 @@ public class TurnosExamanDAOIT extends AbstractBaseIT {
 
             //Verificamos que bajó a 2 y que la base devuelve null al buscarlo
             assertEquals(2, cut.count());
-            assertNull(cut.leer(turnoTemporal.getId()), "El turno debería retornar null al haber sido borrado");
+            assertNull(cut.leer(turnoTemporal.getIdTurnoExamen()), "El turno debería retornar null al haber sido borrado");
 
-            System.out.println("Dato eliminado: "+ cut.leer(turnoTemporal.getId()));
+            System.out.println("Dato eliminado: "+ cut.leer(turnoTemporal.getIdTurnoExamen()));
             return null;
         });
     }

@@ -49,17 +49,17 @@ public class BancoPreguntaResourceST extends AbstractResourceST {
         // Verificar que están las preguntas conocidas
         boolean encontroPregunta1 = false, encontroPregunta2 = false, encontroPregunta3 = false;
         for (BancoPregunta pregunta : arreglo) {
-            if (ID_PREGUNTA_1.equals(pregunta.getId())) {
+            if (ID_PREGUNTA_1.equals(pregunta.getIdBancoPregunta())) {
                 encontroPregunta1 = true;
                 assertEquals("¿Cuánto es 2 + 2?", pregunta.getEnunciado());
                 assertNotNull(pregunta.getIdArea());
-                assertEquals(ID_AREA_MATEMATICAS, pregunta.getIdArea().getId());
+                assertEquals(ID_AREA_MATEMATICAS, pregunta.getIdArea().getIdAreaConocimiento());
             }
-            if (ID_PREGUNTA_2.equals(pregunta.getId())) {
+            if (ID_PREGUNTA_2.equals(pregunta.getIdBancoPregunta())) {
                 encontroPregunta2 = true;
                 assertEquals("¿Cuál es la raíz cuadrada de 144?", pregunta.getEnunciado());
             }
-            if (ID_PREGUNTA_3.equals(pregunta.getId())) {
+            if (ID_PREGUNTA_3.equals(pregunta.getIdBancoPregunta())) {
                 encontroPregunta3 = true;
                 assertEquals("¿Cuántos planetas tiene el sistema solar?", pregunta.getEnunciado());
             }
@@ -99,10 +99,10 @@ public class BancoPreguntaResourceST extends AbstractResourceST {
 
         BancoPregunta entidad = response.readEntity(BancoPregunta.class);
         assertNotNull(entidad);
-        assertEquals(ID_PREGUNTA_1, entidad.getId());
+        assertEquals(ID_PREGUNTA_1, entidad.getIdBancoPregunta());
         assertEquals("¿Cuánto es 2 + 2?", entidad.getEnunciado());
         assertNotNull(entidad.getIdArea());
-        assertEquals(ID_AREA_MATEMATICAS, entidad.getIdArea().getId());
+        assertEquals(ID_AREA_MATEMATICAS, entidad.getIdArea().getIdAreaConocimiento());
     }
 
     /**
@@ -147,7 +147,7 @@ public class BancoPreguntaResourceST extends AbstractResourceST {
         boolean encontroDelArea = false;
         for (BancoPregunta pregunta : arreglo) {
             assertNotNull(pregunta.getIdArea());
-            if (ID_AREA_CIENCIAS.equals(pregunta.getIdArea().getId())) {
+            if (ID_AREA_CIENCIAS.equals(pregunta.getIdArea().getIdAreaConocimiento())) {
                 encontroDelArea = true;
                 break;
             }
@@ -178,10 +178,10 @@ public class BancoPreguntaResourceST extends AbstractResourceST {
 
         BancoPregunta creado = responseConsulta.readEntity(BancoPregunta.class);
         assertNotNull(creado);
-        assertEquals(idCreado, creado.getId());
+        assertEquals(idCreado, creado.getIdBancoPregunta());
         assertEquals("¿Cuál es la capital de Francia?", creado.getEnunciado());
         assertNotNull(creado.getIdArea());
-        assertEquals(ID_AREA_CIENCIAS, creado.getIdArea().getId());
+        assertEquals(ID_AREA_CIENCIAS, creado.getIdArea().getIdAreaConocimiento());
     }
 
     /**
@@ -221,9 +221,9 @@ public class BancoPreguntaResourceST extends AbstractResourceST {
 
         BancoPregunta actualizado = responsePut.readEntity(BancoPregunta.class);
         assertNotNull(actualizado);
-        assertEquals(idCreado, actualizado.getId());
+        assertEquals(idCreado, actualizado.getIdBancoPregunta());
         assertEquals("Pregunta actualizada - ¿Cuál es la raíz cuadrada de 16?", actualizado.getEnunciado());
-        assertEquals(ID_AREA_MATEMATICAS, actualizado.getIdArea().getId());
+        assertEquals(ID_AREA_MATEMATICAS, actualizado.getIdArea().getIdAreaConocimiento());
 
         // Verificar persistencia
         Response responseConsulta = get("banco_preguntas/" + idCreado);
@@ -231,7 +231,7 @@ public class BancoPreguntaResourceST extends AbstractResourceST {
 
         BancoPregunta consultado = responseConsulta.readEntity(BancoPregunta.class);
         assertEquals("Pregunta actualizada - ¿Cuál es la raíz cuadrada de 16?", consultado.getEnunciado());
-        assertEquals(ID_AREA_MATEMATICAS, consultado.getIdArea().getId());
+        assertEquals(ID_AREA_MATEMATICAS, consultado.getIdArea().getIdAreaConocimiento());
     }
 
     /**
@@ -294,7 +294,7 @@ public class BancoPreguntaResourceST extends AbstractResourceST {
         BancoPregunta pregunta = new BancoPregunta();
         pregunta.setEnunciado(enunciado);
         AreasConocimiento area = new AreasConocimiento();
-        area.setId(idArea);
+        area.setIdAreaConocimiento(idArea);
         pregunta.setIdArea(area);
         return pregunta;
     }

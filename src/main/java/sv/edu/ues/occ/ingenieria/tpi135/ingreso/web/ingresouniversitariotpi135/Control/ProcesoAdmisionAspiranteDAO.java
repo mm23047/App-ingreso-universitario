@@ -18,6 +18,8 @@ import java.util.UUID;
 @LocalBean
 public class ProcesoAdmisionAspiranteDAO extends IngresoDefaultDataAccess<ProcesoAdmisionAspirante> implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
 
@@ -53,14 +55,10 @@ public class ProcesoAdmisionAspiranteDAO extends IngresoDefaultDataAccess<Proces
             return null;
         }
 
-        UUID idPrueba = proceso.getInscripcionesPrueba().getIdPrueba().getId();
-        UUID idEtapa = proceso.getIdEtapaActual().getId();
+        UUID idPrueba = proceso.getInscripcionesPrueba().getIdPrueba().getIdPruebaAdmision();
+        UUID idEtapa = proceso.getIdEtapaActual().getIdEtapaAdmision();
 
-        List<CarrerasElegida> elegidas = em.createQuery(
-                        "SELECT ce FROM CarrerasElegida ce " +
-                    "WHERE ce.idInscripcion.id = :idInscripcion " +
-                                "ORDER BY ce.prioridad ASC",
-                        CarrerasElegida.class)
+        List<CarrerasElegida> elegidas = em.createNamedQuery("ProcesoAdmisionAspirante.findCarrerasElegidas", CarrerasElegida.class)
                 .setParameter("idInscripcion", idInscripcion)
                 .getResultList();
 
@@ -83,18 +81,38 @@ public class ProcesoAdmisionAspiranteDAO extends IngresoDefaultDataAccess<Proces
 
     private CuposCarrera buscarCupos(UUID idPrueba, String idCarrera, UUID idEtapa) {
         try {
-            return em.createQuery(
-                            "SELECT cc FROM CuposCarrera cc " +
-                                    "WHERE cc.id.idPrueba = :idPrueba " +
-                                    "AND cc.id.idCarrera = :idCarrera " +
-                                    "AND cc.id.idEtapa = :idEtapa",
-                            CuposCarrera.class)
+            return em.createNamedQuery("ProcesoAdmisionAspirante.findCuposCarrera", CuposCarrera.class)
                     .setParameter("idPrueba", idPrueba)
                     .setParameter("idCarrera", idCarrera)
                     .setParameter("idEtapa", idEtapa)
                     .getSingleResult();
         } catch (NoResultException ex) {
             return null;
+        }
+    }
+
+    /**
+     * REGLA DE NEGOCIO PRINCIPAL (FASE 2):
+     * Procesa en lote a todos los estudiantes de una etapa en específico, garantizando que
+     * los mejores puntajes consuman los cupos de las carreras primero.
+     */
+    public void procesarAsignacionMasiva(UUID idEtapa) {
+        if (idEtapa == null) {
+            throw new IllegalArgumentException("El id de la etapa es requerido.");
+        }
+
+        // 1. Obtener los aspirantes ordenados de manera estricta por nota descenente
+        List<ProcesoAdmisionAspirante> aspirantesOrdenados = em.createNamedQuery(
+                        "ProcesoAdmisionAspirante.findPendientesPorPuntaje", ProcesoAdmisionAspirante.class)
+                .setParameter("idEtapa", idEtapa)
+                .getResultList();
+
+        // 2. Iterar sobre ellos aplicando secuencialmente la asignación individual
+        for (ProcesoAdmisionAspirante aspirante : aspirantesOrdenados) {
+            this.asignarCarreraFinal(aspirante.getIdProcesoAdmisionAspirante());
+
+            // Separar de la memoria de primer nivel periódicamente si el lote es masivo (evita saturar la RAM)
+            em.flush();
         }
     }
 

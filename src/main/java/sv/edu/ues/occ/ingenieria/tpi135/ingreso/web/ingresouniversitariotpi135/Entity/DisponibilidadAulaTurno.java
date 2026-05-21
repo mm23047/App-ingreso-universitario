@@ -1,21 +1,29 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
 
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
 @Table(name = "disponibilidad_aula_turno")
-public class DisponibilidadAulaTurno {
+@NamedQueries({
+        @NamedQuery(
+                name = "DisponibilidadAulaTurno.countByAulaAndTurno",
+                query = "SELECT COUNT(d) FROM DisponibilidadAulaTurno d WHERE d.idAula.idAula = :idAula AND d.idTurno.idTurnoExamen = :idTurno"
+        ),
+        // NUEVO: Requerimiento de negocio para calcular el aforo global por turno
+        @NamedQuery(
+                name = "DisponibilidadAulaTurno.findByTurno",
+                query = "SELECT d FROM DisponibilidadAulaTurno d WHERE d.idTurno.idTurnoExamen = :idTurno"
+        )
+})
+public class DisponibilidadAulaTurno implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @EmbeddedId
-    private DisponibilidadAulaTurnoId id;
+    private DisponibilidadAulaTurnoId idDisponibilidadAulaTurno;
 
     @MapsId("idAula")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -25,14 +33,14 @@ public class DisponibilidadAulaTurno {
     @MapsId("idTurno")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_turno", nullable = false)
-    private TurnosExaman idTurno;
+    private TurnosExamen idTurno;
 
-    public DisponibilidadAulaTurnoId getId() {
-        return id;
+    public DisponibilidadAulaTurnoId getIdDisponibilidadAulaTurno() {
+        return idDisponibilidadAulaTurno;
     }
 
-    public void setId(DisponibilidadAulaTurnoId id) {
-        this.id = id;
+    public void setIdDisponibilidadAulaTurno(DisponibilidadAulaTurnoId id) {
+        this.idDisponibilidadAulaTurno = id;
     }
 
     public Aula getIdAula() {
@@ -43,12 +51,27 @@ public class DisponibilidadAulaTurno {
         this.idAula = idAula;
     }
 
-    public TurnosExaman getIdTurno() {
+    public TurnosExamen getIdTurno() {
         return idTurno;
     }
 
-    public void setIdTurno(TurnosExaman idTurno) {
+    public void setIdTurno(TurnosExamen idTurno) {
         this.idTurno = idTurno;
+    }
+    @PrePersist
+    @PreUpdate
+    private void sincronizarIdPersistible() {
+        sincronizarId();
+    }
+
+    // CORRECCIÓN: Evita el guardado erróneo con llaves nulas en PostgreSQL mapeando los objetos asignados
+    private void sincronizarId() {
+        if (this.idDisponibilidadAulaTurno == null && this.idAula != null && this.idTurno != null) {
+            DisponibilidadAulaTurnoId compuesto = new DisponibilidadAulaTurnoId();
+            compuesto.setIdAula(this.idAula.getIdAula());
+            compuesto.setIdTurno(this.idTurno.getIdTurnoExamen());
+            this.idDisponibilidadAulaTurno = compuesto;
+        }
     }
 
     @Override
@@ -60,11 +83,11 @@ public class DisponibilidadAulaTurno {
             return false;
         }
         DisponibilidadAulaTurno that = (DisponibilidadAulaTurno) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(idDisponibilidadAulaTurno, that.idDisponibilidadAulaTurno);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(idDisponibilidadAulaTurno);
     }
 }

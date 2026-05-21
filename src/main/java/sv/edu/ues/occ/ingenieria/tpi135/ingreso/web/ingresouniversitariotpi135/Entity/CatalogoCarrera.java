@@ -3,6 +3,8 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
@@ -10,7 +12,13 @@ import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "catalogo_carrera", schema = "public", uniqueConstraints = {
-    @UniqueConstraint(name = "uk_catalogo_carrera_nombre", columnNames = "nombre")
+        @UniqueConstraint(name = "catalogo_carrera_nombre_key", columnNames = {"nombre"})
+})
+@NamedQueries({
+        @NamedQuery(
+                name = "CatalogoCarrera.findByNombre",
+                query = "SELECT c FROM CatalogoCarrera c WHERE c.nombreCatalogoCarrera = :nombre"
+        )
 })
 public class CatalogoCarrera {
     @Id
@@ -21,7 +29,7 @@ public class CatalogoCarrera {
     @Size(max = 100)
     @NotNull
     @Column(name = "nombre", nullable = false, unique = true, length = 100)
-    private String nombre;
+    private String nombreCatalogoCarrera;
 
     public String getIdCarrera() {
         return idCarrera;
@@ -31,12 +39,12 @@ public class CatalogoCarrera {
         this.idCarrera = idCarrera;
     }
 
-    public String getNombre() {
-        return nombre;
+    public String getNombreCatalogoCarrera() {
+        return nombreCatalogoCarrera;
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public void setNombreCatalogoCarrera(String nombre) {
+        this.nombreCatalogoCarrera = nombre;
     }
 
 }

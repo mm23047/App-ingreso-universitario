@@ -2,7 +2,7 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExaman;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExamen;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
 import java.time.LocalDate;
@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Valida el contrato HTTP de los endpoints de turnos de examen,
  * incluyendo filtros por prueba, validaciones de FK, y persistencia.
  */
-public class TurnosExamanResourceST extends AbstractResourceST {
+public class TurnosExamenResourceST extends AbstractResourceST {
 
     // UUIDs de turnos del init.sql
     private static final UUID ID_TURNO_MANANA = UUID.fromString("07000000-0000-0000-0000-000000000001");
@@ -36,7 +36,7 @@ public class TurnosExamanResourceST extends AbstractResourceST {
 
         assertEquals(200, response.getStatus());
 
-        TurnosExaman[] arreglo = response.readEntity(TurnosExaman[].class);
+        TurnosExamen[] arreglo = response.readEntity(TurnosExamen[].class);
         assertNotNull(arreglo);
         assertTrue(arreglo.length >= 2, "Debe haber al menos 2 turnos iniciales");
 
@@ -47,8 +47,8 @@ public class TurnosExamanResourceST extends AbstractResourceST {
 
         // Verificar que está Turno Mañana
         boolean encontroTurnoManana = false;
-        for (TurnosExaman turno : arreglo) {
-            if (ID_TURNO_MANANA.equals(turno.getId())) {
+        for (TurnosExamen turno : arreglo) {
+            if (ID_TURNO_MANANA.equals(turno.getIdTurnoExamen())) {
                 encontroTurnoManana = true;
                 break;
             }
@@ -65,7 +65,7 @@ public class TurnosExamanResourceST extends AbstractResourceST {
 
         assertEquals(200, response.getStatus());
 
-        TurnosExaman[] arreglo = response.readEntity(TurnosExaman[].class);
+        TurnosExamen[] arreglo = response.readEntity(TurnosExamen[].class);
         assertNotNull(arreglo);
         assertEquals(1, arreglo.length, "Debe retornar exactamente 1 registro");
 
@@ -84,9 +84,9 @@ public class TurnosExamanResourceST extends AbstractResourceST {
 
         assertEquals(200, response.getStatus());
 
-        TurnosExaman entidad = response.readEntity(TurnosExaman.class);
+        TurnosExamen entidad = response.readEntity(TurnosExamen.class);
         assertNotNull(entidad);
-        assertEquals(ID_TURNO_MANANA, entidad.getId());
+        assertEquals(ID_TURNO_MANANA, entidad.getIdTurnoExamen());
     }
 
     /**
@@ -121,18 +121,18 @@ public class TurnosExamanResourceST extends AbstractResourceST {
 
         assertEquals(200, response.getStatus());
 
-        TurnosExaman[] arreglo = response.readEntity(TurnosExaman[].class);
+        TurnosExamen[] arreglo = response.readEntity(TurnosExamen[].class);
         assertNotNull(arreglo);
         assertTrue(arreglo.length >= 2, "Prueba 1 debe tener al menos 2 turnos");
 
         // Verificar por IDs de turnos esperados para la Prueba 1 en init.sql.
         boolean contieneTurnoManana = false;
         boolean contieneTurnoTarde = false;
-        for (TurnosExaman turno : arreglo) {
-            if (ID_TURNO_MANANA.equals(turno.getId())) {
+        for (TurnosExamen turno : arreglo) {
+            if (ID_TURNO_MANANA.equals(turno.getIdTurnoExamen())) {
                 contieneTurnoManana = true;
             }
-            if (ID_TURNO_TARDE.equals(turno.getId())) {
+            if (ID_TURNO_TARDE.equals(turno.getIdTurnoExamen())) {
                 contieneTurnoTarde = true;
             }
         }
@@ -148,7 +148,7 @@ public class TurnosExamanResourceST extends AbstractResourceST {
         LocalTime horaInicio = LocalTime.of(8, 0);
         LocalTime horaFin = LocalTime.of(11, 0);
 
-        TurnosExaman nueva = crearTurno(ID_PRUEBA_2, "Turno Test", fecha, horaInicio, horaFin);
+        TurnosExamen nueva = crearTurno(ID_PRUEBA_2, "Turno Test", fecha, horaInicio, horaFin);
 
         Response responseCreacion = post("turnos_examen", nueva);
 
@@ -162,11 +162,11 @@ public class TurnosExamanResourceST extends AbstractResourceST {
         Response responseConsulta = get("turnos_examen/" + idCreado);
         assertEquals(200, responseConsulta.getStatus());
 
-        TurnosExaman creado = responseConsulta.readEntity(TurnosExaman.class);
+        TurnosExamen creado = responseConsulta.readEntity(TurnosExamen.class);
         assertNotNull(creado);
-        assertEquals(idCreado, creado.getId());
+        assertEquals(idCreado, creado.getIdTurnoExamen());
         assertEquals("Turno Test", creado.getNombreTurno());
-        assertEquals(ID_PRUEBA_2, creado.getIdPrueba().getId());
+        assertEquals(ID_PRUEBA_2, creado.getIdPrueba().getIdPruebaAdmision());
     }
 
     /**
@@ -178,7 +178,7 @@ public class TurnosExamanResourceST extends AbstractResourceST {
         LocalTime horaInicio = LocalTime.of(14, 0);
         LocalTime horaFin = LocalTime.of(17, 0);
 
-        TurnosExaman nueva = crearTurno(ID_PRUEBA_1, "Turno Tarde Extra", fecha, horaInicio, horaFin);
+        TurnosExamen nueva = crearTurno(ID_PRUEBA_1, "Turno Tarde Extra", fecha, horaInicio, horaFin);
 
         Response responseCreacion = post("turnos_examen", nueva);
 
@@ -190,8 +190,8 @@ public class TurnosExamanResourceST extends AbstractResourceST {
             Response responseConsulta = get("turnos_examen/" + idCreado);
             assertEquals(200, responseConsulta.getStatus());
 
-            TurnosExaman creado = responseConsulta.readEntity(TurnosExaman.class);
-            assertEquals(ID_PRUEBA_1, creado.getIdPrueba().getId());
+            TurnosExamen creado = responseConsulta.readEntity(TurnosExamen.class);
+            assertEquals(ID_PRUEBA_1, creado.getIdPrueba().getIdPruebaAdmision());
             assertEquals(LocalDate.of(2026, 4, 21), creado.getFecha());
             assertEquals(LocalTime.of(14, 0), creado.getHoraInicio());
             assertEquals(LocalTime.of(17, 0), creado.getHoraFin());
@@ -211,22 +211,22 @@ public class TurnosExamanResourceST extends AbstractResourceST {
 
         LocalTime horaInicio2 = LocalTime.of(14, 0);
         LocalTime horaFin2 = LocalTime.of(17, 0);
-        TurnosExaman actualizado = crearTurno(ID_PRUEBA_1, "Turno Actualizado", fecha, horaInicio2, horaFin2);
+        TurnosExamen actualizado = crearTurno(ID_PRUEBA_1, "Turno Actualizado", fecha, horaInicio2, horaFin2);
 
         Response responsePut = put("turnos_examen/" + idCreado, actualizado);
 
         assertEquals(200, responsePut.getStatus());
 
-        TurnosExaman actualizado2 = responsePut.readEntity(TurnosExaman.class);
+        TurnosExamen actualizado2 = responsePut.readEntity(TurnosExamen.class);
         assertNotNull(actualizado2);
-        assertEquals(idCreado, actualizado2.getId());
+        assertEquals(idCreado, actualizado2.getIdTurnoExamen());
         assertEquals("Turno Actualizado", actualizado2.getNombreTurno());
 
         // Verificar persistencia
         Response responseConsulta = get("turnos_examen/" + idCreado);
         assertEquals(200, responseConsulta.getStatus());
 
-        TurnosExaman consultado = responseConsulta.readEntity(TurnosExaman.class);
+        TurnosExamen consultado = responseConsulta.readEntity(TurnosExamen.class);
         assertEquals("Turno Actualizado", consultado.getNombreTurno());
     }
 
@@ -240,7 +240,7 @@ public class TurnosExamanResourceST extends AbstractResourceST {
         LocalTime horaInicio = LocalTime.of(8, 0);
         LocalTime horaFin = LocalTime.of(11, 0);
 
-        TurnosExaman actualizado = crearTurno(ID_PRUEBA_1, "No importa", fecha, horaInicio, horaFin);
+        TurnosExamen actualizado = crearTurno(ID_PRUEBA_1, "No importa", fecha, horaInicio, horaFin);
 
         Response response = put("turnos_examen/" + idInexistente, actualizado);
 
@@ -289,11 +289,11 @@ public class TurnosExamanResourceST extends AbstractResourceST {
      * Construye una entidad TurnosExaman válida con los parámetros dados.
      * No ejecuta el POST, solo prepara el payload.
      */
-    private TurnosExaman crearTurno(UUID idPrueba, String nombreTurno, LocalDate fecha,
-                                     LocalTime horaInicio, LocalTime horaFin) {
-        TurnosExaman turno = new TurnosExaman();
+    private TurnosExamen crearTurno(UUID idPrueba, String nombreTurno, LocalDate fecha,
+                                    LocalTime horaInicio, LocalTime horaFin) {
+        TurnosExamen turno = new TurnosExamen();
         PruebasAdmision prueba = new PruebasAdmision();
-        prueba.setId(idPrueba);
+        prueba.setIdPruebaAdmision(idPrueba);
         turno.setIdPrueba(prueba);
         turno.setNombreTurno(nombreTurno);
         turno.setFecha(fecha);
@@ -309,7 +309,7 @@ public class TurnosExamanResourceST extends AbstractResourceST {
      */
     private UUID crearTurnoReal(UUID idPrueba, String nombreTurno, LocalDate fecha,
                                LocalTime horaInicio, LocalTime horaFin) {
-        TurnosExaman turno = crearTurno(idPrueba, nombreTurno, fecha, horaInicio, horaFin);
+        TurnosExamen turno = crearTurno(idPrueba, nombreTurno, fecha, horaInicio, horaFin);
 
         Response responseCreacion = post("turnos_examen", turno);
         assertEquals(201, responseCreacion.getStatus(),

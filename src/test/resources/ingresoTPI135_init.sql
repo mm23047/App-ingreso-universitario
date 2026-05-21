@@ -175,6 +175,27 @@ CREATE TABLE IF NOT EXISTS asignacion_aula_aspirante (
     CONSTRAINT uk_inscripcion_turno UNIQUE (id_inscripcion, id_turno)
 );
 
+-- =========================================================
+-- PARA GUARDAR RESPUESTAS GLOBALES
+-- =========================================================
+
+-- 1. Permitir que el área sea nula (para las respuestas globales)
+ALTER TABLE public.banco_respuesta
+    ALTER COLUMN id_area DROP NOT NULL;
+
+-- 2. Eliminar la restricción global que tenías
+ALTER TABLE public.banco_respuesta
+DROP CONSTRAINT IF EXISTS banco_respuesta_texto_respuesta_key;
+
+-- 3. REGLA 1: Solo puede existir un texto global igual (ej. un solo "Verdadero" global)
+CREATE UNIQUE INDEX idx_respuesta_global_unica
+    ON public.banco_respuesta (UPPER(TRIM(texto_respuesta)))
+    WHERE id_area IS NULL;
+
+-- 4. REGLA 2: No se puede repetir la misma respuesta dentro de la misma área
+CREATE UNIQUE INDEX idx_respuesta_area_unica
+    ON public.banco_respuesta (UPPER(TRIM(texto_respuesta)), id_area)
+    WHERE id_area IS NOT NULL;
 
 -- =========================================================
 -- DATOS MAESTROS

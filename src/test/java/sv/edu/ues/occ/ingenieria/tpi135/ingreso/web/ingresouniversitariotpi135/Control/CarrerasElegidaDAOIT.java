@@ -88,7 +88,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
             clave.setIdCarrera("MAT");
 
             CarrerasElegida nueva = new CarrerasElegida();
-            nueva.setId(clave);
+            nueva.setIdCarreraElegida(clave);
             nueva.setIdInscripcion(inscripcion);
             nueva.setIdCarrera(carrera);
             nueva.setPrioridad((short) 3);
@@ -127,9 +127,9 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
             CarrerasElegida resultado = cut.leer(clave);
 
             assertNotNull(resultado);
-            assertEquals("ICS", resultado.getId().getIdCarrera());
+            assertEquals("ICS", resultado.getIdCarreraElegida().getIdCarrera());
             assertEquals(UUID.fromString("09000000-0000-0000-0000-000000000001"),
-                    resultado.getId().getIdInscripcion());
+                    resultado.getIdCarreraElegida().getIdInscripcion());
             assertEquals((short) 1, resultado.getPrioridad());
 
             return null;
@@ -185,7 +185,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
             clave.setIdCarrera("MAT");
 
             CarrerasElegida nueva = new CarrerasElegida();
-            nueva.setId(clave);
+            nueva.setIdCarreraElegida(clave);
             nueva.setIdInscripcion(inscripcion);
             nueva.setIdCarrera(carrera);
             nueva.setPrioridad((short) 3);

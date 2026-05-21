@@ -108,7 +108,7 @@ public class InscripcionesPruebaResource extends AbstractResource<InscripcionesP
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
     public Response create(InscripcionesPrueba entity, @Context UriInfo uriInfo) {
-        if (entity != null && entity.getId() == null
+        if (entity != null && entity.getIdInscripcionPrueba() == null
                 && entity.getIdAspirante() != null
                 && entity.getIdPrueba() != null) {
 
@@ -116,7 +116,7 @@ public class InscripcionesPruebaResource extends AbstractResource<InscripcionesP
                 //Verificamos si ya existe la inscripcion en la prueba
                 boolean existe = inscripcionesPruebaDAO.existsByAspiranteAndPrueba(
                         entity.getIdAspirante().getId(),
-                        entity.getIdPrueba().getId()
+                        entity.getIdPrueba().getIdPruebaAdmision()
                 );
                 if (existe) {
                 return Response.status(Response.Status.CONFLICT)
@@ -128,7 +128,7 @@ public class InscripcionesPruebaResource extends AbstractResource<InscripcionesP
                 inscripcionesPruebaDAO.crear(entity);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()
-                                .path(String.valueOf(entity.getId()))
+                                .path(String.valueOf(entity.getIdInscripcionPrueba()))
                                 .build())
                         .build();
             } catch (Exception ex) {
@@ -160,7 +160,7 @@ public class InscripcionesPruebaResource extends AbstractResource<InscripcionesP
                     if (existing.getIdAspirante() != null && existing.getIdPrueba() != null
                             && inscripcionesPruebaDAO.existsByAspiranteAndPruebaExcludingId(
                             existing.getIdAspirante().getId(),
-                            existing.getIdPrueba().getId(),
+                            existing.getIdPrueba().getIdPruebaAdmision(),
                             id)) {
                         return Response.status(Response.Status.CONFLICT)
                                 .header(CONFLICT_REASON, "duplicate inscription for aspirante and prueba")

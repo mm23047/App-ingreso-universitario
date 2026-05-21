@@ -42,7 +42,7 @@ public class EtapasAdmisionResourceST extends AbstractResourceST{
         EtapasAdmision entidad = response.readEntity(EtapasAdmision.class);
         assertNotNull(entidad);
 
-        assertEquals(ID_ETAPA_1, entidad.getId());
+        assertEquals(ID_ETAPA_1, entidad.getIdEtapaAdmision());
         assertEquals("Etapa 1 - Matemáticas", entidad.getNombre());
     }
 
@@ -79,7 +79,7 @@ public class EtapasAdmisionResourceST extends AbstractResourceST{
         assertEquals(200, responseConsulta.getStatus());
 
         EtapasAdmision creado = responseConsulta.readEntity(EtapasAdmision.class);
-        assertEquals(idCreado, creado.getId());
+        assertEquals(idCreado, creado.getIdEtapaAdmision());
         assertEquals("Vuelta 3", creado.getNombre());
     }
 
@@ -87,7 +87,7 @@ public class EtapasAdmisionResourceST extends AbstractResourceST{
     void create_ConEntidadInvalida_ConIdIncluido_DebeRetornar422() {
         // Enviamos una entidad no valida
         EtapasAdmision invalida = new EtapasAdmision();
-        invalida.setId(UUID.randomUUID());
+        invalida.setIdEtapaAdmision(UUID.randomUUID());
         invalida.setNombre("Etapa Inválida");
 
         Response response = post("etapas_admision", invalida);

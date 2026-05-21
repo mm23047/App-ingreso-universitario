@@ -13,6 +13,7 @@ import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -21,14 +22,30 @@ import java.util.UUID;
 @NamedQueries({
         @NamedQuery(
                 name = "RespuestaExamen.findByExamenId",
-                query = "SELECT r FROM RespuestaExamen r WHERE r.idExamen.id = :idExamen"
+                query = "SELECT r FROM RespuestaExamen r WHERE r.idExamen.idExamenRealizado = :idExamen"
+        ),
+        @NamedQuery(
+                name = "RespuestaExamen.countByExamenAndPregunta",
+                query = "SELECT COUNT(r) FROM RespuestaExamen r WHERE r.idExamen.idExamenRealizado = :idExamen AND r.idPreguntaOpcion.idPregunta.idBancoPregunta = :idPregunta"
+        ),
+        // NUEVAS CONSULTAS: Para actualización de respuestas y validación final
+        @NamedQuery(
+                name = "RespuestaExamen.findByExamenAndPregunta",
+                query = "SELECT r FROM RespuestaExamen r WHERE r.idExamen.idExamenRealizado = :idExamen AND r.idPreguntaOpcion.idPregunta.idBancoPregunta = :idPregunta"
+        ),
+        @NamedQuery(
+                name = "RespuestaExamen.countRespuestasByExamen",
+                query = "SELECT COUNT(r) FROM RespuestaExamen r WHERE r.idExamen.idExamenRealizado = :idExamen"
         )
 })
-public class RespuestaExamen {
+public class RespuestaExamen implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id_respuesta_aspirante", nullable = false)
-    private UUID id;
+    private UUID idRespuestaExamen;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -40,12 +57,12 @@ public class RespuestaExamen {
     @JoinColumn(name = "id_pregunta_opcion", nullable = false)
     private PreguntaOpcion idPreguntaOpcion;
 
-    public UUID getId() {
-        return id;
+    public UUID getIdRespuestaExamen() {
+        return idRespuestaExamen;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public void setIdRespuestaExamen(UUID id) {
+        this.idRespuestaExamen = id;
     }
 
     public ExamenRealizado getIdExamen() {
@@ -73,11 +90,11 @@ public class RespuestaExamen {
             return false;
         }
         RespuestaExamen that = (RespuestaExamen) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(idRespuestaExamen, that.idRespuestaExamen);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(idRespuestaExamen);
     }
 }

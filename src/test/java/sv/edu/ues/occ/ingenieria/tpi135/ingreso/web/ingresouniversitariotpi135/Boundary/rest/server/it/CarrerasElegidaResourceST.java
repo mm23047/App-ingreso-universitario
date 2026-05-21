@@ -53,8 +53,8 @@ public class CarrerasElegidaResourceST extends AbstractResourceST{
         assertNotNull(entidad);
 
         // Validamos la llave primaria compuesta
-        assertEquals(ID_INSCRIPCION_1, entidad.getId().getIdInscripcion());
-        assertEquals(ID_CARRERA_ICS, entidad.getId().getIdCarrera());
+        assertEquals(ID_INSCRIPCION_1, entidad.getIdCarreraElegida().getIdInscripcion());
+        assertEquals(ID_CARRERA_ICS, entidad.getIdCarreraElegida().getIdCarrera());
 
         // La prioridad de ICS para la inscripción 1 es 1
         assertEquals((short) 1, entidad.getPrioridad());
@@ -169,11 +169,11 @@ public class CarrerasElegidaResourceST extends AbstractResourceST{
         CarrerasElegidaId pk = new CarrerasElegidaId();
         pk.setIdInscripcion(idInscripcion);
         pk.setIdCarrera(idCarrera);
-        entidad.setId(pk);
+        entidad.setIdCarreraElegida(pk);
 
         // Inicializamos los objetos relacionales asignándoles su ID respectivo
         InscripcionesPrueba inscripcion = new InscripcionesPrueba();
-        inscripcion.setId(idInscripcion);
+        inscripcion.setIdInscripcionPrueba(idInscripcion);
         entidad.setIdInscripcion(inscripcion);
 
         CatalogoCarrera carrera = new CatalogoCarrera();

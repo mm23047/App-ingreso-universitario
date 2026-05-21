@@ -53,9 +53,9 @@ public class CuposCarreraResourceST extends AbstractResourceST {
         assertNotNull(entidad);
 
         // Validamos la llave primaria compuesta
-        assertEquals(ID_PRUEBA_1, entidad.getId().getIdPrueba());
-        assertEquals(ID_CARRERA_ICS, entidad.getId().getIdCarrera());
-        assertEquals(ID_ETAPA_3_FINAL, entidad.getId().getIdEtapa());
+        assertEquals(ID_PRUEBA_1, entidad.getIdCupoCarrera().getIdPrueba());
+        assertEquals(ID_CARRERA_ICS, entidad.getIdCupoCarrera().getIdCarrera());
+        assertEquals(ID_ETAPA_3_FINAL, entidad.getIdCupoCarrera().getIdEtapa());
 
         // ICS tiene 50 cupos
         assertEquals(50, entidad.getCupos());
@@ -173,7 +173,7 @@ public class CuposCarreraResourceST extends AbstractResourceST {
         pk.setIdPrueba(idPrueba);
         pk.setIdCarrera(idCarrera);
         pk.setIdEtapa(idEtapa);
-        entidad.setId(pk);
+        entidad.setIdCupoCarrera(pk);
 
         // Usamos referencias completas para no contaminar el cache JPA con entidades parciales.
         entidad.setIdPrueba(construirReferenciaPrueba(idPrueba));
@@ -188,7 +188,7 @@ public class CuposCarreraResourceST extends AbstractResourceST {
 
     private PruebasAdmision construirReferenciaPrueba(UUID idPrueba) {
         PruebasAdmision prueba = new PruebasAdmision();
-        prueba.setId(idPrueba);
+        prueba.setIdPruebaAdmision(idPrueba);
 
         if (ID_PRUEBA_1.equals(idPrueba)) {
             prueba.setNombrePrueba("Prueba de Admisión 2026 - Ciclo 01");
@@ -204,10 +204,10 @@ public class CuposCarreraResourceST extends AbstractResourceST {
         carrera.setIdCarrera(idCarrera);
 
         switch (idCarrera) {
-            case "ICS" -> carrera.setNombre("Ingeniería en Ciencias de la Computación");
-            case "ISI" -> carrera.setNombre("Ingeniería de Sistemas Informáticos");
-            case "ICC" -> carrera.setNombre("Ingeniería en Computación");
-            case "MAT" -> carrera.setNombre("Licenciatura en Matemáticas");
+            case "ICS" -> carrera.setNombreCatalogoCarrera("Ingeniería en Ciencias de la Computación");
+            case "ISI" -> carrera.setNombreCatalogoCarrera("Ingeniería de Sistemas Informáticos");
+            case "ICC" -> carrera.setNombreCatalogoCarrera("Ingeniería en Computación");
+            case "MAT" -> carrera.setNombreCatalogoCarrera("Licenciatura en Matemáticas");
             default -> {
                 // Para IDs inventados en pruebas negativas no se requiere metadata adicional.
             }
@@ -218,7 +218,7 @@ public class CuposCarreraResourceST extends AbstractResourceST {
 
     private EtapasAdmision construirReferenciaEtapa(UUID idEtapa) {
         EtapasAdmision etapa = new EtapasAdmision();
-        etapa.setId(idEtapa);
+        etapa.setIdEtapaAdmision(idEtapa);
 
         if (ID_ETAPA_1_MATEMATICAS.equals(idEtapa)) {
             etapa.setNombre("Etapa 1 - Matemáticas");

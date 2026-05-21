@@ -28,7 +28,7 @@ class TemaDAOTest {
         cut.em = entityManager;
 
         Tema tema = new Tema();
-        tema.setId(UUID.randomUUID());
+        tema.setIdTema(UUID.randomUUID());
         tema.setIdTemaPadre(tema);
 
         assertThrows(IllegalArgumentException.class, () -> cut.crear(tema));
@@ -42,11 +42,11 @@ class TemaDAOTest {
         cut.em = entityManager;
 
         Tema temaA = new Tema();
-        temaA.setId(UUID.randomUUID());
+        temaA.setIdTema(UUID.randomUUID());
         Tema temaB = new Tema();
-        temaB.setId(UUID.randomUUID());
+        temaB.setIdTema(UUID.randomUUID());
         Tema temaC = new Tema();
-        temaC.setId(UUID.randomUUID());
+        temaC.setIdTema(UUID.randomUUID());
 
         temaA.setIdTemaPadre(temaB);
         temaB.setIdTemaPadre(temaC);
@@ -63,10 +63,10 @@ class TemaDAOTest {
         cut.em = entityManager;
 
         AreasConocimiento area = new AreasConocimiento();
-        area.setId(UUID.randomUUID());
+        area.setIdAreaConocimiento(UUID.randomUUID());
 
         Tema padre = new Tema();
-        padre.setId(UUID.randomUUID());
+        padre.setIdTema(UUID.randomUUID());
         padre.setIdArea(area);
         padre.setNombreTema("Padre");
 

@@ -10,7 +10,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.ClavesExamanDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExamen;
 
 import java.util.UUID;
 
@@ -21,13 +21,13 @@ import java.util.UUID;
  * Acceso restringido a administradores: expone datos sensibles del examen.
  */
 @Path("claves_examen")
-public class ClavesExamanResource extends AbstractResource<ClavesExaman> {
+public class ClavesExamanResource extends AbstractResource<ClavesExamen> {
 
     @Inject
     ClavesExamanDAO clavesExamanDAO;
 
     @Override
-    protected IngresoDefaultDataAccess<ClavesExaman> getDAO() {
+    protected IngresoDefaultDataAccess<ClavesExamen> getDAO() {
         return clavesExamanDAO;
     }
 
@@ -37,7 +37,7 @@ public class ClavesExamanResource extends AbstractResource<ClavesExaman> {
     public Response findById(@PathParam("id") UUID id) {
         if (id != null) {
             try {
-                ClavesExaman resp = clavesExamanDAO.leer(id);
+                ClavesExamen resp = clavesExamanDAO.leer(id);
                 if (resp != null) {
                     return Response.ok(resp).build();
                 }
@@ -58,8 +58,8 @@ public class ClavesExamanResource extends AbstractResource<ClavesExaman> {
     @POST
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response create(ClavesExaman entity, @Context UriInfo uriInfo) {
-        if (entity != null && entity.getId() == null
+    public Response create(ClavesExamen entity, @Context UriInfo uriInfo) {
+        if (entity != null && entity.getIdClaveExaman() == null
                 && entity.getIdPrueba() != null
                 && entity.getNombreClave() != null
                 && !entity.getNombreClave().isBlank()) {
@@ -67,7 +67,7 @@ public class ClavesExamanResource extends AbstractResource<ClavesExaman> {
                 clavesExamanDAO.crear(entity);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()
-                                .path(String.valueOf(entity.getId()))
+                                .path(String.valueOf(entity.getIdClaveExaman()))
                                 .build())
                         .build();
             } catch (Exception ex) {
@@ -85,12 +85,12 @@ public class ClavesExamanResource extends AbstractResource<ClavesExaman> {
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response update(@PathParam("id") UUID id, ClavesExaman entity) {
+    public Response update(@PathParam("id") UUID id, ClavesExamen entity) {
         if (id != null && entity != null) {
             try {
-                ClavesExaman existing = clavesExamanDAO.leer(id);
+                ClavesExamen existing = clavesExamanDAO.leer(id);
                 if (existing != null) {
-                    entity.setId(id);
+                    entity.setIdClaveExaman(id);
                     clavesExamanDAO.actualizar(entity);
                     return Response.ok(entity).build();
                 }
@@ -114,7 +114,7 @@ public class ClavesExamanResource extends AbstractResource<ClavesExaman> {
     public Response delete(@PathParam("id") UUID id) {
         if (id != null) {
             try {
-                ClavesExaman existing = clavesExamanDAO.leer(id);
+                ClavesExamen existing = clavesExamanDAO.leer(id);
                 if (existing != null) {
                     clavesExamanDAO.eliminar(existing);
                     return Response.noContent().build();

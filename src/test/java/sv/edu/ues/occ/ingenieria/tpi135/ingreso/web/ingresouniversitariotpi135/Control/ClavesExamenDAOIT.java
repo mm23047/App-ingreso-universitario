@@ -1,7 +1,7 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control;
 
 import org.junit.jupiter.api.Test;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExamen;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ClavesExamanDAOIT extends AbstractBaseIT {
+public class ClavesExamenDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     private static final UUID ID_PRUEBA_1 = UUID.fromString("d1000000-0000-0000-0000-000000000001");
@@ -40,7 +40,7 @@ public class ClavesExamanDAOIT extends AbstractBaseIT {
             ClavesExamanDAO cut = new ClavesExamanDAO();
             cut.em = em;
 
-            List<ClavesExaman> resultado = cut.findRange(0, 10);
+            List<ClavesExamen> resultado = cut.findRange(0, 10);
 
             // BD recién iniciada con init.sql → 2 claves de examen
             assertNotNull(resultado);
@@ -64,7 +64,7 @@ public class ClavesExamanDAOIT extends AbstractBaseIT {
             PruebasAdmision prueba = em.find(PruebasAdmision.class, ID_PRUEBA_1);
             assertNotNull(prueba);
 
-            ClavesExaman nueva = new ClavesExaman();
+            ClavesExamen nueva = new ClavesExamen();
             nueva.setIdPrueba(prueba);
             nueva.setNombreClave("Clave C");
 
@@ -96,13 +96,13 @@ public class ClavesExamanDAOIT extends AbstractBaseIT {
             cut.em = em;
 
             // Obtener la primera clave del init.sql
-            ClavesExaman clave = cut.findRange(0, 1).get(0);
+            ClavesExamen clave = cut.findRange(0, 1).get(0);
             assertNotNull(clave);
 
             // Modificar dentro de la transacción
             clave.setNombreClave("Clave Actualizada");
 
-            ClavesExaman resultado = cut.actualizar(clave);
+            ClavesExamen resultado = cut.actualizar(clave);
 
             assertNotNull(resultado);
             assertEquals("Clave Actualizada", resultado.getNombreClave());
@@ -123,7 +123,7 @@ public class ClavesExamanDAOIT extends AbstractBaseIT {
             PruebasAdmision prueba = em.find(PruebasAdmision.class, ID_PRUEBA_1);
             assertNotNull(prueba);
 
-            ClavesExaman nueva = new ClavesExaman();
+            ClavesExamen nueva = new ClavesExamen();
             nueva.setIdPrueba(prueba);
             nueva.setNombreClave("Clave para eliminar");
 

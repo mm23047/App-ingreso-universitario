@@ -28,7 +28,7 @@ public class AreasConocimientoResourceST extends AbstractResourceST{
         assertTrue(arreglo.length == 3);
         // Ver por consola lo que nos han enviado...
         if (arreglo.length > 0) {
-            System.out.println("El ID del primer registro es: " + arreglo[0].getId());
+            System.out.println("El ID del primer registro es: " + arreglo[0].getIdAreaConocimiento());
             System.out.println("El nombre del primer registro es: " + arreglo[0].getNombreArea());
         }
 
@@ -46,7 +46,7 @@ public class AreasConocimientoResourceST extends AbstractResourceST{
 
         AreasConocimiento entidad = response.readEntity(AreasConocimiento.class);
         assertNotNull(entidad);
-        assertEquals(ID_AREA_1, entidad.getId());
+        assertEquals(ID_AREA_1, entidad.getIdAreaConocimiento());
         assertEquals("Matemáticas", entidad.getNombreArea());
         System.out.println("El Nombre del primer registro es: " + entidad.getNombreArea());
     }
@@ -80,7 +80,7 @@ public class AreasConocimientoResourceST extends AbstractResourceST{
         assertEquals(200, responseConsultando.getStatus());
 
         AreasConocimiento creadado = responseConsultando.readEntity(AreasConocimiento.class);
-        assertEquals(idCreado, creadado.getId());
+        assertEquals(idCreado, creadado.getIdAreaConocimiento());
         assertEquals("Humanidades", creadado.getNombreArea());
     }
 
@@ -88,7 +88,7 @@ public class AreasConocimientoResourceST extends AbstractResourceST{
     void create_ConEntidadInvalida_ConIdYaAsignado_DebeRetornar422(){
         AreasConocimiento areasConocimientoInvalida = new AreasConocimiento();
         // EL ID debe de ser NULL al momento de crear
-        areasConocimientoInvalida.setId(UUID.randomUUID());
+        areasConocimientoInvalida.setIdAreaConocimiento(UUID.randomUUID());
         areasConocimientoInvalida.setNombreArea("Área Inválida");
 
         Response response = post("areas_conocimiento", areasConocimientoInvalida);

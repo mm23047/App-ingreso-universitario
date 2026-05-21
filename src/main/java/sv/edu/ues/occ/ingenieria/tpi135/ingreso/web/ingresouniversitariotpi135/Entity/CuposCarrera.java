@@ -3,11 +3,27 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
+import java.io.Serializable;
+import java.util.Objects;
+
 @Entity
-@Table(name = "cupos_carrera", schema = "public")
-public class CuposCarrera {
+@NamedQueries({
+        @NamedQuery(
+                name = "CuposCarrera.findByCarrera",
+                query = "SELECT c FROM CuposCarrera c WHERE c.idCarrera.idCarrera = :idCarrera"
+        ),
+        // NUEVO: Permite buscar la cuota exacta cruzando los tres criterios de selección
+        @NamedQuery(
+                name = "CuposCarrera.findUniqueCupo",
+                query = "SELECT c.cupos FROM CuposCarrera c WHERE c.idPrueba.idPruebaAdmision = :idPrueba AND c.idCarrera.idCarrera = :idCarrera AND c.idEtapa.idEtapaAdmision = :idEtapa"
+        )
+})
+public class CuposCarrera implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @EmbeddedId
-    private CuposCarreraId id;
+    private CuposCarreraId idCupoCarrera;
 
     @MapsId("idPrueba")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -28,12 +44,12 @@ public class CuposCarrera {
     @Column(name = "cupos", nullable = false)
     private Integer cupos;
 
-    public CuposCarreraId getId() {
-        return id;
+    public CuposCarreraId getIdCupoCarrera() {
+        return idCupoCarrera;
     }
 
-    public void setId(CuposCarreraId id) {
-        this.id = id;
+    public void setIdCupoCarrera(CuposCarreraId id) {
+        this.idCupoCarrera = id;
     }
 
     public PruebasAdmision getIdPrueba() {
@@ -66,6 +82,37 @@ public class CuposCarrera {
 
     public void setCupos(Integer cupos) {
         this.cupos = cupos;
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void sincronizarIdPersistible() {
+        sincronizarId();
+    }
+
+    // CORRECCIÓN: Garantiza que la llave compuesta interna esté en perfecta sincronía con los objetos asignados
+    private void sincronizarId() {
+        if (this.idCupoCarrera == null && this.idPrueba != null && this.idCarrera != null && this.idEtapa != null) {
+            CuposCarreraId compuesto = new CuposCarreraId();
+            compuesto.setIdPrueba(this.idPrueba.getIdPruebaAdmision());
+            compuesto.setIdCarrera(this.idCarrera.getIdCarrera());
+            compuesto.setIdEtapa(this.idEtapa.getIdEtapaAdmision());
+            this.idCupoCarrera = compuesto;
+        }
+    }
+
+    // CORRECCIÓN: Implementación del contrato de igualdad delegando en el @EmbeddedId
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CuposCarrera that = (CuposCarrera) o;
+        return Objects.equals(idCupoCarrera, that.idCupoCarrera);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(idCupoCarrera);
     }
 
 }

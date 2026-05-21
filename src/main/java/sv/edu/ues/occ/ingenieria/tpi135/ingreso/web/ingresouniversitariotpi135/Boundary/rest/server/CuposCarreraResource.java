@@ -68,10 +68,10 @@ public class CuposCarreraResource extends AbstractResource<CuposCarrera> {
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
     public Response create(CuposCarrera entity, @Context UriInfo uriInfo) {
-        if (entity != null && entity.getId() != null
-                && entity.getId().getIdPrueba() != null
-                && entity.getId().getIdCarrera() != null
-                && entity.getId().getIdEtapa() != null
+        if (entity != null && entity.getIdCupoCarrera() != null
+                && entity.getIdCupoCarrera().getIdPrueba() != null
+                && entity.getIdCupoCarrera().getIdCarrera() != null
+                && entity.getIdCupoCarrera().getIdEtapa() != null
                 && entity.getIdPrueba() != null
                 && entity.getIdCarrera() != null
                 && entity.getIdEtapa() != null
@@ -80,9 +80,9 @@ public class CuposCarreraResource extends AbstractResource<CuposCarrera> {
                 cuposCarreraDAO.crear(entity);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()
-                                .path(String.valueOf(entity.getId().getIdPrueba()))
-                                .path(entity.getId().getIdCarrera())
-                                .path(String.valueOf(entity.getId().getIdEtapa()))
+                                .path(String.valueOf(entity.getIdCupoCarrera().getIdPrueba()))
+                                .path(entity.getIdCupoCarrera().getIdCarrera())
+                                .path(String.valueOf(entity.getIdCupoCarrera().getIdEtapa()))
                                 .build())
                         .build();
             } catch (Exception ex) {
@@ -112,7 +112,7 @@ public class CuposCarreraResource extends AbstractResource<CuposCarrera> {
                 pk.setIdEtapa(idEtapa);
                 CuposCarrera existing = cuposCarreraDAO.leer(pk);
                 if (existing != null) {
-                    entity.setId(pk);
+                    entity.setIdCupoCarrera(pk);
                     // Preserve existing managed relations to avoid side effects when
                     // request payload sends partial nested entities (only ids).
                     entity.setIdPrueba(existing.getIdPrueba());

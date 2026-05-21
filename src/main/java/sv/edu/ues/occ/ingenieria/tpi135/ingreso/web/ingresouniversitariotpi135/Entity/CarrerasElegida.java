@@ -3,15 +3,40 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
+import java.io.Serializable;
 import java.util.Objects;
+import java.util.UUID;
 
 @Entity
 @Table(name = "carrera_elegida", schema = "public", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"id_inscripcion", "prioridad"})
+        @UniqueConstraint(name = "uk_inscripcion_prioridad", columnNames = {"id_inscripcion", "prioridad"})
 })
-public class CarrerasElegida {
+@NamedQueries({
+        @NamedQuery(
+                name = "CarrerasElegida.countByInscripcionAndPrioridad",
+                query = "SELECT COUNT(c) FROM CarrerasElegida c WHERE c.idInscripcion.idInscripcionPrueba = :idInscripcion AND c.prioridad = :prioridad"
+        ),
+        @NamedQuery(
+                name = "CarrerasElegida.countByInscripcionAndPrioridadNotId",
+                query = "SELECT COUNT(c) FROM CarrerasElegida c WHERE c.idInscripcion.idInscripcionPrueba = :idInscripcion AND c.prioridad = :prioridad AND c.idCarrera.idCarrera <> :idCarrera"
+        ),
+        @NamedQuery(
+                name = "CarrerasElegida.findByInscripcionAndCarrera",
+                query = "SELECT c FROM CarrerasElegida c WHERE c.idInscripcion.idInscripcionPrueba = :idInscripcion AND c.idCarrera.idCarrera = :idCarrera"
+        ),
+        // NUEVO: Requerimiento de negocio para el algoritmo de asignación de cupos
+        @NamedQuery(
+                name = "CarrerasElegida.findByInscripcionOrderByPrioridad",
+                query = "SELECT c FROM CarrerasElegida c WHERE c.idInscripcion.idInscripcionPrueba = :idInscripcion ORDER BY c.prioridad ASC"
+        )
+})
+
+public class CarrerasElegida implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @EmbeddedId
-    private CarrerasElegidaId id;
+    private CarrerasElegidaId idCarreraElegida;
 
     @MapsId("idInscripcion")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -28,16 +53,16 @@ public class CarrerasElegida {
     @Column(name = "prioridad", nullable = false)
     private Short prioridad;
 
-    public CarrerasElegidaId getId() {
-        return id;
+    public CarrerasElegidaId getIdCarreraElegida() {
+        return idCarreraElegida;
     }
 
-    public void setId(CarrerasElegidaId id) {
-        this.id = id;
+    public void setIdCarreraElegida(CarrerasElegidaId id) {
+        this.idCarreraElegida = id;
         if (id != null) {
             if (this.idInscripcion == null) {
                 InscripcionesPrueba inscripcion = new InscripcionesPrueba();
-                inscripcion.setId(id.getIdInscripcion());
+                inscripcion.setIdInscripcionPrueba(id.getIdInscripcion());
                 this.idInscripcion = inscripcion;
             }
             if (this.idCarrera == null) {
@@ -81,29 +106,24 @@ public class CarrerasElegida {
     }
 
     private void sincronizarId() {
-        if (this.id == null && this.idInscripcion != null && this.idCarrera != null) {
+        if (this.idCarreraElegida == null && this.idInscripcion != null && this.idCarrera != null) {
             CarrerasElegidaId compuesto = new CarrerasElegidaId();
-            compuesto.setIdInscripcion(this.idInscripcion.getId());
+            compuesto.setIdInscripcion(this.idInscripcion.getIdInscripcionPrueba());
             compuesto.setIdCarrera(this.idCarrera.getIdCarrera());
-            this.id = compuesto;
+            this.idCarreraElegida = compuesto;
         }
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         CarrerasElegida that = (CarrerasElegida) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(idCarreraElegida, that.idCarreraElegida);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(idCarreraElegida);
     }
-
 }

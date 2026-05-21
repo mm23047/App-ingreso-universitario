@@ -4,19 +4,48 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Objects;
-
 import java.util.UUID;
 
 @Entity
 @Table(name = "turno_examen", schema = "public")
-public class TurnosExaman {
+@NamedQueries({
+        @NamedQuery(
+                name = "TurnosExamen.findByPrueba",
+                query = "SELECT t FROM TurnosExamen t WHERE t.idPrueba.idPruebaAdmision = :idPrueba ORDER BY t.fecha, t.horaInicio"
+        ),
+        @NamedQuery(
+                name = "TurnosExamen.findByFecha",
+                query = "SELECT t FROM TurnosExamen t WHERE t.fecha = :fecha ORDER BY t.horaInicio"
+        ),
+        // NUEVA CONSULTA: Detecta traslapes de tiempo matemáticamente
+        @NamedQuery(
+                name = "TurnosExamen.countTraslapes",
+                query = "SELECT COUNT(t) FROM TurnosExamen t WHERE t.idPrueba.idPruebaAdmision = :idPrueba AND t.fecha = :fecha AND (t.horaInicio < :horaFin AND t.horaFin > :horaInicio) AND (:idIgnorado IS NULL OR t.idTurnoExamen <> :idIgnorado)"
+        ),
+        @NamedQuery(
+                name = "TurnosExamen.findTurnoActivoAspirante",
+                query = "SELECT t FROM TurnosExamen t WHERE t.idTurnoExamen IN (" +
+                        "  SELECT a.disponibilidad.idTurno.idTurnoExamen " +
+                        "  FROM AsignacionAulaAspirante a " +
+                        "  WHERE a.idInscripcion.idAspirante.id = :idAspirante" +
+                        ") " +
+                        "AND t.fecha = :fechaActual " +
+                        "AND t.horaInicio <= :horaActual " +
+                        "AND t.horaFin >= :horaActual"
+        )
+})
+public class TurnosExamen implements Serializable { // CORRECCIÓN: Nombre y Serializable
+
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id_turno", nullable = false)
-    private UUID id;
+    private UUID idTurnoExamen;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -40,18 +69,21 @@ public class TurnosExaman {
     @Column(name = "hora_fin", nullable = false)
     private LocalTime horaFin;
 
+    public TurnosExamen() {
+    }
+
     @PrePersist
     @PreUpdate
     private void validarHorarioPersistible() {
         validarHorario();
     }
 
-    public UUID getId() {
-        return id;
+    public UUID getIdTurnoExamen() {
+        return idTurnoExamen;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public void setIdTurnoExamen(UUID id) {
+        this.idTurnoExamen = id;
     }
 
     public PruebasAdmision getIdPrueba() {
@@ -96,7 +128,7 @@ public class TurnosExaman {
 
     public void validarHorario() {
         if (horaInicio != null && horaFin != null && !horaInicio.isBefore(horaFin)) {
-            throw new IllegalArgumentException("horaInicio must be before horaFin");
+            throw new IllegalArgumentException("La hora de inicio debe ser estrictamente anterior a la hora de fin.");
         }
     }
 
@@ -108,13 +140,12 @@ public class TurnosExaman {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        TurnosExaman that = (TurnosExaman) o;
-        return Objects.equals(id, that.id);
+        TurnosExamen that = (TurnosExamen) o;
+        return Objects.equals(idTurnoExamen, that.idTurnoExamen);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(idTurnoExamen);
     }
-
 }

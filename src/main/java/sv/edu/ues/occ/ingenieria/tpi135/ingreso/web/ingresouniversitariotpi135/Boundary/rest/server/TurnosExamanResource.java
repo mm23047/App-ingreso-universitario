@@ -9,8 +9,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.TurnosExamanDAO;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExaman;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.TurnosExamenDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExamen;
 
 import java.util.UUID;
 
@@ -20,14 +20,14 @@ import java.util.UUID;
  * Expone operaciones CRUD completas bajo /resources/v1/turnos_examen
  */
 @Path("turnos_examen")
-public class TurnosExamanResource extends AbstractResource<TurnosExaman> {
+public class TurnosExamanResource extends AbstractResource<TurnosExamen> {
 
     @Inject
-    TurnosExamanDAO turnosExamanDAO;
+    TurnosExamenDAO turnosExamenDAO;
 
     @Override
-    protected IngresoDefaultDataAccess<TurnosExaman> getDAO() {
-        return turnosExamanDAO;
+    protected IngresoDefaultDataAccess<TurnosExamen> getDAO() {
+        return turnosExamenDAO;
     }
 
     @GET
@@ -36,7 +36,7 @@ public class TurnosExamanResource extends AbstractResource<TurnosExaman> {
     public Response findById(@PathParam("id") UUID id) {
         if (id != null) {
             try {
-                TurnosExaman resp = turnosExamanDAO.leer(id);
+                TurnosExamen resp = turnosExamenDAO.leer(id);
                 if (resp != null) {
                     return Response.ok(resp).build();
                 }
@@ -57,14 +57,14 @@ public class TurnosExamanResource extends AbstractResource<TurnosExaman> {
     @POST
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response create(TurnosExaman entity, @Context UriInfo uriInfo) {
-        if (entity != null && entity.getId() == null) {
+    public Response create(TurnosExamen entity, @Context UriInfo uriInfo) {
+        if (entity != null && entity.getIdTurnoExamen() == null) {
             try {
                 entity.validarHorario();
-                turnosExamanDAO.crear(entity);
+                turnosExamenDAO.crear(entity);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()
-                                .path(String.valueOf(entity.getId()))
+                                .path(String.valueOf(entity.getIdTurnoExamen()))
                                 .build())
                         .build();
             } catch (IllegalArgumentException ex) {
@@ -86,14 +86,14 @@ public class TurnosExamanResource extends AbstractResource<TurnosExaman> {
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response update(@PathParam("id") UUID id, TurnosExaman entity) {
+    public Response update(@PathParam("id") UUID id, TurnosExamen entity) {
         if (id != null && entity != null) {
             try {
                 entity.validarHorario();
-                TurnosExaman existing = turnosExamanDAO.leer(id);
+                TurnosExamen existing = turnosExamenDAO.leer(id);
                 if (existing != null) {
-                    entity.setId(id);
-                    turnosExamanDAO.actualizar(entity);
+                    entity.setIdTurnoExamen(id);
+                    turnosExamenDAO.actualizar(entity);
                     return Response.ok(entity).build();
                 }
                 return Response.status(Response.Status.NOT_FOUND)
@@ -119,9 +119,9 @@ public class TurnosExamanResource extends AbstractResource<TurnosExaman> {
     public Response delete(@PathParam("id") UUID id) {
         if (id != null) {
             try {
-                TurnosExaman resp = turnosExamanDAO.leer(id);
+                TurnosExamen resp = turnosExamenDAO.leer(id);
                 if (resp != null) {
-                    turnosExamanDAO.eliminar(resp);
+                    turnosExamenDAO.eliminar(resp);
                     return Response.noContent().build();
                 }
                 return Response.status(Response.Status.NOT_FOUND)

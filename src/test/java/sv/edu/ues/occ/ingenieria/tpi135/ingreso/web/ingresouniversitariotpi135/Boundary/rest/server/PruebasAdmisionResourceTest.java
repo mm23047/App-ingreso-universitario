@@ -42,7 +42,7 @@ class PruebasAdmisionResourceTest {
         resource.pruebasAdmisionDAO = pruebasAdmisionDAO;
 
         entidad = new PruebasAdmision();
-        entidad.setId(testId);
+        entidad.setIdPruebaAdmision(testId);
         entidad.setNombrePrueba("Prueba 2026");
         entidad.setAnio(2026);
         entidad.setActiva(true);
@@ -120,7 +120,7 @@ class PruebasAdmisionResourceTest {
 
         assertEquals(200, response.getStatus());
         PruebasAdmision resultado = (PruebasAdmision) response.getEntity();
-        assertEquals(testId, resultado.getId());
+        assertEquals(testId, resultado.getIdPruebaAdmision());
         assertEquals("Prueba 2026", resultado.getNombrePrueba());
         verify(pruebasAdmisionDAO).leer(testId);
     }

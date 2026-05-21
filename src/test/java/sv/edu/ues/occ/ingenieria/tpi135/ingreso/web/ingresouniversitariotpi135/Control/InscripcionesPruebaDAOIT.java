@@ -89,7 +89,7 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
 
             cut.crear(nueva);
 
-            assertNotNull(nueva.getId());
+            assertNotNull(nueva.getIdInscripcionPrueba());
             assertEquals(3, cut.count());
 
             return null;
@@ -118,7 +118,7 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
             InscripcionesPrueba resultado = cut.leer(idExistente);
 
             assertNotNull(resultado);
-            assertEquals(idExistente, resultado.getId());
+            assertEquals(idExistente, resultado.getIdInscripcionPrueba());
             assertEquals("INSCRITO", resultado.getEstado());
 
             return null;

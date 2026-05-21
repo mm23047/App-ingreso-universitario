@@ -17,6 +17,8 @@ import java.util.UUID;
 @LocalBean
 public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado> implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
 
@@ -29,29 +31,50 @@ public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado
         return em;
     }
 
+    @Override
+    public void crear(ExamenRealizado entity) {
+        validarConsistenciaEntidad(entity);
+        super.crear(entity);
+    }
+
+    @Override
+    public ExamenRealizado actualizar(ExamenRealizado entity) {
+        validarConsistenciaEntidad(entity);
+        return super.actualizar(entity);
+    }
+
+    private void validarConsistenciaEntidad(ExamenRealizado entity) {
+        if (entity == null) {
+            throw new IllegalArgumentException("La entidad ExamenRealizado no puede ser nula.");
+        }
+        if (entity.getPuntajeFinal() != null && entity.getPuntajeFinal().compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El puntaje final calculado no puede poseer valores negativos.");
+        }
+    }
+
     public List<ExamenRealizado> findByAspiranteId(UUID aspiranteId) {
         if (aspiranteId == null) {
-            throw new IllegalArgumentException("aspiranteId must not be null");
+            throw new IllegalArgumentException("El ID del aspirante no puede ser nulo.");
         }
         try {
             return em.createNamedQuery("ExamenRealizado.findByAspiranteId", ExamenRealizado.class)
                     .setParameter("aspiranteId", aspiranteId)
                     .getResultList();
         } catch (Exception e) {
-            throw new IllegalStateException("Cannot access db", e);
+            throw new IllegalStateException("Error al consultar los exámenes del aspirante.", e);
         }
     }
 
     public List<ExamenRealizado> findByPruebaId(UUID pruebaId) {
         if (pruebaId == null) {
-            throw new IllegalArgumentException("pruebaId must not be null");
+            throw new IllegalArgumentException("El ID de la prueba no puede ser nulo.");
         }
         try {
             return em.createNamedQuery("ExamenRealizado.findByPruebaId", ExamenRealizado.class)
                     .setParameter("pruebaId", pruebaId)
                     .getResultList();
         } catch (Exception e) {
-            throw new IllegalStateException("Cannot access db", e);
+            throw new IllegalStateException("Error al recuperar los exámenes por ID de prueba.", e);
         }
     }
 
@@ -65,26 +88,16 @@ public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado
                 return null;
             }
 
-            UUID claveId = examen.getIdClave().getId();
+            // CORRECCIÓN: Extracción correcta del ID de la clave
+            UUID claveId = examen.getIdClave().getIdClaveExaman();
 
-            Long totalPreguntasClave = em.createQuery(
-                            "SELECT COUNT(DISTINCT p.id.idPregunta) "
-                                    + "FROM PreguntasPorClave p "
-                                    + "WHERE p.id.idClave = :idClave",
-                            Long.class)
+            // 1. Llamada al NamedQuery para el total de preguntas
+            Long totalPreguntasClave = em.createNamedQuery("ExamenRealizado.countPreguntasByClave", Long.class)
                     .setParameter("idClave", claveId)
                     .getSingleResult();
 
-            Long preguntasCorrectas = em.createQuery(
-                            "SELECT COUNT(DISTINCT r.idPreguntaOpcion.idPregunta.id) "
-                                    + "FROM RespuestaExamen r "
-                                    + "JOIN r.idPreguntaOpcion o "
-                                    + "WHERE r.idExamen.id = :idExamen "
-                                    + "AND o.esCorrecta = TRUE "
-                                    + "AND o.idPregunta.id IN ("
-                                    + "  SELECT p2.id.idPregunta FROM PreguntasPorClave p2 WHERE p2.id.idClave = :idClave"
-                                    + ")",
-                            Long.class)
+            // 2. Llamada al NamedQuery para las respuestas correctas
+            Long preguntasCorrectas = em.createNamedQuery("ExamenRealizado.countRespuestasCorrectas", Long.class)
                     .setParameter("idExamen", examenId)
                     .setParameter("idClave", claveId)
                     .getSingleResult();
@@ -116,4 +129,27 @@ public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado
             throw new IllegalStateException("Cannot access db", e);
         }
     }
+
+    /**
+     * MÉTODOS DE NEGOCIO (FASE 1 COMPLETADA)
+     * Retorna el listado de calificaciones en orden descendente para la asignación competitiva de plazas físicas.
+     */
+    public List<ExamenRealizado> findRankingByPruebaAndEtapa(UUID idPrueba, UUID idEtapa, int maxResults) {
+        if (idPrueba == null || idEtapa == null) {
+            throw new IllegalArgumentException("Los IDs de prueba y etapa son mandatorios para generar la clasificación.");
+        }
+        if (maxResults < 1) {
+            throw new IllegalArgumentException("El límite de registros del ranking debe ser como mínimo 1.");
+        }
+        try {
+            return em.createNamedQuery("ExamenRealizado.findRankingByPruebaAndEtapa", ExamenRealizado.class)
+                    .setParameter("idPrueba", idPrueba)
+                    .setParameter("idEtapa", idEtapa)
+                    .setMaxResults(maxResults)
+                    .getResultList();
+        } catch (Exception e) {
+            throw new IllegalStateException("Error al calcular el orden de mérito de los exámenes.", e);
+        }
+    }
+
 }

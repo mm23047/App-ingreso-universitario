@@ -45,7 +45,7 @@ class ProcesoAdmisionAspiranteResourceTest {
         resource.procesoAdmisionAspiranteDAO = procesoAdmisionAspiranteDAO;
 
         entidad = new ProcesoAdmisionAspirante();
-        entidad.setId(testId);
+        entidad.setIdProcesoAdmisionAspirante(testId);
         entidad.setEstado("ACTIVO");
     }
 
@@ -121,7 +121,7 @@ class ProcesoAdmisionAspiranteResourceTest {
 
         assertEquals(200, response.getStatus());
         ProcesoAdmisionAspirante resultado = (ProcesoAdmisionAspirante) response.getEntity();
-        assertEquals(testId, resultado.getId());
+        assertEquals(testId, resultado.getIdProcesoAdmisionAspirante());
         verify(procesoAdmisionAspiranteDAO).leer(testId);
     }
 
@@ -340,7 +340,7 @@ class ProcesoAdmisionAspiranteResourceTest {
     @Test
     void asignarCarrera_ConIdExistente_DebeRetornar200ConResultado() {
         ProcesoAdmisionAspirante esperado = new ProcesoAdmisionAspirante();
-        esperado.setId(testId);
+        esperado.setIdProcesoAdmisionAspirante(testId);
         esperado.setEstado("ADMITIDO");
         CatalogoCarrera carrera = new CatalogoCarrera();
         carrera.setIdCarrera("ISI");
@@ -353,7 +353,7 @@ class ProcesoAdmisionAspiranteResourceTest {
         assertEquals(200, response.getStatus());
         assertNotNull(response.getEntity());
         ProcesoAdmisionAspirante actual = (ProcesoAdmisionAspirante) response.getEntity();
-        assertEquals(testId, actual.getId());
+        assertEquals(testId, actual.getIdProcesoAdmisionAspirante());
         assertEquals("ADMITIDO", actual.getEstado());
         assertNotNull(actual.getCarreraAsignada());
         assertEquals("ISI", actual.getCarreraAsignada().getIdCarrera());

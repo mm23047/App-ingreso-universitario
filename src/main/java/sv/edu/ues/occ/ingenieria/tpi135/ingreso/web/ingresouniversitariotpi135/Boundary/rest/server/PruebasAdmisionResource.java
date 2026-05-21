@@ -59,14 +59,14 @@ public class PruebasAdmisionResource extends AbstractResource<PruebasAdmision> {
     @Consumes({MediaType.APPLICATION_JSON})
     public Response create(PruebasAdmision entity, @Context UriInfo uriInfo) {
         if (entity != null
-            && entity.getId() == null
+            && entity.getIdPruebaAdmision() == null
             && entity.getNombrePrueba() != null
             && entity.getAnio() != null) {
             try {
                 pruebasAdmisionDAO.crear(entity);
                 return Response.created(
                         uriInfo.getAbsolutePathBuilder()
-                                .path(String.valueOf(entity.getId()))
+                                .path(String.valueOf(entity.getIdPruebaAdmision()))
                                 .build())
                         .build();
             } catch (Exception ex) {
@@ -89,7 +89,7 @@ public class PruebasAdmisionResource extends AbstractResource<PruebasAdmision> {
             try {
                 PruebasAdmision existing = pruebasAdmisionDAO.leer(id);
                 if (existing != null) {
-                    entity.setId(id);
+                    entity.setIdPruebaAdmision(id);
                     pruebasAdmisionDAO.actualizar(entity);
                     return Response.ok(entity).build();
                 }

@@ -73,7 +73,7 @@ public class CatalogoCarreraDAOIT extends AbstractBaseIT {
 
             //EL ID se debe de generar manualmente para poder identificar de mejor manera la carrera
             nuevaCarrera.setIdCarrera("INGSO-98");
-            nuevaCarrera.setNombre("Ingenieria en Sistemas Informaticos") ;
+            nuevaCarrera.setNombreCatalogoCarrera("Ingenieria en Sistemas Informaticos") ;
 
             //Creamos sin abrir o cerrar transacciones
             cut.crear(nuevaCarrera);
@@ -117,7 +117,7 @@ public class CatalogoCarreraDAOIT extends AbstractBaseIT {
 
             assertNotNull(resultado, "El ID del catalogo no puede ser nulo porque ya debe de existir");
             assertEquals(CarrerExistente.getIdCarrera(),resultado.getIdCarrera() );
-            assertEquals(CarrerExistente.getNombre(), resultado.getNombre() );
+            assertEquals(CarrerExistente.getNombreCatalogoCarrera(), resultado.getNombreCatalogoCarrera() );
 
             return null;
         });
@@ -140,13 +140,13 @@ public class CatalogoCarreraDAOIT extends AbstractBaseIT {
             assertNotNull(catalogoCarrera);
 
             //Cambiamos el nombre
-            catalogoCarrera.setNombre("Ingenieria NOMBRE Modificada - 2026");
+            catalogoCarrera.setNombreCatalogoCarrera("Ingenieria NOMBRE Modificada - 2026");
 
             //Guardamos cambios
             CatalogoCarrera resultado=cut.actualizar(catalogoCarrera);
 
             //Verificamos cambios
-            assertEquals("Ingenieria NOMBRE Modificada - 2026", resultado.getNombre());
+            assertEquals("Ingenieria NOMBRE Modificada - 2026", resultado.getNombreCatalogoCarrera());
 
             return null;
         });
@@ -167,7 +167,7 @@ public class CatalogoCarreraDAOIT extends AbstractBaseIT {
             //Creamos un dato TEMPORAL
             CatalogoCarrera carreraTemporal = new  CatalogoCarrera();
             carreraTemporal.setIdCarrera("INGSO-98");
-            carreraTemporal.setNombre("Ingenieria en Sistemas Informaticos");
+            carreraTemporal.setNombreCatalogoCarrera("Ingenieria en Sistemas Informaticos");
             cut.crear(carreraTemporal);
 
             //Deben de existir 5 carreras

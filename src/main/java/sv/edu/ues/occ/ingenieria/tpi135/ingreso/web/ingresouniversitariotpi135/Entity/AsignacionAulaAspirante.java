@@ -1,30 +1,36 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinColumns;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-
-import java.util.Objects;
+import java.io.Serializable;
 import java.util.UUID;
 
 @Entity
 @Table(name = "asignacion_aula_aspirante", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"id_inscripcion", "id_turno"})
+        @UniqueConstraint(name = "uk_inscripcion_turno", columnNames = {"id_inscripcion", "id_turno"})
 })
-public class AsignacionAulaAspirante {
+@NamedQueries({
+        @NamedQuery(
+                name = "AsignacionAulaAspirante.countByAulaAndTurno",
+                query = "SELECT COUNT(a) FROM AsignacionAulaAspirante a WHERE a.disponibilidad.idAula.idAula = :idAula AND a.disponibilidad.idTurno.idTurnoExamen = :idTurno"
+        ),
+        @NamedQuery(
+                name = "AsignacionAulaAspirante.countByInscripcionAndTurno",
+                query = "SELECT COUNT(a) FROM AsignacionAulaAspirante a WHERE a.idInscripcion.idInscripcionPrueba = :idInscripcion AND a.disponibilidad.idTurno.idTurnoExamen = :idTurno"
+        ),
+        @NamedQuery(
+                name = "AsignacionAulaAspirante.findByInscripcion",
+                query = "SELECT a FROM AsignacionAulaAspirante a WHERE a.idInscripcion.idInscripcionPrueba = :idInscripcion"
+        )
+})
+public class AsignacionAulaAspirante implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id_asignacion", nullable = false)
-    private UUID id;
+    private UUID idAsignacionAulaAspirante;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -39,12 +45,12 @@ public class AsignacionAulaAspirante {
     })
     private DisponibilidadAulaTurno disponibilidad;
 
-    public UUID getId() {
-        return id;
+    public UUID getIdAsignacionAulaAspirante() {
+        return idAsignacionAulaAspirante;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public void setIdAsignacionAulaAspirante(UUID id) {
+        this.idAsignacionAulaAspirante = id;
     }
 
     public InscripcionesPrueba getIdInscripcion() {
@@ -63,30 +69,28 @@ public class AsignacionAulaAspirante {
         this.disponibilidad = disponibilidad;
     }
 
-    @jakarta.persistence.Transient
+    @Transient
     public Aula getIdAula() {
         return disponibilidad != null ? disponibilidad.getIdAula() : null;
     }
 
-    @jakarta.persistence.Transient
-    public TurnosExaman getIdTurno() {
+    @Transient
+    public TurnosExamen getIdTurno() {
         return disponibilidad != null ? disponibilidad.getIdTurno() : null;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        AsignacionAulaAspirante that = (AsignacionAulaAspirante) o;
-        return Objects.equals(id, that.id);
+        if (this == o) return true;
+        if (!(o instanceof AsignacionAulaAspirante)) return false;
+        AsignacionAulaAspirante other = (AsignacionAulaAspirante) o;
+        // Si el ID existe, comparamos por ID; de lo contrario, evaluamos por estado de persistencia
+        return idAsignacionAulaAspirante != null && idAsignacionAulaAspirante.equals(other.getIdAsignacionAulaAspirante());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        // Un hash constante para entidades administradas por JPA garantiza consistencia en ciclos de vida transaccionales
+        return getClass().hashCode();
     }
 }

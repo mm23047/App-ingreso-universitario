@@ -114,14 +114,14 @@ public class RespuestaExamenResource extends AbstractResource<RespuestaExamen> {
     @Consumes({MediaType.APPLICATION_JSON})
     public Response create(RespuestaExamen entity, @Context UriInfo uriInfo) {
         if (entity != null
-                && entity.getId() == null
+                && entity.getIdRespuestaExamen() == null
                 && entity.getIdExamen() != null
-                && entity.getIdExamen().getId() != null
+                && entity.getIdExamen().getIdExamenRealizado() != null
                 && entity.getIdPreguntaOpcion() != null
-                && entity.getIdPreguntaOpcion().getId() != null) {
+                && entity.getIdPreguntaOpcion().getIdPreguntaOpcion() != null) {
             try {
-                UUID examenId = entity.getIdExamen().getId();
-                UUID opcionId = entity.getIdPreguntaOpcion().getId();
+                UUID examenId = entity.getIdExamen().getIdExamenRealizado();
+                UUID opcionId = entity.getIdPreguntaOpcion().getIdPreguntaOpcion();
 
                 ExamenRealizado examen = examenRealizadoDAO.leer(examenId);
                 if (examen == null) {
@@ -137,8 +137,8 @@ public class RespuestaExamenResource extends AbstractResource<RespuestaExamen> {
                             .build();
                 }
 
-                UUID preguntaId = opcion.getIdPregunta().getId();
-                if (!preguntasPorClaveDAO.existsByClaveAndPregunta(examen.getIdClave().getId(), preguntaId)) {
+                UUID preguntaId = opcion.getIdPregunta().getIdBancoPregunta();
+                if (!preguntasPorClaveDAO.existsByClaveAndPregunta(examen.getIdClave().getIdClaveExaman(), preguntaId)) {
                     return Response.status(422)
                             .header(MISSING_PARAMETER, "pregunta does not belong to examen.clave")
                             .build();
@@ -155,7 +155,7 @@ public class RespuestaExamenResource extends AbstractResource<RespuestaExamen> {
                 respuestaExamenDAO.crear(entity);
                 return Response.created(
                                 uriInfo.getAbsolutePathBuilder()
-                                        .path(String.valueOf(entity.getId()))
+                                        .path(String.valueOf(entity.getIdRespuestaExamen()))
                                         .build())
                         .build();
             } catch (Exception ex) {

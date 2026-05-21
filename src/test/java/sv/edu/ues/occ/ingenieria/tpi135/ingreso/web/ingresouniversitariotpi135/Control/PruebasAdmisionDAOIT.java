@@ -67,7 +67,7 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
 
             // Verificamos que se sumó una prueba en esta transacción
             assertEquals(3, cut.count());
-            assertNotNull(nuevo.getId());
+            assertNotNull(nuevo.getIdPruebaAdmision());
             //Para verificar por consola
             System.out.println("NUmeor de registros actaules: "+cut.count());
             return null;
@@ -94,10 +94,10 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
             PruebasAdmision pruebaExistente = cut.findRange(0, 1).get(0);
 
             //Probar método leer
-            PruebasAdmision resultado = cut.leer(pruebaExistente.getId());
+            PruebasAdmision resultado = cut.leer(pruebaExistente.getIdPruebaAdmision());
 
             assertNotNull(resultado, "El ID de la prueba no puede ser nulo porque ya existe");
-            assertEquals(pruebaExistente.getId(), resultado.getId());
+            assertEquals(pruebaExistente.getIdPruebaAdmision(), resultado.getIdPruebaAdmision());
             assertEquals(pruebaExistente.getNombrePrueba(), resultado.getNombrePrueba());
 
             return null;
@@ -160,9 +160,9 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
 
             // Verificamos que bajó de nuevo a 2 y que el ID ya no existe
             assertEquals(2, cut.count());
-            assertNull(cut.leer(pruebaAEliminar.getId()), "La prueba debería haber sido eliminada y retornar null");
+            assertNull(cut.leer(pruebaAEliminar.getIdPruebaAdmision()), "La prueba debería haber sido eliminada y retornar null");
             //Verificamos en consola
-            System.out.println("Dato eliminado: "+ cut.leer(pruebaAEliminar.getId()));
+            System.out.println("Dato eliminado: "+ cut.leer(pruebaAEliminar.getIdPruebaAdmision()));
             return null;
         });
     }

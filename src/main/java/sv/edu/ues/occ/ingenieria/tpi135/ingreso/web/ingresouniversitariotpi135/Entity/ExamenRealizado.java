@@ -1,46 +1,46 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.Objects;
 import java.util.UUID;
 
 @Entity
 @Table(name = "examen_realizado", schema = "public", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"id_inscripcion", "id_etapa"})
+        @UniqueConstraint(name = "uk_inscripcion_etapa", columnNames = {"id_inscripcion", "id_etapa"})
 })
 @NamedQueries({
         @NamedQuery(
                 name = "ExamenRealizado.findByAspiranteId",
-                query = "SELECT e FROM ExamenRealizado e " +
-                        "JOIN e.idInscripcion i " +
-                        "WHERE i.idAspirante.id = :aspiranteId"
+                query = "SELECT e FROM ExamenRealizado e JOIN e.idInscripcion i WHERE i.idAspirante.id = :aspiranteId"
         ),
         @NamedQuery(
                 name = "ExamenRealizado.findByPruebaId",
-                query = "SELECT e FROM ExamenRealizado e " +
-                        "WHERE e.idClave.idPrueba.id = :pruebaId"
+                query = "SELECT e FROM ExamenRealizado e WHERE e.idClave.idPrueba.idPruebaAdmision = :pruebaId"
+        ),
+        @NamedQuery(
+                name = "ExamenRealizado.countPreguntasByClave",
+                query = "SELECT COUNT(DISTINCT p.idPreguntaPorClave.idPregunta) FROM PreguntasPorClave p WHERE p.idPreguntaPorClave.idClave = :idClave"
+        ),
+        @NamedQuery(
+                name = "ExamenRealizado.countRespuestasCorrectas",
+                query = "SELECT COUNT(DISTINCT r.idPreguntaOpcion.idPregunta.idBancoPregunta) FROM RespuestaExamen r JOIN r.idPreguntaOpcion o WHERE r.idExamen.idExamenRealizado = :idExamen AND o.esCorrecta = TRUE AND o.idPregunta.idBancoPregunta IN (SELECT p2.idPreguntaPorClave.idPregunta FROM PreguntasPorClave p2 WHERE p2.idPreguntaPorClave.idClave = :idClave)"
+        ),
+        @NamedQuery(
+                name = "ExamenRealizado.findRankingByPruebaAndEtapa",
+                query = "SELECT e FROM ExamenRealizado e WHERE e.idClave.idPrueba.idPruebaAdmision = :idPrueba AND e.idEtapa.idEtapaAdmision = :idEtapa AND e.puntajeFinal IS NOT NULL ORDER BY e.puntajeFinal DESC"
         )
 })
-public class ExamenRealizado {
+public class ExamenRealizado implements Serializable {
+
+    private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id_examen", nullable = false)
-    private UUID id;
+    private UUID idExamenRealizado;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -50,7 +50,7 @@ public class ExamenRealizado {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_clave", nullable = false)
-    private ClavesExaman idClave;
+    private ClavesExamen idClave;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -60,15 +60,16 @@ public class ExamenRealizado {
     @Column(name = "puntaje_final", precision = 5, scale = 2)
     private BigDecimal puntajeFinal;
 
-    @Column(name = "fecha_realizacion")
+    // INCONSISTENCIA DDL: Mapeado para forzar columna timestamptz en PostgreSQL
+    @Column(name = "fecha_realizacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaRealizacion;
 
-    public UUID getId() {
-        return id;
+    public UUID getIdExamenRealizado() {
+        return idExamenRealizado;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public void setIdExamenRealizado(UUID id) {
+        this.idExamenRealizado = id;
     }
 
     public InscripcionesPrueba getIdInscripcion() {
@@ -79,11 +80,11 @@ public class ExamenRealizado {
         this.idInscripcion = idInscripcion;
     }
 
-    public ClavesExaman getIdClave() {
+    public ClavesExamen getIdClave() {
         return idClave;
     }
 
-    public void setIdClave(ClavesExaman idClave) {
+    public void setIdClave(ClavesExamen idClave) {
         this.idClave = idClave;
     }
 
@@ -111,20 +112,23 @@ public class ExamenRealizado {
         this.fechaRealizacion = fechaRealizacion;
     }
 
+    @PrePersist
+    private void asegurarMetadatosFecha() {
+        if (this.fechaRealizacion == null) {
+            this.fechaRealizacion = OffsetDateTime.now();
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         ExamenRealizado that = (ExamenRealizado) o;
-        return Objects.equals(id, that.id);
+        return idExamenRealizado != null && idExamenRealizado.equals(that.idExamenRealizado);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return getClass().hashCode();
     }
 }
