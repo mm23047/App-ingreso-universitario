@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
 import java.io.Serializable;
-import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -15,16 +14,16 @@ import java.util.UUID;
 @NamedQueries({
         @NamedQuery(
                 name = "PreguntaOpcion.findByPregunta",
-                query = "SELECT p FROM PreguntaOpcion p WHERE p.idPregunta.idBancoPregunta = :idPregunta ORDER BY p.idPreguntaOpcion"
+                query = "SELECT p FROM PreguntaOpcion p WHERE p.bancoPregunta.idBancoPregunta = :idPregunta ORDER BY p.idPreguntaOpcion"
         ),
         @NamedQuery(
                 name = "PreguntaOpcion.countByPreguntaAndRespuesta",
-                query = "SELECT COUNT(p) FROM PreguntaOpcion p WHERE p.idPregunta.idBancoPregunta = :idPregunta AND p.idRespuestaGlobal.idBancoRespuesta = :idRespuestaGlobal"
+                query = "SELECT COUNT(p) FROM PreguntaOpcion p WHERE p.bancoPregunta.idBancoPregunta = :idPregunta AND p.idRespuestaGlobal.idBancoRespuesta = :idRespuestaGlobal"
         ),
         // NUEVO: Query optimizado para extraer la hoja de respuestas válidas para calificar
         @NamedQuery(
                 name = "PreguntaOpcion.findOpcionesCorrectasByPregunta",
-                query = "SELECT p FROM PreguntaOpcion p WHERE p.idPregunta.idBancoPregunta = :idPregunta AND p.esCorrecta = true"
+                query = "SELECT p FROM PreguntaOpcion p WHERE p.bancoPregunta.idBancoPregunta = :idPregunta AND p.esCorrecta = true"
         )
 })
 public class PreguntaOpcion implements Serializable {
@@ -39,7 +38,7 @@ public class PreguntaOpcion implements Serializable {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_pregunta", nullable = false)
-    private BancoPregunta idPregunta;
+    private BancoPregunta bancoPregunta;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -58,12 +57,12 @@ public class PreguntaOpcion implements Serializable {
         this.idPreguntaOpcion = id;
     }
 
-    public BancoPregunta getIdPregunta() {
-        return idPregunta;
+    public BancoPregunta getBancoPregunta() {
+        return bancoPregunta;
     }
 
-    public void setIdPregunta(BancoPregunta idPregunta) {
-        this.idPregunta = idPregunta;
+    public void setBancoPregunta(BancoPregunta idPregunta) {
+        this.bancoPregunta = idPregunta;
     }
 
     public BancoRespuesta getIdRespuestaGlobal() {

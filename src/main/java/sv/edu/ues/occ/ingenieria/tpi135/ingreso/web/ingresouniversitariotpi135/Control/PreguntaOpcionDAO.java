@@ -33,12 +33,12 @@ public class PreguntaOpcionDAO extends IngresoDefaultDataAccess<PreguntaOpcion> 
         validarConsistenciaOpcion(entity);
 
         // REGLA DE NEGOCIO: Evitar duplicar la misma respuesta en la misma pregunta
-        if (existsByPreguntaAndRespuesta(entity.getIdPregunta().getIdBancoPregunta(), entity.getIdRespuestaGlobal().getIdBancoRespuesta())) {
+        if (existsByPreguntaAndRespuesta(entity.getBancoPregunta().getIdBancoPregunta(), entity.getIdRespuestaGlobal().getIdBancoRespuesta())) {
             throw new IllegalArgumentException("Esta respuesta ya está vinculada a la pregunta actual.");
         }
 
         // REGLA DE NEGOCIO: Validar si ya existe una respuesta correcta para esta pregunta
-        if (entity.getEsCorrecta() && !findOpcionesCorrectasByPregunta(entity.getIdPregunta().getIdBancoPregunta()).isEmpty()) {
+        if (entity.getEsCorrecta() && !findOpcionesCorrectasByPregunta(entity.getBancoPregunta().getIdBancoPregunta()).isEmpty()) {
             throw new IllegalArgumentException("Regla de negocio rota: La pregunta elegida ya posee una opción marcada como correcta.");
         }
 
@@ -50,7 +50,7 @@ public class PreguntaOpcionDAO extends IngresoDefaultDataAccess<PreguntaOpcion> 
         validarConsistenciaOpcion(entity);
 
         if (entity.getEsCorrecta()) {
-            List<PreguntaOpcion> correctas = findOpcionesCorrectasByPregunta(entity.getIdPregunta().getIdBancoPregunta());
+            List<PreguntaOpcion> correctas = findOpcionesCorrectasByPregunta(entity.getBancoPregunta().getIdBancoPregunta());
             // Si hay una correcta y no es la misma entidad que estamos editando, lanzamos error
             if (!correctas.isEmpty() && !correctas.get(0).getIdPreguntaOpcion().equals(entity.getIdPreguntaOpcion())) {
                 throw new IllegalArgumentException("No se puede actualizar; ya existe otra opción correcta asignada a esta pregunta.");
@@ -65,7 +65,7 @@ public class PreguntaOpcionDAO extends IngresoDefaultDataAccess<PreguntaOpcion> 
         if (entity == null) {
             throw new IllegalArgumentException("La entidad PreguntaOpcion no puede ser nula.");
         }
-        if (entity.getIdPregunta() == null || entity.getIdPregunta().getIdBancoPregunta() == null) {
+        if (entity.getBancoPregunta() == null || entity.getBancoPregunta().getIdBancoPregunta() == null) {
             throw new IllegalArgumentException("La opción debe estar obligatoriamente vinculada a una pregunta del banco.");
         }
         if (entity.getIdRespuestaGlobal() == null || entity.getIdRespuestaGlobal().getIdBancoRespuesta() == null) {

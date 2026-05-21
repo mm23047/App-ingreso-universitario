@@ -51,7 +51,7 @@ class RespuestaExamenResourceTest {
         opcion = new PreguntaOpcion();
         BancoPregunta pregunta = new BancoPregunta();
         pregunta.setIdBancoPregunta(UUID.randomUUID());
-        opcion.setIdPregunta(pregunta);
+        opcion.setBancoPregunta(pregunta);
     }
 
     @Test
@@ -67,7 +67,7 @@ class RespuestaExamenResourceTest {
 
         when(examenRealizadoDAO.leer(examenId)).thenReturn(examen);
         when(preguntaOpcionDAO.leer(opcionId)).thenReturn(opcion);
-        when(preguntasPorClaveDAO.existsByClaveAndPregunta(examen.getClaveExamen().getIdClaveExaman(), opcion.getIdPregunta().getIdBancoPregunta())).thenReturn(false);
+        when(preguntasPorClaveDAO.existsByClaveAndPregunta(examen.getClaveExamen().getIdClaveExaman(), opcion.getBancoPregunta().getIdBancoPregunta())).thenReturn(false);
 
         Response response = resource.create(payload, uriInfo);
 
@@ -88,8 +88,8 @@ class RespuestaExamenResourceTest {
 
         when(examenRealizadoDAO.leer(examenId)).thenReturn(examen);
         when(preguntaOpcionDAO.leer(opcionId)).thenReturn(opcion);
-        when(preguntasPorClaveDAO.existsByClaveAndPregunta(examen.getClaveExamen().getIdClaveExaman(), opcion.getIdPregunta().getIdBancoPregunta())).thenReturn(true);
-        when(respuestaExamenDAO.existsByExamenAndPregunta(examenId, opcion.getIdPregunta().getIdBancoPregunta())).thenReturn(true);
+        when(preguntasPorClaveDAO.existsByClaveAndPregunta(examen.getClaveExamen().getIdClaveExaman(), opcion.getBancoPregunta().getIdBancoPregunta())).thenReturn(true);
+        when(respuestaExamenDAO.existsByExamenAndPregunta(examenId, opcion.getBancoPregunta().getIdBancoPregunta())).thenReturn(true);
 
         Response response = resource.create(payload, uriInfo);
 
@@ -110,8 +110,8 @@ class RespuestaExamenResourceTest {
 
         when(examenRealizadoDAO.leer(examenId)).thenReturn(examen);
         when(preguntaOpcionDAO.leer(opcionId)).thenReturn(opcion);
-        when(preguntasPorClaveDAO.existsByClaveAndPregunta(examen.getClaveExamen().getIdClaveExaman(), opcion.getIdPregunta().getIdBancoPregunta())).thenReturn(true);
-        when(respuestaExamenDAO.existsByExamenAndPregunta(examenId, opcion.getIdPregunta().getIdBancoPregunta())).thenReturn(false);
+        when(preguntasPorClaveDAO.existsByClaveAndPregunta(examen.getClaveExamen().getIdClaveExaman(), opcion.getBancoPregunta().getIdBancoPregunta())).thenReturn(true);
+        when(respuestaExamenDAO.existsByExamenAndPregunta(examenId, opcion.getBancoPregunta().getIdBancoPregunta())).thenReturn(false);
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
         when(uriBuilder.build()).thenReturn(URI.create("http://localhost/respuesta_examen/1"));

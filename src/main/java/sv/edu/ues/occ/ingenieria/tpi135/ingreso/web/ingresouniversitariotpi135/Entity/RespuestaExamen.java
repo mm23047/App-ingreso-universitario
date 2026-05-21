@@ -26,12 +26,12 @@ import java.util.UUID;
         ),
         @NamedQuery(
                 name = "RespuestaExamen.countByExamenAndPregunta",
-                query = "SELECT COUNT(r) FROM RespuestaExamen r WHERE r.idExamen.idExamenRealizado = :idExamen AND r.idPreguntaOpcion.idPregunta.idBancoPregunta = :idPregunta"
+                query = "SELECT COUNT(r) FROM RespuestaExamen r WHERE r.idExamen.idExamenRealizado = :idExamen AND r.idPreguntaOpcion.bancoPregunta.idBancoPregunta = :idPregunta"
         ),
         // NUEVAS CONSULTAS: Para actualización de respuestas y validación final
         @NamedQuery(
                 name = "RespuestaExamen.findByExamenAndPregunta",
-                query = "SELECT r FROM RespuestaExamen r WHERE r.idExamen.idExamenRealizado = :idExamen AND r.idPreguntaOpcion.idPregunta.idBancoPregunta = :idPregunta"
+                query = "SELECT r FROM RespuestaExamen r WHERE r.idExamen.idExamenRealizado = :idExamen AND r.idPreguntaOpcion.bancoPregunta.idBancoPregunta = :idPregunta"
         ),
         @NamedQuery(
                 name = "RespuestaExamen.countRespuestasByExamen",

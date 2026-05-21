@@ -131,13 +131,13 @@ public class RespuestaExamenResource extends AbstractResource<RespuestaExamen> {
                 }
 
                 PreguntaOpcion opcion = preguntaOpcionDAO.leer(opcionId);
-                if (opcion == null || opcion.getIdPregunta() == null) {
+                if (opcion == null || opcion.getBancoPregunta() == null) {
                     return Response.status(Response.Status.NOT_FOUND)
                             .header(NOT_FOUND_ID, "PreguntaOpcion with id " + opcionId + " not found")
                             .build();
                 }
 
-                UUID preguntaId = opcion.getIdPregunta().getIdBancoPregunta();
+                UUID preguntaId = opcion.getBancoPregunta().getIdBancoPregunta();
                 if (!preguntasPorClaveDAO.existsByClaveAndPregunta(examen.getClaveExamen().getIdClaveExaman(), preguntaId)) {
                     return Response.status(422)
                             .header(MISSING_PARAMETER, "pregunta does not belong to examen.clave")

@@ -27,7 +27,7 @@ import java.util.UUID;
         ),
         @NamedQuery(
                 name = "ExamenRealizado.countRespuestasCorrectas",
-                query = "SELECT COUNT(DISTINCT r.idPreguntaOpcion.idPregunta.idBancoPregunta) FROM RespuestaExamen r JOIN r.idPreguntaOpcion o WHERE r.idExamen.idExamenRealizado = :idExamen AND o.esCorrecta = TRUE AND o.idPregunta.idBancoPregunta IN (SELECT p2.idPreguntaPorClave.idPregunta FROM PreguntasPorClave p2 WHERE p2.idPreguntaPorClave.idClave = :idClave)"
+                query = "SELECT COUNT(DISTINCT r.idPreguntaOpcion.bancoPregunta.idBancoPregunta) FROM RespuestaExamen r JOIN r.idPreguntaOpcion o WHERE r.idExamen.idExamenRealizado = :idExamen AND o.esCorrecta = TRUE AND o.bancoPregunta.idBancoPregunta IN (SELECT p2.idPreguntaPorClave.idPregunta FROM PreguntasPorClave p2 WHERE p2.idPreguntaPorClave.idClave = :idClave)"
         ),
         @NamedQuery(
                 name = "ExamenRealizado.findRankingByPruebaAndEtapa",
