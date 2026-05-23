@@ -13,22 +13,30 @@ import java.util.UUID;
 @Entity
 @Table(name = "turno_examen", schema = "public")
 @NamedQueries({
+        // 1. NUEVA CONSULTA: Para que el DAO pueda leer por ID con sus relaciones
+        @NamedQuery(
+                name = "TurnosExamen.findByIdConRelacion",
+                query = "SELECT t FROM TurnosExamen t JOIN FETCH t.pruebaAdmision WHERE t.idTurnoExamen = :id"
+        ),
+        // 2. MODIFICADA: Se agrega JOIN FETCH
         @NamedQuery(
                 name = "TurnosExamen.findByPrueba",
-                query = "SELECT t FROM TurnosExamen t WHERE t.pruebaAdmision.idPruebaAdmision = :idPrueba ORDER BY t.fecha, t.horaInicio"
+                query = "SELECT t FROM TurnosExamen t JOIN FETCH t.pruebaAdmision WHERE t.pruebaAdmision.idPruebaAdmision = :idPrueba ORDER BY t.fecha, t.horaInicio"
         ),
+        // 3. MODIFICADA: Se agrega JOIN FETCH
         @NamedQuery(
                 name = "TurnosExamen.findByFecha",
-                query = "SELECT t FROM TurnosExamen t WHERE t.fecha = :fecha ORDER BY t.horaInicio"
+                query = "SELECT t FROM TurnosExamen t JOIN FETCH t.pruebaAdmision WHERE t.fecha = :fecha ORDER BY t.horaInicio"
         ),
-        // NUEVA CONSULTA: Detecta traslapes de tiempo matemáticamente
+        // 4. INTACTA: Las consultas de tipo COUNT no llevan JOIN FETCH porque no devuelven entidades
         @NamedQuery(
                 name = "TurnosExamen.countTraslapes",
                 query = "SELECT COUNT(t) FROM TurnosExamen t WHERE t.pruebaAdmision.idPruebaAdmision = :idPrueba AND t.fecha = :fecha AND (t.horaInicio < :horaFin AND t.horaFin > :horaInicio) AND (:idIgnorado IS NULL OR t.idTurnoExamen <> :idIgnorado)"
         ),
+        // 5. MODIFICADA: Se agrega JOIN FETCH
         @NamedQuery(
                 name = "TurnosExamen.findTurnoActivoAspirante",
-                query = "SELECT t FROM TurnosExamen t WHERE t.idTurnoExamen IN (" +
+                query = "SELECT t FROM TurnosExamen t JOIN FETCH t.pruebaAdmision WHERE t.idTurnoExamen IN (" +
                         "  SELECT a.disponibilidad.turnoExamen.idTurnoExamen " +
                         "  FROM AsignacionAulaAspirante a " +
                         "  WHERE a.inscripcionPrueba.aspiranteDato.id = :idAspirante" +

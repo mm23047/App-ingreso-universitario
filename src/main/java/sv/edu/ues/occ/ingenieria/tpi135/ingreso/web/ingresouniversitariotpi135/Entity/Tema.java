@@ -1,21 +1,12 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.json.bind.annotation.JsonbTransient;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -24,22 +15,26 @@ import java.util.UUID;
         @UniqueConstraint(name = "tema_nombre_tema_key", columnNames = {"nombre_tema"})
 })
 @NamedQueries({
+        // NUEVA CONSULTA: Para el método leer() del DAO
+        @NamedQuery(
+                name = "Tema.findById",
+                query = "SELECT t FROM Tema t JOIN FETCH t.areaConocimiento LEFT JOIN FETCH t.idTemaPadre WHERE t.idTema = :idTema"
+        ),
         @NamedQuery(
                 name = "Tema.findByNombreTema",
-                query = "SELECT t FROM Tema t WHERE t.nombreTema = :nombreTema"
+                query = "SELECT t FROM Tema t JOIN FETCH t.areaConocimiento LEFT JOIN FETCH t.idTemaPadre WHERE t.nombreTema = :nombreTema"
         ),
-        // NUEVAS CONSULTAS DE NEGOCIO
         @NamedQuery(
                 name = "Tema.findByArea",
-                query = "SELECT t FROM Tema t WHERE t.areaConocimiento.idAreaConocimiento = :idArea ORDER BY t.nombreTema ASC"
+                query = "SELECT t FROM Tema t JOIN FETCH t.areaConocimiento LEFT JOIN FETCH t.idTemaPadre WHERE t.areaConocimiento.idAreaConocimiento = :idArea ORDER BY t.nombreTema ASC"
         ),
         @NamedQuery(
                 name = "Tema.findByTemaPadre",
-                query = "SELECT t FROM Tema t WHERE t.idTemaPadre.idTema = :idTemaPadre ORDER BY t.nombreTema ASC"
+                query = "SELECT t FROM Tema t JOIN FETCH t.areaConocimiento LEFT JOIN FETCH t.idTemaPadre WHERE t.idTemaPadre.idTema = :idTemaPadre ORDER BY t.nombreTema ASC"
         ),
         @NamedQuery(
                 name = "Tema.findRaicesByArea",
-                query = "SELECT t FROM Tema t WHERE t.areaConocimiento.idAreaConocimiento = :idArea AND t.idTemaPadre IS NULL ORDER BY t.nombreTema ASC"
+                query = "SELECT t FROM Tema t JOIN FETCH t.areaConocimiento LEFT JOIN FETCH t.idTemaPadre WHERE t.areaConocimiento.idAreaConocimiento = :idArea AND t.idTemaPadre IS NULL ORDER BY t.nombreTema ASC"
         )
 })
 public class Tema implements Serializable {
@@ -60,6 +55,7 @@ public class Tema implements Serializable {
     @Column(name = "nombre_tema", nullable = false, length = 100)
     private String nombreTema;
 
+    @JsonbTransient // ESTO EVITA EL BUCLE INFINITO EN EL JSON
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_tema_padre")
     private Tema idTemaPadre;
@@ -94,6 +90,17 @@ public class Tema implements Serializable {
 
     public void setIdTemaPadre(Tema idTemaPadre) {
         this.idTemaPadre = idTemaPadre;
+    }
+
+    @OneToMany(mappedBy = "idTemaPadre", fetch = FetchType.LAZY)
+    private List<Tema> subtemas;
+
+    public List<Tema> getSubtemas() {
+        return subtemas;
+    }
+
+    public void setSubtemas(List<Tema> subtemas) {
+        this.subtemas = subtemas;
     }
 
     @Override

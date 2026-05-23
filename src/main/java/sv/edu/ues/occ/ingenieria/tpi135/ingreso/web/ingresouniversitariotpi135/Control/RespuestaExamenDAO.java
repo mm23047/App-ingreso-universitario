@@ -42,6 +42,26 @@ public class RespuestaExamenDAO extends IngresoDefaultDataAccess<RespuestaExamen
         }
     }
 
+    /**
+     * Se sobrescribe el método leer del padre para incluir el JOIN FETCH
+     * y prevenir el LazyInitializationException al serializar en REST.
+     */
+    @Override
+    public RespuestaExamen leer(Object id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El id no puede ser nulo");
+        }
+        try {
+            return em.createNamedQuery("RespuestaExamen.findById", RespuestaExamen.class)
+                    .setParameter("idRespuestaExamen", id)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null; // Comportamiento esperado de em.find() si no existe
+        } catch (Exception ex) {
+            throw new IllegalStateException("Error al leer registro de RespuestaExamen con relaciones", ex);
+        }
+    }
+
     public boolean existsByExamenAndPregunta(UUID examenId, UUID preguntaId) {
         if (examenId == null || preguntaId == null) {
             throw new IllegalArgumentException("examenId and preguntaId must not be null");

@@ -20,13 +20,21 @@ import java.util.UUID;
 @Entity
 @Table(name = "respuesta_examen", schema = "public")
 @NamedQueries({
+// NUEVA CONSULTA: Para buscar por ID evitando LazyInitializationException
+        @NamedQuery(
+                name = "RespuestaExamen.findById",
+                query = "SELECT r FROM RespuestaExamen r JOIN FETCH r.examenRealizado JOIN FETCH r.preguntaOpcion WHERE r.idRespuestaExamen = :idRespuestaExamen"
+        ),
+        // Si vas a devolver esta lista al Frontend, agrégale JOIN FETCH
         @NamedQuery(
                 name = "RespuestaExamen.findByExamenId",
-                query = "SELECT r FROM RespuestaExamen r WHERE r.examenRealizado.idExamenRealizado = :idExamen"
+                query = "SELECT r FROM RespuestaExamen r JOIN FETCH r.examenRealizado JOIN FETCH r.preguntaOpcion WHERE r.examenRealizado.idExamenRealizado = :idExamen"
         ),
+        // Si este método es solo para actualización interna, el JOIN FETCH es opcional,
+        // pero agregarlo no hace daño si la entidad viajará a la capa web.
         @NamedQuery(
-                name = "RespuestaExamen.countByExamenAndPregunta",
-                query = "SELECT COUNT(r) FROM RespuestaExamen r WHERE r.examenRealizado.idExamenRealizado = :idExamen AND r.preguntaOpcion.bancoPregunta.idBancoPregunta = :idPregunta"
+                name = "RespuestaExamen.findByExamenAndPregunta",
+                query = "SELECT r FROM RespuestaExamen r JOIN FETCH r.examenRealizado JOIN FETCH r.preguntaOpcion WHERE r.examenRealizado.idExamenRealizado = :idExamen AND r.preguntaOpcion.bancoPregunta.idBancoPregunta = :idPregunta"
         ),
         // NUEVAS CONSULTAS: Para actualización de respuestas y validación final
         @NamedQuery(

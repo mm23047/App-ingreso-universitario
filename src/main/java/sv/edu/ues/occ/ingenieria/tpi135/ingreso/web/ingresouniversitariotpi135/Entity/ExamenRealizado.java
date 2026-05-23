@@ -13,13 +13,20 @@ import java.util.UUID;
         @UniqueConstraint(name = "uk_inscripcion_etapa", columnNames = {"id_inscripcion", "id_etapa"})
 })
 @NamedQueries({
+        // UEVA CONSULTA: Para el método leer() del DAO
+        @NamedQuery(
+                name = "ExamenRealizado.findByIdConRelaciones",
+                query = "SELECT e FROM ExamenRealizado e JOIN FETCH e.inscripcionesPrueba JOIN FETCH e.claveExamen JOIN FETCH e.etapaAdmision WHERE e.idExamenRealizado = :id"
+        ),
+        //ACTUALIZADA: Se agregan los FETCH. Se usa la navegación de objetos (e.inscripcionesPrueba.aspiranteDato.id)
         @NamedQuery(
                 name = "ExamenRealizado.findByAspiranteId",
-                query = "SELECT e FROM ExamenRealizado e JOIN e.inscripcionesPrueba i WHERE i.aspiranteDato.id = :aspiranteId"
+                query = "SELECT e FROM ExamenRealizado e JOIN FETCH e.inscripcionesPrueba JOIN FETCH e.claveExamen JOIN FETCH e.etapaAdmision WHERE e.inscripcionesPrueba.aspiranteDato.id = :aspiranteId"
         ),
+        //  ACTUALIZADA: Se agregan los FETCH
         @NamedQuery(
                 name = "ExamenRealizado.findByPruebaId",
-                query = "SELECT e FROM ExamenRealizado e WHERE e.claveExamen.pruebaAdmision.idPruebaAdmision = :pruebaId"
+                query = "SELECT e FROM ExamenRealizado e JOIN FETCH e.inscripcionesPrueba JOIN FETCH e.claveExamen JOIN FETCH e.etapaAdmision WHERE e.claveExamen.pruebaAdmision.idPruebaAdmision = :pruebaId"
         ),
         @NamedQuery(
                 name = "ExamenRealizado.countPreguntasByClave",
@@ -29,9 +36,10 @@ import java.util.UUID;
                 name = "ExamenRealizado.countRespuestasCorrectas",
                 query = "SELECT COUNT(DISTINCT r.preguntaOpcion.bancoPregunta.idBancoPregunta) FROM RespuestaExamen r JOIN r.preguntaOpcion o WHERE r.examenRealizado.idExamenRealizado = :idExamen AND o.esCorrecta = TRUE AND o.bancoPregunta.idBancoPregunta IN (SELECT p2.idPreguntaPorClave.idPregunta FROM PreguntasPorClave p2 WHERE p2.idPreguntaPorClave.idClave = :idClave)"
         ),
+        //  ACTUALIZADA: Se agregan los FETCH para que el ranking devuelva los datos completos del estudiante
         @NamedQuery(
                 name = "ExamenRealizado.findRankingByPruebaAndEtapa",
-                query = "SELECT e FROM ExamenRealizado e WHERE e.claveExamen.pruebaAdmision.idPruebaAdmision = :idPrueba AND e.etapaAdmision.idEtapaAdmision = :idEtapa AND e.puntajeFinal IS NOT NULL ORDER BY e.puntajeFinal DESC"
+                query = "SELECT e FROM ExamenRealizado e JOIN FETCH e.inscripcionesPrueba JOIN FETCH e.claveExamen JOIN FETCH e.etapaAdmision WHERE e.claveExamen.pruebaAdmision.idPruebaAdmision = :idPrueba AND e.etapaAdmision.idEtapaAdmision = :idEtapa AND e.puntajeFinal IS NOT NULL ORDER BY e.puntajeFinal DESC"
         )
 })
 public class ExamenRealizado implements Serializable {

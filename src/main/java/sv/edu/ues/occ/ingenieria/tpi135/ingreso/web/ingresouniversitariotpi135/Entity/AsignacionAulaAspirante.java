@@ -10,17 +10,23 @@ import java.util.UUID;
         @UniqueConstraint(name = "uk_inscripcion_turno", columnNames = {"id_inscripcion", "id_turno"})
 })
 @NamedQueries({
+        // 1. NUEVA: Para leer por ID desde el controlador REST sin que explote
+        @NamedQuery(
+                name = "AsignacionAulaAspirante.findByIdConRelaciones",
+                query = "SELECT a FROM AsignacionAulaAspirante a JOIN FETCH a.inscripcionPrueba JOIN FETCH a.disponibilidad d JOIN FETCH d.aula JOIN FETCH d.turnoExamen WHERE a.idAsignacionAulaAspirante = :id"
+        ),
+        // 2. MODIFICADA: Se agregó JOIN FETCH para que cargue todo de una vez
+        @NamedQuery(
+                name = "AsignacionAulaAspirante.findByInscripcion",
+                query = "SELECT a FROM AsignacionAulaAspirante a JOIN FETCH a.disponibilidad d JOIN FETCH d.aula JOIN FETCH d.turnoExamen WHERE a.inscripcionPrueba.idInscripcionPrueba = :idInscripcion"
+        ),
         @NamedQuery(
                 name = "AsignacionAulaAspirante.countByAulaAndTurno",
-                query = "SELECT COUNT(a) FROM AsignacionAulaAspirante a WHERE a.disponibilidad.aula.idAula = :idAula AND a.disponibilidad.turnoExamen.idTurnoExamen = :idTurno"
+                query = "SELECT COUNT(a) FROM AsignacionAulaAspirante a WHERE a.disponibilidad.idDisponibilidadAulaTurno.idAula = :idAula AND a.disponibilidad.idDisponibilidadAulaTurno.idTurno = :idTurno"
         ),
         @NamedQuery(
                 name = "AsignacionAulaAspirante.countByInscripcionAndTurno",
-                query = "SELECT COUNT(a) FROM AsignacionAulaAspirante a WHERE a.inscripcionPrueba.idInscripcionPrueba = :idInscripcion AND a.disponibilidad.turnoExamen.idTurnoExamen = :idTurno"
-        ),
-        @NamedQuery(
-                name = "AsignacionAulaAspirante.findByInscripcion",
-                query = "SELECT a FROM AsignacionAulaAspirante a WHERE a.inscripcionPrueba.idInscripcionPrueba = :idInscripcion"
+                query = "SELECT COUNT(a) FROM AsignacionAulaAspirante a WHERE a.inscripcionPrueba.idInscripcionPrueba = :idInscripcion AND a.disponibilidad.idDisponibilidadAulaTurno.idTurno = :idTurno"
         )
 })
 public class AsignacionAulaAspirante implements Serializable {

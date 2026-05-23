@@ -12,14 +12,22 @@ import java.util.UUID;
         @UniqueConstraint(name = "uk_aspirante_prueba", columnNames = {"id_aspirante", "id_prueba"})
 })
 @NamedQueries({
+        // NUEVA CONSULTA: Para el método leer() del DAO
+        @NamedQuery(
+                name = "InscripcionesPrueba.findByIdConRelaciones",
+                query = "SELECT i FROM InscripcionesPrueba i JOIN FETCH i.aspiranteDato JOIN FETCH i.pruebaAdmision WHERE i.idInscripcionPrueba = :id"
+        ),
+        // ACTUALIZADA: Se agregan los JOIN FETCH
         @NamedQuery(
                 name = "InscripcionesPrueba.findByAspiranteId",
-                query = "SELECT i FROM InscripcionesPrueba i WHERE i.aspiranteDato.id = :idAspirante"
+                query = "SELECT i FROM InscripcionesPrueba i JOIN FETCH i.aspiranteDato JOIN FETCH i.pruebaAdmision WHERE i.aspiranteDato.id = :idAspirante"
         ),
+        // ACTUALIZADA: Se agregan los JOIN FETCH
         @NamedQuery(
                 name = "InscripcionesPrueba.findByPruebaId",
-                query = "SELECT i FROM InscripcionesPrueba i WHERE i.pruebaAdmision.idPruebaAdmision = :idPrueba"
+                query = "SELECT i FROM InscripcionesPrueba i JOIN FETCH i.aspiranteDato JOIN FETCH i.pruebaAdmision WHERE i.pruebaAdmision.idPruebaAdmision = :idPrueba"
         ),
+        // Las consultas COUNT se quedan igual
         @NamedQuery(
                 name = "InscripcionesPrueba.countByAspiranteAndPrueba",
                 query = "SELECT COUNT(i) FROM InscripcionesPrueba i WHERE i.aspiranteDato.id = :idAspirante AND i.pruebaAdmision.idPruebaAdmision = :idPrueba"
@@ -28,10 +36,10 @@ import java.util.UUID;
                 name = "InscripcionesPrueba.countByAspiranteAndPruebaExcludingId",
                 query = "SELECT COUNT(i) FROM InscripcionesPrueba i WHERE i.aspiranteDato.id = :idAspirante AND i.pruebaAdmision.idPruebaAdmision = :idPrueba AND i.idInscripcionPrueba <> :excludeId"
         ),
-        // NUEVO: Query táctico para el control de la logística pre-examen y distribución de butacas
+        // ACTUALIZADA: Se agregan los JOIN FETCH
         @NamedQuery(
                 name = "InscripcionesPrueba.findByPruebaAndEstado",
-                query = "SELECT i FROM InscripcionesPrueba i WHERE i.pruebaAdmision.idPruebaAdmision = :idPrueba AND UPPER(TRIM(i.estado)) = UPPER(TRIM(:estado))"
+                query = "SELECT i FROM InscripcionesPrueba i JOIN FETCH i.aspiranteDato JOIN FETCH i.pruebaAdmision WHERE i.pruebaAdmision.idPruebaAdmision = :idPrueba AND UPPER(TRIM(i.estado)) = UPPER(TRIM(:estado))"
         )
 })
 public class InscripcionesPrueba implements Serializable {

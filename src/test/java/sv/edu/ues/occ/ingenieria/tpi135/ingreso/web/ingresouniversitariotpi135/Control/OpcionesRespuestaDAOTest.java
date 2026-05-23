@@ -28,7 +28,7 @@ class OpcionesRespuestaDAOTest {
     private TypedQuery<Long> queryLong;
 
     @Test
-    void leer_CuandoExiste_DebeHacerRefresh() {
+    void leer_CuandoExiste_DebeRetornarEntidad() {
         PreguntaOpcionDAO cut = new PreguntaOpcionDAO();
         cut.em = entityManager;
 
@@ -36,26 +36,39 @@ class OpcionesRespuestaDAOTest {
         PreguntaOpcion entity = new PreguntaOpcion();
         entity.setIdPreguntaOpcion(id);
 
-        when(entityManager.find(eq(PreguntaOpcion.class), eq(id))).thenReturn(entity);
+        // 1. Simulamos el NamedQuery
+        when(entityManager.createNamedQuery("PreguntaOpcion.findByIdConRelaciones", PreguntaOpcion.class))
+                .thenReturn(queryOpciones);
+        // 2. Simulamos la inyección del parámetro
+        when(queryOpciones.setParameter("id", id)).thenReturn(queryOpciones);
+        // 3. Simulamos que encontró el resultado
+        when(queryOpciones.getSingleResult()).thenReturn(entity);
 
         PreguntaOpcion result = cut.leer(id);
 
         assertSame(entity, result);
-        verify(entityManager).find(PreguntaOpcion.class, id);
+        verify(entityManager).createNamedQuery("PreguntaOpcion.findByIdConRelaciones", PreguntaOpcion.class);
     }
 
     @Test
-    void leer_CuandoNoExiste_NoDebeHacerRefresh() {
+    void leer_CuandoNoExiste_DebeRetornarNull() {
         PreguntaOpcionDAO cut = new PreguntaOpcionDAO();
         cut.em = entityManager;
 
         UUID id = UUID.randomUUID();
-        when(entityManager.find(eq(PreguntaOpcion.class), eq(id))).thenReturn(null);
+
+        // 1. Simulamos el NamedQuery
+        when(entityManager.createNamedQuery("PreguntaOpcion.findByIdConRelaciones", PreguntaOpcion.class))
+                .thenReturn(queryOpciones);
+        // 2. Simulamos la inyección del parámetro
+        when(queryOpciones.setParameter("id", id)).thenReturn(queryOpciones);
+        // 3. Simulamos que NO encontró nada lanzando la excepción nativa de JPA
+        when(queryOpciones.getSingleResult()).thenThrow(new jakarta.persistence.NoResultException());
 
         PreguntaOpcion result = cut.leer(id);
 
-        assertNull(result);
-        verify(entityManager, never()).refresh(any());
+        assertNull(result); // Tu DAO debe atrapar la excepción y devolver null
+        verify(entityManager).createNamedQuery("PreguntaOpcion.findByIdConRelaciones", PreguntaOpcion.class);
     }
 
     @Test

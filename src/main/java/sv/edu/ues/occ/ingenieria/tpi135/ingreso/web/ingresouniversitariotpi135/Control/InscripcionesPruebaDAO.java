@@ -143,4 +143,26 @@ public class InscripcionesPruebaDAO extends IngresoDefaultDataAccess<Inscripcion
         }
     }
 
+    /**
+     * Se sobrescribe el método leer del padre para incluir JOIN FETCH
+     * y cargar Aspirante y Prueba, previniendo LazyInitializationException en REST.
+     */
+    @Override
+    public InscripcionesPrueba leer(Object id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El id no puede ser nulo");
+        }
+        try {
+            return em.createNamedQuery("InscripcionesPrueba.findByIdConRelaciones", InscripcionesPrueba.class)
+                    .setParameter("id", id)
+                    .getSingleResult();
+        } catch (jakarta.persistence.NoResultException e) {
+            return null; // Comportamiento estándar de em.find()
+        } catch (IllegalStateException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Error al leer registro de InscripcionesPrueba con relaciones", ex);
+        }
+    }
+
 }

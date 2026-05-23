@@ -2,12 +2,12 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
-import jakarta.persistence.NoResultException;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegida;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CuposCarrera;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ProcesoAdmisionAspirante;
 
 import java.io.Serializable;
@@ -23,6 +23,10 @@ public class ProcesoAdmisionAspiranteDAO extends IngresoDefaultDataAccess<Proces
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
 
+    // MAGIA AQUÍ: Inyectamos el DAO que tiene el método de descuento seguro en SQL
+    @Inject
+    private CuposCarreraDAO cuposCarreraDAO;
+
     public ProcesoAdmisionAspiranteDAO() {
         super(ProcesoAdmisionAspirante.class);
     }
@@ -33,21 +37,12 @@ public class ProcesoAdmisionAspiranteDAO extends IngresoDefaultDataAccess<Proces
     }
 
     /**
-     * Asigna la carrera final a un aspirante según prioridad de carreras elegidas
-     * y cupos disponibles en la etapa actual del proceso.
-     *
-     * Reglas:
-     * - Se recorren las carreras elegidas ordenadas por prioridad ascendente.
-     * - Se asigna la primera carrera con cupos > 0 (para la prueba y etapa actual).
-     * - Se decrementa el cupo consumido.
-     * - Si ninguna tiene cupo, se marca como NO_ADMITIDO.
-     *
-     * @param idInscripcion id del proceso/inscripción
-     * @return Proceso actualizado, o null si no existe
+     * Asigna la carrera final a un aspirante garantizando que el cupo se reste a nivel SQL.
      */
+    @Transactional(Transactional.TxType.REQUIRED) // Aseguramos la integridad de la transacción
     public ProcesoAdmisionAspirante asignarCarreraFinal(UUID idInscripcion) {
         if (idInscripcion == null) {
-            throw new IllegalArgumentException("idInscripcion");
+            throw new IllegalArgumentException("idInscripcion es requerido");
         }
 
         ProcesoAdmisionAspirante proceso = em.find(ProcesoAdmisionAspirante.class, idInscripcion);
@@ -64,56 +59,61 @@ public class ProcesoAdmisionAspiranteDAO extends IngresoDefaultDataAccess<Proces
 
         for (CarrerasElegida elegida : elegidas) {
             String idCarrera = elegida.getCatalogoCarrera().getIdCarrera();
-            CuposCarrera cupos = buscarCupos(idPrueba, idCarrera, idEtapa);
 
-            if (cupos != null && cupos.getCupos() != null && cupos.getCupos() > 0) {
-                cupos.setCupos(cupos.getCupos() - 1);
+            // REGLA APLICADA: Usamos el método atómico del otro DAO CUPOS_Carrera.
+            // Si devuelve TRUE, significa que había cupo y la BD ya lo descontó.
+            boolean cupoConcedido = cuposCarreraDAO.decrementarCupo(idPrueba, idCarrera, idEtapa);
+
+            if (cupoConcedido) {
                 proceso.setCarreraAsignada(em.getReference(CatalogoCarrera.class, idCarrera));
                 proceso.setEstado("ADMITIDO");
                 return proceso;
             }
         }
 
+        // Si el bucle termina y ningún decrementarCupo devolvió true, se quedó sin cupos en todas sus opciones
         proceso.setCarreraAsignada(null);
         proceso.setEstado("NO_ADMITIDO");
         return proceso;
     }
 
-    private CuposCarrera buscarCupos(UUID idPrueba, String idCarrera, UUID idEtapa) {
-        try {
-            return em.createNamedQuery("ProcesoAdmisionAspirante.findCuposCarrera", CuposCarrera.class)
-                    .setParameter("idPrueba", idPrueba)
-                    .setParameter("idCarrera", idCarrera)
-                    .setParameter("idEtapa", idEtapa)
-                    .getSingleResult();
-        } catch (NoResultException ex) {
-            return null;
-        }
-    }
-
     /**
-     * REGLA DE NEGOCIO PRINCIPAL (FASE 2):
-     * Procesa en lote a todos los estudiantes de una etapa en específico, garantizando que
-     * los mejores puntajes consuman los cupos de las carreras primero.
+     * Procesa en lote a todos los estudiantes garantizando Todo o Nada (Transaccionalidad)
      */
+    @Transactional(Transactional.TxType.REQUIRED) // Toda la iteración ocurre en una sola transacción
     public void procesarAsignacionMasiva(UUID idEtapa) {
         if (idEtapa == null) {
             throw new IllegalArgumentException("El id de la etapa es requerido.");
         }
 
-        // 1. Obtener los aspirantes ordenados de manera estricta por nota descenente
         List<ProcesoAdmisionAspirante> aspirantesOrdenados = em.createNamedQuery(
                         "ProcesoAdmisionAspirante.findPendientesPorPuntaje", ProcesoAdmisionAspirante.class)
                 .setParameter("idEtapa", idEtapa)
                 .getResultList();
 
-        // 2. Iterar sobre ellos aplicando secuencialmente la asignación individual
         for (ProcesoAdmisionAspirante aspirante : aspirantesOrdenados) {
             this.asignarCarreraFinal(aspirante.getIdProcesoAdmisionAspirante());
-
-            // Separar de la memoria de primer nivel periódicamente si el lote es masivo (evita saturar la RAM)
-            em.flush();
+            em.flush(); // Sincroniza con la base de datos en cada paso para no desbordar la memoria
         }
     }
 
+    /**
+     * Sobrescribimos el método leer del padre para evitar LazyInitializationException en REST.
+     * Carga de una vez la inscripción, la etapa y (si existe) la carrera asignada.
+     */
+    @Override
+    public ProcesoAdmisionAspirante leer(Object id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El id del proceso no puede ser nulo");
+        }
+        try {
+            return em.createNamedQuery("ProcesoAdmisionAspirante.findByIdConRelaciones", ProcesoAdmisionAspirante.class)
+                    .setParameter("idProceso", id)
+                    .getSingleResult();
+        } catch (jakarta.persistence.NoResultException e) {
+            return null; // Replicamos el comportamiento de em.find() devolviendo null si no existe
+        } catch (Exception ex) {
+            throw new IllegalStateException("Error al leer registro de ProcesoAdmisionAspirante con relaciones", ex);
+        }
+    }
 }

@@ -10,6 +10,11 @@ import java.util.UUID;
 // 1. ELIMINADO: @UniqueConstraint global (ahora lo maneja la BD con índices parciales)
 @Table(name = "banco_respuesta", schema = "public")
 @NamedQueries({
+        // NUEVA CONSULTA: Para el método leer(), usamos LEFT JOIN FETCH por si es una respuesta global (área nula)
+        @NamedQuery(
+                name = "BancoRespuesta.findByIdConArea",
+                query = "SELECT b FROM BancoRespuesta b LEFT JOIN FETCH b.areaConocimiento WHERE b.idBancoRespuesta = :id"
+        ),
         // 2. NUEVAS CONSULTAS: Para validar duplicados separando la lógica Global vs Local
         @NamedQuery(
                 name = "BancoRespuesta.countGlobalByTexto",
@@ -26,6 +31,15 @@ import java.util.UUID;
         @NamedQuery(
                 name = "BancoRespuesta.countLocalByTextoAndNotId",
                 query = "SELECT COUNT(b) FROM BancoRespuesta b WHERE UPPER(TRIM(b.textoRespuesta)) = UPPER(TRIM(:textoRespuesta)) AND b.areaConocimiento.idAreaConocimiento = :idArea AND b.idBancoRespuesta <> :idBancoRespuesta"
+        ),
+        @NamedQuery(
+                name = "BancoRespuesta.findSoloGlobales",
+                query = "SELECT b FROM BancoRespuesta b WHERE b.areaConocimiento IS NULL ORDER BY b.textoRespuesta ASC"
+        ),
+        // ACTUALIZADA: Agregamos LEFT JOIN FETCH
+        @NamedQuery(
+                name = "BancoRespuesta.findByAreaYGlobales",
+                query = "SELECT b FROM BancoRespuesta b LEFT JOIN FETCH b.areaConocimiento WHERE b.areaConocimiento.idAreaConocimiento = :idArea OR b.areaConocimiento IS NULL ORDER BY b.textoRespuesta ASC"
         )
 })
 @NamedNativeQueries({

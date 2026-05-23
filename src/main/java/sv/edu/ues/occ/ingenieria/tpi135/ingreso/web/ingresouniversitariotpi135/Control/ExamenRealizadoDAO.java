@@ -88,6 +88,14 @@ public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado
                 return null;
             }
 
+            // NUEVO: Escudos contra NullPointerException
+            if (examen.getClaveExamen() == null || examen.getClaveExamen().getIdClaveExaman() == null) {
+                throw new IllegalStateException("El examen no tiene una clave asignada para poder calificarse.");
+            }
+            if (examen.getInscripcionesPrueba() == null) {
+                throw new IllegalStateException("El examen no tiene una inscripción vinculada.");
+            }
+
             // CORRECCIÓN: Extracción correcta del ID de la clave
             UUID claveId = examen.getClaveExamen().getIdClaveExaman();
 
@@ -152,4 +160,25 @@ public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado
         }
     }
 
+    /**
+     * Se sobrescribe el método leer del padre para incluir el JOIN FETCH de las 3 relaciones
+     * (Inscripción, Clave y Etapa) y prevenir el LazyInitializationException al enviar a REST.
+     */
+    @Override
+    public ExamenRealizado leer(Object id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El id no puede ser nulo");
+        }
+        try {
+            return em.createNamedQuery("ExamenRealizado.findByIdConRelaciones", ExamenRealizado.class)
+                    .setParameter("id", id)
+                    .getSingleResult();
+        } catch (jakarta.persistence.NoResultException e) {
+            return null; // Comportamiento esperado si no existe el ID
+        } catch (IllegalStateException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Error al leer registro de ExamenRealizado con relaciones", ex);
+        }
+    }
 }

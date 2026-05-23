@@ -95,4 +95,26 @@ public class TurnosExamenDAO extends IngresoDefaultDataAccess<TurnosExamen> impl
             return null; // El estudiante no tiene permiso de acceso en esta ventana de tiempo
         }
     }
+
+    /**
+     * Se sobrescribe el método leer del padre para incluir el JOIN FETCH
+     * y prevenir el LazyInitializationException al serializar en REST.
+     */
+    @Override
+    public TurnosExamen leer(Object id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El id no puede ser nulo");
+        }
+        try {
+            return em.createNamedQuery("TurnosExamen.findByIdConRelacion", TurnosExamen.class)
+                    .setParameter("id", id)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null; // Mantenemos la consistencia con em.find() devolviendo null si no existe
+        } catch (IllegalStateException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Error al leer registro de TurnosExamen con relaciones", ex);
+        }
+    }
 }

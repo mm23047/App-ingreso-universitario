@@ -11,6 +11,7 @@ import java.util.Objects;
         @UniqueConstraint(name = "uk_inscripcion_prioridad", columnNames = {"id_inscripcion", "prioridad"})
 })
 @NamedQueries({
+        // Las consultas de COUNT se quedan exactamente igual (no devuelven entidades)
         @NamedQuery(
                 name = "CarrerasElegida.countByInscripcionAndPrioridad",
                 query = "SELECT COUNT(c) FROM CarrerasElegida c WHERE c.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion AND c.prioridad = :prioridad"
@@ -19,14 +20,21 @@ import java.util.Objects;
                 name = "CarrerasElegida.countByInscripcionAndPrioridadNotId",
                 query = "SELECT COUNT(c) FROM CarrerasElegida c WHERE c.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion AND c.prioridad = :prioridad AND c.catalogoCarrera.idCarrera <> :idCarrera"
         ),
+
+        // APLICAMOS JOIN FETCH A LAS CONSULTAS DE LECTURA (SELECT)
         @NamedQuery(
                 name = "CarrerasElegida.findByInscripcionAndCarrera",
-                query = "SELECT c FROM CarrerasElegida c WHERE c.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion AND c.catalogoCarrera.idCarrera = :idCarrera"
+                query = "SELECT c FROM CarrerasElegida c JOIN FETCH c.inscripcionesPrueba JOIN FETCH c.catalogoCarrera WHERE c.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion AND c.catalogoCarrera.idCarrera = :idCarrera"
         ),
-        // NUEVO: Requerimiento de negocio para el algoritmo de asignación de cupos
         @NamedQuery(
                 name = "CarrerasElegida.findByInscripcionOrderByPrioridad",
-                query = "SELECT c FROM CarrerasElegida c WHERE c.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion ORDER BY c.prioridad ASC"
+                query = "SELECT c FROM CarrerasElegida c JOIN FETCH c.inscripcionesPrueba JOIN FETCH c.catalogoCarrera WHERE c.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion ORDER BY c.prioridad ASC"
+        ),
+
+        // (OPCIONAL) NUEVA CONSULTA POR SI NECESITAS SOBRESCRIBIR EL MÉTODO leer() EN EL FUTURO
+        @NamedQuery(
+                name = "CarrerasElegida.findByIdConRelaciones",
+                query = "SELECT c FROM CarrerasElegida c JOIN FETCH c.inscripcionesPrueba JOIN FETCH c.catalogoCarrera WHERE c.idCarreraElegida = :id"
         )
 })
 

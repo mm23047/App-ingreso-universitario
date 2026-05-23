@@ -52,4 +52,22 @@ public class PreguntasPorClaveDAO extends IngresoDefaultDataAccess<PreguntasPorC
                 .setParameter("idClave", idClave)
                 .getResultList();
     }
+
+    @Override
+    public PreguntasPorClave leer(Object id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El id no puede ser nulo");
+        }
+        try {
+            // Nota: Aquí necesitarías crear un NamedQuery llamado "PreguntasPorClave.findById"
+            // en tu entidad con su respectivo JOIN FETCH.
+            return em.createNamedQuery("PreguntasPorClave.findById", PreguntasPorClave.class)
+                    .setParameter("idPreguntaPorClave", id)
+                    .getSingleResult();
+        } catch (jakarta.persistence.NoResultException e) {
+            return null;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Error al leer registro con relaciones", ex);
+        }
+    }
 }

@@ -13,8 +13,12 @@ import java.util.UUID;
 })
 @NamedQueries({
         @NamedQuery(
+                name = "BancoPregunta.findByIdConTema",
+                query = "SELECT b FROM BancoPregunta b JOIN FETCH b.tema WHERE b.idBancoPregunta = :id"
+        ),
+        @NamedQuery(
                 name = "BancoPregunta.findByTema",
-                query = "SELECT b FROM BancoPregunta b WHERE b.tema.idTema = :idTema"
+                query = "SELECT b FROM BancoPregunta b JOIN FETCH b.tema WHERE b.tema.idTema = :idTema"
         ),
         @NamedQuery(
                 name = "BancoPregunta.countByEnunciado",

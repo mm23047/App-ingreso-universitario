@@ -22,6 +22,16 @@ import java.util.UUID;
         @NamedQuery(
                 name = "ProcesoAdmisionAspirante.findPendientesPorPuntaje",
                 query = "SELECT p FROM ProcesoAdmisionAspirante p JOIN ExamenRealizado er ON er.inscripcionesPrueba = p.idProcesoAdmisionAspirante WHERE p.etapaAdmision.idEtapaAdmision = :idEtapa AND p.estado = 'PENDIENTE' ORDER BY er.puntajeFinal DESC"
+        ),
+        // NUEVA CONSULTA: Carga el proceso y sus relaciones para REST.
+        // Se usa LEFT JOIN en carreraAsignada porque puede ser NULL si aún no ha sido admitido.
+        @NamedQuery(
+                name = "ProcesoAdmisionAspirante.findByIdConRelaciones",
+                query = "SELECT p FROM ProcesoAdmisionAspirante p " +
+                        "JOIN FETCH p.inscripcionesPrueba " +
+                        "JOIN FETCH p.etapaAdmision " +
+                        "LEFT JOIN FETCH p.carreraAsignada " +
+                        "WHERE p.idProcesoAdmisionAspirante = :idProceso"
         )
 })
 public class ProcesoAdmisionAspirante implements Serializable {

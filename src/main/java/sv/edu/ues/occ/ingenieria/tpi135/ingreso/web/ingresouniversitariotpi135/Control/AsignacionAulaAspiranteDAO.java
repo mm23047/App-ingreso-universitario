@@ -5,6 +5,7 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AsignacionAulaAspirante;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.DisponibilidadAulaTurno;
 
 import java.io.Serializable;
 import java.util.List;
@@ -27,9 +28,15 @@ public class AsignacionAulaAspiranteDAO extends IngresoDefaultDataAccess<Asignac
             throw new IllegalArgumentException("La asignación, la inscripción y la disponibilidad de aula son requeridas.");
         }
 
+        // Asegurar que disponibilidad no venga con relaciones internas nulas desde el controlador REST
+        DisponibilidadAulaTurno disp = entity.getDisponibilidad();
+        if (disp.getAula() == null || disp.getTurnoExamen() == null) {
+            throw new IllegalArgumentException("La disponibilidad debe contener un aula y un turno válidos.");
+        }
+
         UUID idInscripcion = entity.getInscripcionPrueba().getIdInscripcionPrueba();
-        UUID idAula = entity.getDisponibilidad().getAula().getIdAula();
-        UUID idTurno = entity.getDisponibilidad().getTurnoExamen().getIdTurnoExamen();
+        UUID idAula = disp.getAula().getIdAula();
+        UUID idTurno = disp.getTurnoExamen().getIdTurnoExamen();
 
         // REGLA 1: Evitar choques de horario del aspirante
         if (existsByInscripcionAndTurno(idInscripcion, idTurno)) {
@@ -80,5 +87,27 @@ public class AsignacionAulaAspiranteDAO extends IngresoDefaultDataAccess<Asignac
         return em.createNamedQuery("AsignacionAulaAspirante.findByInscripcion", AsignacionAulaAspirante.class)
                 .setParameter("idInscripcion", idInscripcion)
                 .getResultList();
+    }
+
+    /**
+     * Sobrescribimos el método leer para usar JOIN FETCH y evitar LazyInitializationException
+     * al consultar asignaciones individuales desde el API REST.
+     */
+    @Override
+    public AsignacionAulaAspirante leer(Object id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El id no puede ser nulo");
+        }
+        try {
+            return em.createNamedQuery("AsignacionAulaAspirante.findByIdConRelaciones", AsignacionAulaAspirante.class)
+                    .setParameter("id", id)
+                    .getSingleResult();
+        } catch (jakarta.persistence.NoResultException e) {
+            return null; // Mismo comportamiento que em.find() de la clase padre
+        } catch (IllegalStateException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Error al leer registro de AsignacionAulaAspirante con relaciones", ex);
+        }
     }
 }

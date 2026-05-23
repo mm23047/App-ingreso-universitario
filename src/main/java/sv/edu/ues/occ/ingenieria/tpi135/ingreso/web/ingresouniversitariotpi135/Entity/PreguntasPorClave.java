@@ -15,6 +15,10 @@ import java.util.Objects;
         @NamedQuery(
                 name = "PreguntasPorClave.findPreguntasByClave",
                 query = "SELECT p FROM PreguntasPorClave p JOIN FETCH p.bancoPregunta WHERE p.idPreguntaPorClave.idClave = :idClave"
+        ),
+        @NamedQuery(
+                name = "PreguntasPorClave.findById",
+                query = "SELECT p FROM PreguntasPorClave p JOIN FETCH p.claveExamen JOIN FETCH p.bancoPregunta WHERE p.idPreguntaPorClave = :idPreguntaPorClave"
         )
 })
 public class PreguntasPorClave implements Serializable {

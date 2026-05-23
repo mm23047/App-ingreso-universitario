@@ -8,14 +8,19 @@ import java.util.Objects;
 @Entity
 @Table(name = "disponibilidad_aula_turno")
 @NamedQueries({
+        // NUEVA CONSULTA: Para leer por ID trayendo el Aula y el Turno de una vez (Evita LazyInitializationException en el padre)
+        @NamedQuery(
+                name = "DisponibilidadAulaTurno.findByIdConRelaciones",
+                query = "SELECT d FROM DisponibilidadAulaTurno d JOIN FETCH d.aula JOIN FETCH d.turnoExamen WHERE d.idDisponibilidadAulaTurno = :id"
+        ),
         @NamedQuery(
                 name = "DisponibilidadAulaTurno.countByAulaAndTurno",
                 query = "SELECT COUNT(d) FROM DisponibilidadAulaTurno d WHERE d.aula.idAula = :idAula AND d.turnoExamen.idTurnoExamen = :idTurno"
         ),
-        // NUEVO: Requerimiento de negocio para calcular el aforo global por turno
+        // ACTUALIZADO: Agregamos JOIN FETCH para aula y turnoExamen
         @NamedQuery(
                 name = "DisponibilidadAulaTurno.findByTurno",
-                query = "SELECT d FROM DisponibilidadAulaTurno d WHERE d.turnoExamen.idTurnoExamen = :idTurno"
+                query = "SELECT d FROM DisponibilidadAulaTurno d JOIN FETCH d.aula JOIN FETCH d.turnoExamen WHERE d.turnoExamen.idTurnoExamen = :idTurno"
         )
 })
 public class DisponibilidadAulaTurno implements Serializable {

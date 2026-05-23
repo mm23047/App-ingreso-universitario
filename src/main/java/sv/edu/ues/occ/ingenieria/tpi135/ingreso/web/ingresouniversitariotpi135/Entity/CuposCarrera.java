@@ -8,14 +8,29 @@ import java.util.Objects;
 
 @Entity
 @NamedQueries({
+        // 1. NUEVA CONSULTA: Para buscar por ID y traer todo de una vez
+        @NamedQuery(
+                name = "CuposCarrera.findByIdConRelaciones",
+                query = "SELECT c FROM CuposCarrera c JOIN FETCH c.pruebaAdmision JOIN FETCH c.catalogoCarrera JOIN FETCH c.etapaAdmision WHERE c.idCupoCarrera = :idCupo"
+        ),
+        // 2. ACTUALIZADA: Le agregamos los JOIN FETCH para que no falle al enviarse por REST
         @NamedQuery(
                 name = "CuposCarrera.findByCarrera",
-                query = "SELECT c FROM CuposCarrera c WHERE c.catalogoCarrera.idCarrera = :idCarrera"
+                query = "SELECT c FROM CuposCarrera c JOIN FETCH c.pruebaAdmision JOIN FETCH c.catalogoCarrera JOIN FETCH c.etapaAdmision WHERE c.catalogoCarrera.idCarrera = :idCarrera"
         ),
-        // NUEVO: Permite buscar la cuota exacta cruzando los tres criterios de selección
         @NamedQuery(
                 name = "CuposCarrera.findUniqueCupo",
                 query = "SELECT c.cupos FROM CuposCarrera c WHERE c.pruebaAdmision.idPruebaAdmision = :idPrueba AND c.catalogoCarrera.idCarrera = :idCarrera AND c.etapaAdmision.idEtapaAdmision = :idEtapa"
+        ),
+        // NUEVO: Movimos el JPQL del DAO a la entidad.
+        // NOTA: Incrementamos c.version = c.version + 1 para no romper el bloqueo optimista de JPA
+        @NamedQuery(
+                name = "CuposCarrera.decrementarCupoAtomico",
+                query = "UPDATE CuposCarrera c SET c.cupos = c.cupos - 1, c.version = c.version + 1 " +
+                        "WHERE c.idCupoCarrera.idPrueba = :idPrueba " +
+                        "AND c.idCupoCarrera.idCarrera = :idCarrera " +
+                        "AND c.idCupoCarrera.idEtapa = :idEtapa " +
+                        "AND c.cupos > 0"
         )
 })
 public class CuposCarrera implements Serializable {
@@ -43,6 +58,18 @@ public class CuposCarrera implements Serializable {
     @NotNull
     @Column(name = "cupos", nullable = false)
     private Integer cupos;
+
+    @Version
+    @Column(name = "version", nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    private Long version;
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
 
     public CuposCarreraId getIdCupoCarrera() {
         return idCupoCarrera;

@@ -115,4 +115,24 @@ public class TemaDAO extends IngresoDefaultDataAccess<Tema> implements Serializa
                 .setParameter("idTemaPadre", idTemaPadre)
                 .getResultList();
     }
+
+    /**
+     * Sobrescribimos el método padre para prevenir LazyInitializationException.
+     * Carga el Área y el Padre (si existe) en un solo viaje a la BD.
+     */
+    @Override
+    public Tema leer(Object id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El id no puede ser nulo");
+        }
+        try {
+            return em.createNamedQuery("Tema.findById", Tema.class)
+                    .setParameter("idTema", id)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null; // Replicamos el comportamiento de em.find()
+        } catch (Exception ex) {
+            throw new IllegalStateException("Error al leer registro de Tema con relaciones", ex);
+        }
+    }
 }

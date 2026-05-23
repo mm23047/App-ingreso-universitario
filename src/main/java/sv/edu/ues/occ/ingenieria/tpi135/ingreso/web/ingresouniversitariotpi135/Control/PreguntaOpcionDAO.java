@@ -118,4 +118,27 @@ public class PreguntaOpcionDAO extends IngresoDefaultDataAccess<PreguntaOpcion> 
         }
     }
 
+    /**
+     * Se sobrescribe el método leer del padre para incluir los JOIN FETCH
+     * y prevenir el LazyInitializationException al enviar el JSON por REST.
+     */
+    @Override
+    public PreguntaOpcion leer(Object id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El id no puede ser nulo");
+        }
+        try {
+            return em.createNamedQuery("PreguntaOpcion.findByIdConRelaciones", PreguntaOpcion.class)
+                    .setParameter("id", id)
+                    .getSingleResult();
+        } catch (jakarta.persistence.NoResultException e) {
+            // Replicamos el comportamiento de em.find() devolviendo null
+            return null;
+        } catch (IllegalStateException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Error al leer registro de PreguntaOpcion con relaciones", ex);
+        }
+    }
+
 }

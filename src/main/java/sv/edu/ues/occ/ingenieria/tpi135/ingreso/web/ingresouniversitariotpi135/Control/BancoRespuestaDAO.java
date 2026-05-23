@@ -114,6 +114,41 @@ public class BancoRespuestaDAO extends IngresoDefaultDataAccess<BancoRespuesta> 
         }
     }
 
+    public List<BancoRespuesta> obtenerRespuestasGlobales() {
+        return em.createNamedQuery("BancoRespuesta.findSoloGlobales", BancoRespuesta.class)
+                .getResultList();
+    }
 
+    /**
+     * Trae respuesatas de manera general, tanto globales como de X area de conocimiento
+     * @param idArea si queremos de un X area
+     * @return
+     */
+    public List<BancoRespuesta> obtenerRespuestasParaPregunta(UUID idArea) {
+        return em.createNamedQuery("BancoRespuesta.findByAreaYGlobales", BancoRespuesta.class)
+                .setParameter("idArea", idArea)
+                .getResultList();
+    }
 
+    /**
+     * Sobrescribimos el método leer del padre para evitar LazyInitializationException.
+     * Usamos LEFT JOIN FETCH porque areaConocimiento puede ser nulo (respuestas globales).
+     */
+    @Override
+    public BancoRespuesta leer(Object id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El id no puede ser nulo");
+        }
+        try {
+            return em.createNamedQuery("BancoRespuesta.findByIdConArea", BancoRespuesta.class)
+                    .setParameter("id", id)
+                    .getSingleResult();
+        } catch (jakarta.persistence.NoResultException e) {
+            return null; // Replicamos el comportamiento de em.find()
+        } catch (IllegalStateException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Error al leer registro de BancoRespuesta con relaciones", ex);
+        }
+    }
 }

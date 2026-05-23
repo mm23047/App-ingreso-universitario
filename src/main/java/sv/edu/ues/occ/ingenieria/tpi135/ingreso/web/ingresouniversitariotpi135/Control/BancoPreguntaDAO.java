@@ -87,6 +87,29 @@ public class BancoPreguntaDAO extends IngresoDefaultDataAccess<BancoPregunta> im
         }
     }
 
+    /**
+     * Se sobrescribe el método leer del padre para incluir el JOIN FETCH
+     * y prevenir el LazyInitializationException al serializar en REST.
+     */
+    @Override
+    public BancoPregunta leer(Object id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El id no puede ser nulo");
+        }
+        try {
+            return em.createNamedQuery("BancoPregunta.findByIdConTema", BancoPregunta.class)
+                    .setParameter("id", id)
+                    .getSingleResult();
+        } catch (jakarta.persistence.NoResultException e) {
+            // em.find() devuelve null si no existe, replicamos ese comportamiento
+            return null;
+        } catch (IllegalStateException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Error al leer registro de BancoPregunta con relaciones", ex);
+        }
+    }
+
     private boolean existsByEnunciado(String enunciado) {
         Long count = em.createNamedQuery("BancoPregunta.countByEnunciado", Long.class)
                 .setParameter("enunciado", enunciado.trim())

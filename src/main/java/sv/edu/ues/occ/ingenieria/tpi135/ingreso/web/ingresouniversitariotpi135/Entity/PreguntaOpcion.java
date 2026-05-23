@@ -12,15 +12,21 @@ import java.util.UUID;
         @UniqueConstraint(name = "uk_pregunta_respuesta", columnNames = {"id_pregunta", "id_respuesta_global"})
 })
 @NamedQueries({
+        // NUEVO: Query para sobrescribir el método leer() y evitar LazyInitializationException
+        @NamedQuery(
+                name = "PreguntaOpcion.findByIdConRelaciones",
+                query = "SELECT p FROM PreguntaOpcion p JOIN FETCH p.bancoPregunta JOIN FETCH p.idRespuestaGlobal WHERE p.idPreguntaOpcion = :id"
+        ),
+        // MODIFICADO: Agregamos JOIN FETCH p.idRespuestaGlobal.
+        // Así el frontend podrá leer el texto de la respuesta sin errores.
         @NamedQuery(
                 name = "PreguntaOpcion.findByPregunta",
-                query = "SELECT p FROM PreguntaOpcion p WHERE p.bancoPregunta.idBancoPregunta = :idPregunta ORDER BY p.idPreguntaOpcion"
+                query = "SELECT p FROM PreguntaOpcion p JOIN FETCH p.idRespuestaGlobal WHERE p.bancoPregunta.idBancoPregunta = :idPregunta ORDER BY p.idPreguntaOpcion"
         ),
         @NamedQuery(
                 name = "PreguntaOpcion.countByPreguntaAndRespuesta",
                 query = "SELECT COUNT(p) FROM PreguntaOpcion p WHERE p.bancoPregunta.idBancoPregunta = :idPregunta AND p.idRespuestaGlobal.idBancoRespuesta = :idRespuestaGlobal"
         ),
-        // NUEVO: Query optimizado para extraer la hoja de respuestas válidas para calificar
         @NamedQuery(
                 name = "PreguntaOpcion.findOpcionesCorrectasByPregunta",
                 query = "SELECT p FROM PreguntaOpcion p WHERE p.bancoPregunta.idBancoPregunta = :idPregunta AND p.esCorrecta = true"

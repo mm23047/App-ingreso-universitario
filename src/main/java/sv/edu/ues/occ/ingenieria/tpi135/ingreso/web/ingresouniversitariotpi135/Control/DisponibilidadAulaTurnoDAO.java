@@ -28,6 +28,28 @@ public class DisponibilidadAulaTurnoDAO extends IngresoDefaultDataAccess<Disponi
         return em;
     }
 
+    /**
+     * Se sobrescribe el método leer del padre para incluir los JOIN FETCH
+     * de Aula y TurnoExamen, previniendo LazyInitializationException en REST.
+     */
+    @Override
+    public DisponibilidadAulaTurno leer(Object id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El id no puede ser nulo");
+        }
+        try {
+            return em.createNamedQuery("DisponibilidadAulaTurno.findByIdConRelaciones", DisponibilidadAulaTurno.class)
+                    .setParameter("id", id)
+                    .getSingleResult();
+        } catch (jakarta.persistence.NoResultException e) {
+            return null; // Replicamos el comportamiento de em.find() de la clase padre
+        } catch (IllegalStateException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Error al leer registro de DisponibilidadAulaTurno con relaciones", ex);
+        }
+    }
+
     public boolean existsByAulaAndTurno(UUID idAula, UUID idTurno) {
         if (idAula == null || idTurno == null) {
             throw new IllegalArgumentException("idAula and idTurno must not be null");
@@ -49,6 +71,7 @@ public class DisponibilidadAulaTurnoDAO extends IngresoDefaultDataAccess<Disponi
             throw new IllegalArgumentException("El ID del turno es estrictamente obligatorio para listar la disponibilidad.");
         }
         try {
+            // Este método NO necesita cambiar, automáticamente usa el NamedQuery actualizado con los JOIN FETCH
             return em.createNamedQuery("DisponibilidadAulaTurno.findByTurno", DisponibilidadAulaTurno.class)
                     .setParameter("idTurno", idTurno)
                     .getResultList();

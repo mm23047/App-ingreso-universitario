@@ -140,6 +140,7 @@ CREATE TABLE IF NOT EXISTS cupos_carrera (
     cupos INTEGER NOT NULL,
     PRIMARY KEY (id_prueba, id_carrera, id_etapa)
 );
+ALTER TABLE cupos_carrera ADD COLUMN version BIGINT NOT NULL DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS proceso_admision_aspirante (
     id_inscripcion UUID PRIMARY KEY REFERENCES inscripcion_prueba(id_inscripcion),
