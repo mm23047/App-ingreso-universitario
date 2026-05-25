@@ -99,7 +99,7 @@ public class InscripcionesPrueba implements Serializable {
     @PrePersist
     private void inicializarYNormalizar() {
         if (this.estado == null || this.estado.isBlank()) {
-            this.estado = "PENDIENTE";
+            this.estado = "INSCRITO";
         } else {
             this.estado = this.estado.trim().toUpperCase();
         }

@@ -10,6 +10,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -150,10 +151,62 @@ public class PruebasAdmisionResource extends AbstractResource<PruebasAdmision> {
 
             pruebasAdmisionDAO.eliminar(existente);
             return Response.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("UUID inválido")
+                    .build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
                     .build();
         }
     }
+
+    /**
+     * NUEVO ENDPOINT: GET /pruebas_admision/activas
+     * Retorna únicamente las pruebas vigentes.
+     * ¡Este es el que llamará tu Frontend para mostrar en la vista del aspirante!
+     */
+    @GET
+    @Path("activas")
+    public Response getPruebasActivas() {
+        try {
+            List<PruebasAdmision> activas = pruebasAdmisionDAO.findActivas();
+            return Response.ok(activas).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Error al recuperar las pruebas de admisión activas.")
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * NUEVO ENDPOINT: PUT /pruebas_admision/{idPrueba}/activar
+     * Ejecuta la regla de negocio exclusiva: Enciende esta prueba y apaga todas las demás.
+     */
+    @PUT
+    @Path("{idPrueba}/activar")
+    public Response activarPruebaExclusiva(@PathParam("idPrueba") String idPruebaStr) {
+        try {
+            UUID idPrueba = UUID.fromString(idPruebaStr);
+
+            // Ejecutamos el método transaccional de tu DAO
+            pruebasAdmisionDAO.setPruebaActivaExclusiva(idPrueba);
+
+            return Response.ok()
+                    .entity("La prueba ha sido activada de forma exclusiva con éxito.")
+                    .build();
+        } catch (IllegalArgumentException e) {
+            // Captura si el UUID es inválido o si el idPrueba no existía en la consulta em.find del DAO
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(e.getMessage())
+                    .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
+                    .build();
+        }
+    }
+
 }

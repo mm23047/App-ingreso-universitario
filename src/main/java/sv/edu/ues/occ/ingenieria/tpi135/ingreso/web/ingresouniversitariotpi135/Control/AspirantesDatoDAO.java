@@ -70,8 +70,8 @@ public class AspirantesDatoDAO extends IngresoDefaultDataAccess<AspirantesDato> 
 
         if (entity.getFechaNacimiento() != null) {
             int edad = Period.between(entity.getFechaNacimiento(), LocalDate.now()).getYears();
-            if (edad < 15) { // Edad mínima lógica para un aspirante universitario de educación media
-                throw new IllegalArgumentException("El aspirante debe tener al menos 15 años de edad para registrarse.");
+            if (edad < 18) { // Edad mínima lógica para un aspirante universitario de educación media
+                throw new IllegalArgumentException("El aspirante debe tener al menos 18 años de edad para registrarse.");
             }
         }
     }
