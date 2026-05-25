@@ -36,11 +36,6 @@ import java.util.UUID;
                 name = "RespuestaExamen.findByExamenAndPregunta",
                 query = "SELECT r FROM RespuestaExamen r JOIN FETCH r.examenRealizado JOIN FETCH r.preguntaOpcion WHERE r.examenRealizado.idExamenRealizado = :idExamen AND r.preguntaOpcion.bancoPregunta.idBancoPregunta = :idPregunta"
         ),
-        // NUEVAS CONSULTAS: Para actualización de respuestas y validación final
-        @NamedQuery(
-                name = "RespuestaExamen.findByExamenAndPregunta",
-                query = "SELECT r FROM RespuestaExamen r WHERE r.examenRealizado.idExamenRealizado = :idExamen AND r.preguntaOpcion.bancoPregunta.idBancoPregunta = :idPregunta"
-        ),
         @NamedQuery(
                 name = "RespuestaExamen.countRespuestasByExamen",
                 query = "SELECT COUNT(r) FROM RespuestaExamen r WHERE r.examenRealizado.idExamenRealizado = :idExamen"
