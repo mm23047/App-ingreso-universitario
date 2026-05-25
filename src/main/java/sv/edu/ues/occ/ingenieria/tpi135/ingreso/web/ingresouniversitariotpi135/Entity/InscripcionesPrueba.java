@@ -40,6 +40,10 @@ import java.util.UUID;
         @NamedQuery(
                 name = "InscripcionesPrueba.findByPruebaAndEstado",
                 query = "SELECT i FROM InscripcionesPrueba i JOIN FETCH i.aspiranteDato JOIN FETCH i.pruebaAdmision WHERE i.pruebaAdmision.idPruebaAdmision = :idPrueba AND UPPER(TRIM(i.estado)) = UPPER(TRIM(:estado))"
+        ),
+        @NamedQuery(
+                name = "InscripcionesPrueba.findAllConRelaciones",
+                query = "SELECT i FROM InscripcionesPrueba i JOIN FETCH i.aspiranteDato JOIN FETCH i.pruebaAdmision"
         )
 })
 public class InscripcionesPrueba implements Serializable {

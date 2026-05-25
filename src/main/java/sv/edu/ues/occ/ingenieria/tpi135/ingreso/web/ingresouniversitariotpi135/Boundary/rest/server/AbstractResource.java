@@ -26,10 +26,11 @@ public abstract class AbstractResource<T> {
      * @param max Cantidad máxima de registros (default: 50)
      * @return Response con JSON de entidades + header TOTAL_RECORDS
      */
-    @GET
-    protected Response findRange(
-            @DefaultValue("0") @QueryParam("first") int first,
-            @DefaultValue("50") @QueryParam("max") int max) {
+    /**
+     * Método auxiliar de Java (SIN ANOTACIONES JAX-RS).
+     * El Resource hijo se encarga de recibir los parámetros HTTP y pasárselos a este método.
+     */
+    protected Response findRange(int first, int max) {
         try {
             List<T> entidades = getDAO().findRange(first, max);
             long total = getDAO().count();
