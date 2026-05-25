@@ -110,4 +110,16 @@ public class AsignacionAulaAspiranteDAO extends IngresoDefaultDataAccess<Asignac
             throw new IllegalStateException("Error al leer registro de AsignacionAulaAspirante con relaciones", ex);
         }
     }
+
+
+    public List<AsignacionAulaAspirante> findByAulaAndTurno(UUID idAula, UUID idTurno) {
+        if (idAula == null || idTurno == null) {
+            throw new IllegalArgumentException("El idAula y el idTurno son requeridos.");
+        }
+        return em.createNamedQuery("AsignacionAulaAspirante.findByAulaAndTurno", AsignacionAulaAspirante.class)
+                .setParameter("idAula", idAula)
+                .setParameter("idTurno", idTurno)
+                .getResultList();
+    }
+
 }

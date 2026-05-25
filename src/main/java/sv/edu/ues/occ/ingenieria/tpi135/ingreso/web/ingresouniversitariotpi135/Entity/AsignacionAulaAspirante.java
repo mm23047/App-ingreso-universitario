@@ -27,6 +27,10 @@ import java.util.UUID;
         @NamedQuery(
                 name = "AsignacionAulaAspirante.countByInscripcionAndTurno",
                 query = "SELECT COUNT(a) FROM AsignacionAulaAspirante a WHERE a.inscripcionPrueba.idInscripcionPrueba = :idInscripcion AND a.disponibilidad.idDisponibilidadAulaTurno.idTurno = :idTurno"
+        ),
+        @NamedQuery(
+                name = "AsignacionAulaAspirante.findByAulaAndTurno",
+                query = "SELECT a FROM AsignacionAulaAspirante a JOIN FETCH a.inscripcionPrueba JOIN FETCH a.disponibilidad d JOIN FETCH d.aula JOIN FETCH d.turnoExamen WHERE d.idDisponibilidadAulaTurno.idAula = :idAula AND d.idDisponibilidadAulaTurno.idTurno = :idTurno"
         )
 })
 public class AsignacionAulaAspirante implements Serializable {

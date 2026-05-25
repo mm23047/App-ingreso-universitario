@@ -79,4 +79,22 @@ public class DisponibilidadAulaTurnoDAO extends IngresoDefaultDataAccess<Disponi
             throw new IllegalStateException("Error al recuperar las aulas configuradas para el turno especificado.", e);
         }
     }
+
+    public List<DisponibilidadAulaTurno> findFiltrado(UUID idAula, UUID idTurno) {
+        try {
+            // Construcción de consulta dinámica simplificada
+            StringBuilder jpql = new StringBuilder("SELECT d FROM DisponibilidadAulaTurno d JOIN FETCH d.aula JOIN FETCH d.turnoExamen WHERE 1=1");
+            if (idAula != null) jpql.append(" AND d.aula.idAula = :idAula");
+            if (idTurno != null) jpql.append(" AND d.turnoExamen.idTurnoExamen = :idTurno");
+
+            var query = em.createQuery(jpql.toString(), DisponibilidadAulaTurno.class);
+            if (idAula != null) query.setParameter("idAula", idAula);
+            if (idTurno != null) query.setParameter("idTurno", idTurno);
+
+            return query.getResultList();
+        } catch (Exception e) {
+            throw new IllegalStateException("Error al realizar la consulta filtrada de disponibilidad.", e);
+        }
+    }
+
 }
