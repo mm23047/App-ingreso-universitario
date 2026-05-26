@@ -4,10 +4,16 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.ClavesExamanDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.ExamenRealizadoDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.InscripcionesPruebaDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExamen;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExamenRealizado;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,6 +28,13 @@ public class InscripcionesPruebaResource extends AbstractResource<InscripcionesP
 
     @Inject
     private InscripcionesPruebaDAO inscripcionesPruebaDAO;
+
+    // INYECCIONES PARA LA FASE DE GENERACIÓN DE EXAMEN
+    @Inject
+    private ClavesExamanDAO clavesExamanDAO;
+
+    @Inject
+    private ExamenRealizadoDAO examenRealizadoDAO;
 
     @Override
     protected IngresoDefaultDataAccess<InscripcionesPrueba> getDAO() {
@@ -183,4 +196,92 @@ public class InscripcionesPruebaResource extends AbstractResource<InscripcionesP
                     .build();
         }
     }
+
+
+    /**
+     * POST /inscripciones/{idInscripcion}/examen/generar
+     * Genera el Examen Realizado para una inscripción asignando una clave de forma secuencial.
+     */
+    @POST
+    @Path("{idInscripcion}/examen/generar")
+    public Response generarExamen(
+            @PathParam("idInscripcion") String idInscripcionStr,
+            @QueryParam("idEtapa") String idEtapaStr) { // Requerimos la etapa como query param
+
+        if (idEtapaStr == null || idEtapaStr.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("El id de la Etapa es obligatorio para generar el examen.")
+                    .build();
+        }
+
+        try {
+            UUID idInscripcion = UUID.fromString(idInscripcionStr);
+            UUID idEtapa = UUID.fromString(idEtapaStr);
+
+            // 1. Validar que la inscripción existe
+            InscripcionesPrueba inscripcion = inscripcionesPruebaDAO.leer(idInscripcion);
+            if (inscripcion == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Inscripción no encontrada.")
+                        .build();
+            }
+
+            // Validar que no se le haya generado un examen ya
+            if ("EXAMEN_GENERADO".equalsIgnoreCase(inscripcion.getEstado()) || "CALIFICADO".equalsIgnoreCase(inscripcion.getEstado())) {
+                return Response.status(Response.Status.CONFLICT)
+                        .entity("Esta inscripción ya tiene un examen generado o procesado.")
+                        .build();
+            }
+
+            UUID idPrueba = inscripcion.getPruebaAdmision().getIdPruebaAdmision();
+
+            // 2. Obtener las claves disponibles para esta prueba
+            List<ClavesExamen> clavesDisponibles = clavesExamanDAO.findByPrueba(idPrueba);
+            if (clavesDisponibles == null || clavesDisponibles.isEmpty()) {
+                return Response.status(Response.Status.PRECONDITION_FAILED)
+                        .entity("No hay claves de examen registradas para esta prueba.")
+                        .build();
+            }
+
+            // 3. LÓGICA SECUENCIAL: Contar cuántos exámenes ya existen para esta prueba
+            // Nota: Para sistemas de muy alto tráfico se recomienda un Query COUNT directo en BD.
+            List<ExamenRealizado> examenesPrevios = examenRealizadoDAO.findByPruebaId(idPrueba);
+            int totalExamenes = examenesPrevios != null ? examenesPrevios.size() : 0;
+
+            // Operación Módulo para asignación secuencial
+            int indiceAsignado = totalExamenes % clavesDisponibles.size();
+            ClavesExamen claveSeleccionada = clavesDisponibles.get(indiceAsignado);
+
+            // 4. Crear el cascarón de la Etapa (Solo necesitamos el ID para la FK)
+            EtapasAdmision etapaRef = new EtapasAdmision();
+            etapaRef.setIdEtapaAdmision(idEtapa);
+
+            // 5. Construir y guardar el Examen Realizado
+            ExamenRealizado nuevoExamen = new ExamenRealizado();
+            nuevoExamen.setInscripcionesPrueba(inscripcion);
+            nuevoExamen.setClaveExamen(claveSeleccionada);
+            nuevoExamen.setEtapaAdmision(etapaRef);
+            nuevoExamen.setFechaRealizacion(OffsetDateTime.now());
+            // Puntaje final inicia nulo hasta la calificación
+
+            examenRealizadoDAO.crear(nuevoExamen);
+
+            // 6. Actualizar el estado de la inscripción
+            inscripcion.setEstado("EXAMEN_GENERADO");
+            inscripcionesPruebaDAO.actualizar(inscripcion);
+
+            return Response.status(Response.Status.CREATED).entity(nuevoExamen).build();
+
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Formatos de UUID inválidos.")
+                    .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
+                    .build();
+        }
+    }
+
+
 }

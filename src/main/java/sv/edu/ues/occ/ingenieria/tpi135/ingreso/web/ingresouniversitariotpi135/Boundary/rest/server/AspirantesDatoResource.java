@@ -152,6 +152,19 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
     @PUT
     @Path("{idAspirante}")
     public Response updateAspirante(@PathParam("idAspirante") String idAspiranteStr, AspirantesDato aspirante) {
+        // Validaciones básicas de entrada
+        if (aspirante == null || aspirante.getDui() == null || aspirante.getDui().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("El DUI del aspirante es obligatorio")
+                    .header(RestHeaders.MISSING_PARAMETER, "dui")
+                    .build();
+        }
+        if (aspirante.getCorreo() == null || aspirante.getCorreo().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("El correo electrónico es obligatorio")
+                    .header(RestHeaders.MISSING_PARAMETER, "correo")
+                    .build();
+        }
         try {
             UUID idAspirante = UUID.fromString(idAspiranteStr);
             AspirantesDato existente = aspirantesDAO.leer(idAspirante);

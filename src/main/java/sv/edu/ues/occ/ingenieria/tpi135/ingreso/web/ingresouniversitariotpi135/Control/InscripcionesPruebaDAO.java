@@ -165,4 +165,24 @@ public class InscripcionesPruebaDAO extends IngresoDefaultDataAccess<Inscripcion
         }
     }
 
+    /**
+     * Se sobrescribe el método findRange del padre para forzar el uso
+     * de la consulta con JOIN FETCH, paginando correctamente los resultados
+     * y evitando excepciones de Lazy Loading al serializar a JSON.
+     */
+    @Override
+    public List<InscripcionesPrueba> findRange(int first, int max) {
+        if (first < 0 || max < 1) {
+            throw new IllegalArgumentException("Límites de paginación inválidos. 'first' debe ser >= 0 y 'max' >= 1.");
+        }
+        try {
+            return em.createNamedQuery("InscripcionesPrueba.findAllConRelaciones", InscripcionesPrueba.class)
+                    .setFirstResult(first)   // Equivalente al OFFSET
+                    .setMaxResults(max)      // Equivalente al LIMIT
+                    .getResultList();
+        } catch (Exception e) {
+            throw new IllegalStateException("Error al obtener el listado paginado de inscripciones con relaciones.", e);
+        }
+    }
+
 }

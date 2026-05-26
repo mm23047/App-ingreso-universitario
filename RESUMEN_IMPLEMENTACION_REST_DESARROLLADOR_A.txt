@@ -571,3 +571,56 @@ CONCLUSIÓN
 
 Estado actual: FASE 5 COMPLETADA
 ═══════════════════════════════════════════════════════════════════════════════
+
+DESARROLLADOR B
+
+11. AspirantesDatoResource
+   ├─ Base URI: /resources/v1/aspirantes
+   ├─ Métodos:
+   │  ├─ GET    /aspirantes                     → Listar paginado (filtro usaSilla)
+   │  ├─ POST   /aspirantes                     → Crear aspirante
+   │  ├─ GET    /aspirantes/{idAspirante}       → Obtener por ID
+   │  ├─ PUT    /aspirantes/{idAspirante}       → Actualizar aspirante
+   │  ├─ DELETE /aspirantes/{idAspirante}       → Eliminar (sin inscripciones)
+   │  ├─ GET    /aspirantes/{id}/inscripciones  → Listar inscripciones del aspirante
+   │  └─ POST   /aspirantes/{id}/inscripciones  → Inscribir aspirante a prueba
+   │
+   ├─ Inyecciones:
+   │  ├─ AspirantesDatoDAO
+   │  ├─ PruebasAdmisionDAO (Validación)
+   │  └─ InscripcionesPruebaDAO (Validación de borrado)
+   │
+   ├─ Validaciones:
+   │  ├─ dui y correo obligatorios
+   │  ├─ No eliminar si tiene inscripciones vinculadas (409 CONFLICT)
+   │  ├─ Validar existencia de Prueba antes de inscribir
+   │  └─ Reglas de negocio del DAO (Unicidad DUI/Correo, edad mínima)
+   │
+   └─ Características Especiales:
+      ├─ Filtro de accesibilidad nativo: ?usaSilla=true interceptado en el GET
+      └─ Manejo de anidamiento seguro (POST a /{id}/inscripciones fuerza el ID)
+
+12. InscripcionesPruebaResource
+   ├─ Base URI: /resources/v1/inscripciones
+   ├─ Métodos:
+   │  ├─ GET    /inscripciones                  → Listar (filtros: idPrueba, estado)
+   │  ├─ GET    /inscripciones/{idInscripcion}  → Obtener por ID (JOIN FETCH)
+   │  ├─ PUT    /inscripciones/{idInscripcion}  → Actualizar estado de inscripción
+   │  ├─ DELETE /inscripciones/{idInscripcion}  → Eliminar/Cancelar inscripción
+   │  └─ POST   /inscripciones/{id}/examen/generar → Generar hoja de examen
+   │
+   ├─ Inyecciones:
+   │  ├─ InscripcionesPruebaDAO
+   │  ├─ ClavesExamanDAO (Para emparejamiento)
+   │  └─ ExamenRealizadoDAO (Para persistencia)
+   │
+   ├─ Validaciones:
+   │  ├─ No modificar IDs relacionales accidentalmente en el PUT
+   │  ├─ idEtapa obligatorio para generar examen
+   │  └─ No generar examen si estado ya es EXAMEN_GENERADO o CALIFICADO
+   │
+   └─ Características Especiales:
+      ├─ Algoritmo de asignación de Clave secuencial usando Módulo (Residuo)
+      ├─ Control de transición de estados de inscripción
+      └─ Paginación manual en memoria cuando se aplican filtros especializados
+
