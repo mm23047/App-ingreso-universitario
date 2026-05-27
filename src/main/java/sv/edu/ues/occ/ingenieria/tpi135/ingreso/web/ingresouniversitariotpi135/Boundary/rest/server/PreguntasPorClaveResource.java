@@ -7,19 +7,21 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.PreguntasPorClaveDAO;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.ClavesExamanDAO; // Asumiendo que existe
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.BancoPreguntaDAO; // Asumiendo que existe
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.ClavesExamanDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.BancoPreguntaDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClave;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClaveId;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExamen;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 /**
  * Recurso REST para gestionar las preguntas asignadas a una clave de examen.
+ * original para evitar colisiones de rutas.
  * Base: /resources/v1/claves
  */
 @Path("claves")
@@ -30,7 +32,6 @@ public class PreguntasPorClaveResource extends AbstractResource<PreguntasPorClav
     @Inject
     private PreguntasPorClaveDAO preguntasPorClaveDAO;
 
-    // Se inyectan para validar que los padres existan antes de asociarlos
     @Inject
     private ClavesExamanDAO clavesDAO;
 
@@ -52,18 +53,14 @@ public class PreguntasPorClaveResource extends AbstractResource<PreguntasPorClav
         try {
             UUID idClave = UUID.fromString(idClaveStr);
 
-            // Validamos que la clave exista antes de buscar sus preguntas
             ClavesExamen clave = clavesDAO.leer(idClave);
             if (clave == null) {
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity("La clave de examen especificada no existe.")
-                        .header(RestHeaders.NOT_FOUND_ID, idClaveStr)
                         .build();
             }
 
-            // Usamos tu método optimizado con JOIN FETCH
             List<PreguntasPorClave> preguntas = preguntasPorClaveDAO.findPreguntasByClave(idClave);
-
             return Response.ok(preguntas).build();
 
         } catch (IllegalArgumentException e) {
@@ -79,17 +76,16 @@ public class PreguntasPorClaveResource extends AbstractResource<PreguntasPorClav
 
     /**
      * POST /claves/{idClave}/preguntas
-     * Asigna una pregunta existente a una clave.
-     * Payload esperado: {"bancoPregunta": {"idPregunta": "uuid-aqui"}}
+     * Asigna una pregunta existente a una clave usando un DTO limpio.
      */
     @POST
     @Path("{idClave}/preguntas")
     public Response asignarPreguntaAClave(
             @PathParam("idClave") String idClaveStr,
-            PreguntasPorClave nuevaAsignacion,
+            AsignarPreguntaDTO payload,
             @Context UriInfo uriInfo) {
 
-        if (nuevaAsignacion == null || nuevaAsignacion.getBancoPregunta() == null || nuevaAsignacion.getBancoPregunta().getIdBancoPregunta() == null) {
+        if (payload == null || payload.getIdPregunta() == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Debe proporcionar el ID de la pregunta a asignar.")
                     .build();
@@ -97,53 +93,125 @@ public class PreguntasPorClaveResource extends AbstractResource<PreguntasPorClav
 
         try {
             UUID idClave = UUID.fromString(idClaveStr);
-            UUID idPregunta = nuevaAsignacion.getBancoPregunta().getIdBancoPregunta();
+            UUID idPregunta = payload.getIdPregunta();
 
-            // 1. Validar existencia de la Clave
-            ClavesExamen clave = clavesDAO.leer(idClave);
+            // CORRECCIÓN: Usar el método que carga la Etapa para evitar LazyInitializationException
+            ClavesExamen clave = clavesDAO.findByIdWithEtapa(idClave);
             if (clave == null) {
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity("Clave de examen no encontrada.")
                         .build();
             }
 
-            // 2. Validar existencia de la Pregunta
-            BancoPregunta pregunta = preguntasDAO.leer(idPregunta);
-            if (pregunta == null) {
+            // REGLA DE NEGOCIO: Validar el límite de preguntas de la etapa
+            long preguntasActuales = preguntasPorClaveDAO.countPreguntasByClave(idClave);
+            int limiteRequerido = clave.getEtapaAdmision().getCantidadPreguntasRequeridas();
+
+            if (preguntasActuales >= limiteRequerido) {
+                return Response.status(Response.Status.CONFLICT)
+                        .entity("Límite alcanzado: La etapa permite un máximo de " + limiteRequerido + " preguntas.")
+                        .build();
+            }
+
+            // Validar existencia en el banco y evitar duplicados
+            if (preguntasDAO.leer(idPregunta) == null) {
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity("La pregunta especificada no existe en el banco.")
                         .build();
             }
 
-            // 3. Regla de negocio: Evitar duplicados (usando tu método del DAO)
             if (preguntasPorClaveDAO.existsByClaveAndPregunta(idClave, idPregunta)) {
                 return Response.status(Response.Status.CONFLICT)
                         .entity("Esta pregunta ya se encuentra asignada a esta clave.")
                         .build();
             }
 
-            // 4. Construir la llave compuesta e inyectar dependencias
+            // Persistir la relación
             PreguntasPorClaveId compositeId = new PreguntasPorClaveId();
             compositeId.setIdClave(idClave);
             compositeId.setIdPregunta(idPregunta);
 
+            PreguntasPorClave nuevaAsignacion = new PreguntasPorClave();
             nuevaAsignacion.setIdPreguntaPorClave(compositeId);
-            nuevaAsignacion.setClaveExamen(clave);
-            nuevaAsignacion.setBancoPregunta(pregunta);
 
-            // 5. Persistir
             preguntasPorClaveDAO.crear(nuevaAsignacion);
 
-            // 6. Retornar Created
-            URI location = uriInfo.getAbsolutePathBuilder()
-                    .path(idPregunta.toString())
-                    .build();
-
+            URI location = uriInfo.getAbsolutePathBuilder().path(idPregunta.toString()).build();
             return Response.created(location).entity(nuevaAsignacion).build();
 
         } catch (IllegalArgumentException e) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Error en los datos de los identificadores.")
+                    .entity("Error en el formato del UUID.")
+                    .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * POST /claves/{idClave}/preguntas/masivo
+     * NUEVO: Asigna un lote completo de preguntas a la vez, garantizando no superar el límite.
+     */
+    @POST
+    @Path("{idClave}/preguntas/masivo")
+    public Response asignarPreguntasMasivamente(
+            @PathParam("idClave") String idClaveStr,
+            AsignacionMasivaDTO payload) {
+
+        if (payload == null || payload.getIdsPreguntas() == null || payload.getIdsPreguntas().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Debe proporcionar una lista de IDs de preguntas a asignar.")
+                    .build();
+        }
+
+        try {
+            UUID idClave = UUID.fromString(idClaveStr);
+
+            ClavesExamen clave = clavesDAO.findByIdWithEtapa(idClave);
+            if (clave == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Clave de examen no encontrada.")
+                        .build();
+            }
+
+            // Validar límite global
+            long preguntasActuales = preguntasPorClaveDAO.countPreguntasByClave(idClave);
+            int limiteRequerido = clave.getEtapaAdmision().getCantidadPreguntasRequeridas();
+            int cantidadAInsertar = payload.getIdsPreguntas().size();
+
+            if ((preguntasActuales + cantidadAInsertar) > limiteRequerido) {
+                return Response.status(Response.Status.CONFLICT)
+                        .entity("No se puede completar el lote. El límite es de " + limiteRequerido +
+                                " preguntas. Actualmente hay " + preguntasActuales + " y estás intentando añadir " + cantidadAInsertar + ".")
+                        .build();
+            }
+
+            List<PreguntasPorClave> insertadas = new ArrayList<>();
+
+            // Iterar y guardar
+            for (UUID idPregunta : payload.getIdsPreguntas()) {
+                // Ignorar si ya existe (para evitar que falle todo el lote por un duplicado)
+                if (!preguntasPorClaveDAO.existsByClaveAndPregunta(idClave, idPregunta)) {
+
+                    PreguntasPorClaveId compositeId = new PreguntasPorClaveId();
+                    compositeId.setIdClave(idClave);
+                    compositeId.setIdPregunta(idPregunta);
+
+                    PreguntasPorClave nuevaAsignacion = new PreguntasPorClave();
+                    nuevaAsignacion.setIdPreguntaPorClave(compositeId);
+
+                    preguntasPorClaveDAO.crear(nuevaAsignacion);
+                    insertadas.add(nuevaAsignacion);
+                }
+            }
+
+            return Response.ok(insertadas).build();
+
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Error en el formato de uno o más UUIDs.")
                     .build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -166,12 +234,10 @@ public class PreguntasPorClaveResource extends AbstractResource<PreguntasPorClav
             UUID idClave = UUID.fromString(idClaveStr);
             UUID idPregunta = UUID.fromString(idPreguntaStr);
 
-            // 1. Construir el ID compuesto para buscar el registro exacto
             PreguntasPorClaveId compositeId = new PreguntasPorClaveId();
             compositeId.setIdClave(idClave);
             compositeId.setIdPregunta(idPregunta);
 
-            // 2. Buscar si existe la asignación
             PreguntasPorClave asignacionExistente = preguntasPorClaveDAO.leer(compositeId);
 
             if (asignacionExistente == null) {
@@ -180,7 +246,6 @@ public class PreguntasPorClaveResource extends AbstractResource<PreguntasPorClav
                         .build();
             }
 
-            // 3. Eliminar
             preguntasPorClaveDAO.eliminar(asignacionExistente);
             return Response.noContent().build();
 
@@ -193,5 +258,23 @@ public class PreguntasPorClaveResource extends AbstractResource<PreguntasPorClav
                     .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
                     .build();
         }
+    }
+
+    // =========================================================================
+    // DTOs PARA EL MANEJO LIMPIO DE PAYLOADS
+    // =========================================================================
+
+    public static class AsignarPreguntaDTO {
+        private UUID idPregunta;
+        public AsignarPreguntaDTO() {}
+        public UUID getIdPregunta() { return idPregunta; }
+        public void setIdPregunta(UUID idPregunta) { this.idPregunta = idPregunta; }
+    }
+
+    public static class AsignacionMasivaDTO {
+        private List<UUID> idsPreguntas;
+        public AsignacionMasivaDTO() {}
+        public List<UUID> getIdsPreguntas() { return idsPreguntas; }
+        public void setIdsPreguntas(List<UUID> idsPreguntas) { this.idsPreguntas = idsPreguntas; }
     }
 }

@@ -70,4 +70,20 @@ public class PreguntasPorClaveDAO extends IngresoDefaultDataAccess<PreguntasPorC
             throw new IllegalStateException("Error al leer registro con relaciones", ex);
         }
     }
+
+    /**
+     * Cuenta cuántas preguntas tiene asignadas actualmente una clave específica.
+     */
+    public long countPreguntasByClave(UUID idClave) {
+        if (idClave == null) {
+            throw new IllegalArgumentException("El identificador de la clave no puede ser nulo.");
+        }
+        try {
+            return em.createNamedQuery("PreguntasPorClave.countByClave", Long.class)
+                    .setParameter("idClave", idClave)
+                    .getSingleResult();
+        } catch (Exception e) {
+            throw new IllegalStateException("Error al contar las preguntas de la clave.", e);
+        }
+    }
 }

@@ -11,11 +11,12 @@ CREATE TABLE IF NOT EXISTS catalogo_carrera (
 
 CREATE TABLE IF NOT EXISTS etapa_admision (
     id_etapa UUID PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL,
+    nombre VARCHAR(50) NOT NULL UNIQUE, -- Agregamos el UNIQUE según tu Entity
     puntaje_minimo NUMERIC(5,2),
     puntaje_maximo NUMERIC(5,2),
-    descripcion TEXT
-);
+    descripcion TEXT,
+    cantidad_preguntas_requeridas INTEGER NOT NULL -- NUEVA REGLA: El límite de preguntas
+    );
 
 CREATE TABLE IF NOT EXISTS prueba_admision (
     id_prueba UUID PRIMARY KEY,
@@ -119,12 +120,15 @@ CREATE TABLE IF NOT EXISTS carrera_elegida (
     CONSTRAINT uk_inscripcion_prioridad UNIQUE (id_inscripcion, prioridad)
 );
 
--- 6. Configuración del Examen (Claves)
 CREATE TABLE IF NOT EXISTS clave_examen (
     id_clave UUID PRIMARY KEY,
     id_prueba UUID NOT NULL REFERENCES prueba_admision(id_prueba),
-    nombre_clave VARCHAR(50) NOT NULL
-);
+    id_etapa UUID NOT NULL REFERENCES etapa_admision(id_etapa), -- EL ESLABÓN PERDIDO
+    nombre_clave VARCHAR(50) NOT NULL,
+
+    -- Restricción: No pueden haber dos "Clave A" en la misma prueba y etapa
+    CONSTRAINT uk_clave_examen_prueba_nombre UNIQUE (id_prueba, id_etapa, nombre_clave)
+    );
 
 CREATE TABLE IF NOT EXISTS preguntas_por_clave (
     id_clave UUID NOT NULL REFERENCES clave_examen(id_clave),

@@ -80,12 +80,12 @@ public class AsignacionAulaAspirante implements Serializable {
     }
 
     @Transient
-    public Aula getIdAula() {
+    public Aula getAulaDetalle() {
         return disponibilidad != null ? disponibilidad.getAula() : null;
     }
 
     @Transient
-    public TurnosExamen getIdTurno() {
+    public TurnosExamen getTurnoDetalle() {
         return disponibilidad != null ? disponibilidad.getTurnoExamen() : null;
     }
 

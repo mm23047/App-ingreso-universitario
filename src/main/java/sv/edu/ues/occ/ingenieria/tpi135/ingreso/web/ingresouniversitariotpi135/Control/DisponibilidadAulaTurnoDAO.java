@@ -4,9 +4,12 @@ import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.*;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.DisponibilidadAulaTurno;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.DisponibilidadAulaTurnoId;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,19 +37,18 @@ public class DisponibilidadAulaTurnoDAO extends IngresoDefaultDataAccess<Disponi
      */
     @Override
     public DisponibilidadAulaTurno leer(Object id) {
-        if (id == null) {
-            throw new IllegalArgumentException("El id no puede ser nulo");
+        if (!(id instanceof DisponibilidadAulaTurnoId)) {
+            throw new IllegalArgumentException("El id debe ser del tipo DisponibilidadAulaTurnoId");
         }
+        DisponibilidadAulaTurnoId idCompuesto = (DisponibilidadAulaTurnoId) id;
+
         try {
             return em.createNamedQuery("DisponibilidadAulaTurno.findByIdConRelaciones", DisponibilidadAulaTurno.class)
-                    .setParameter("id", id)
+                    .setParameter("idAula", idCompuesto.getIdAula())
+                    .setParameter("idTurno", idCompuesto.getIdTurno())
                     .getSingleResult();
         } catch (jakarta.persistence.NoResultException e) {
-            return null; // Replicamos el comportamiento de em.find() de la clase padre
-        } catch (IllegalStateException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            throw new IllegalStateException("Error al leer registro de DisponibilidadAulaTurno con relaciones", ex);
+            return null;
         }
     }
 
@@ -80,21 +82,41 @@ public class DisponibilidadAulaTurnoDAO extends IngresoDefaultDataAccess<Disponi
         }
     }
 
-    public List<DisponibilidadAulaTurno> findFiltrado(UUID idAula, UUID idTurno) {
+    // Tu nuevo método robusto con paginación
+    public List<DisponibilidadAulaTurno> findFiltrado(UUID idAula, UUID idTurno, int first, int max) {
         try {
-            // Construcción de consulta dinámica simplificada
-            StringBuilder jpql = new StringBuilder("SELECT d FROM DisponibilidadAulaTurno d JOIN FETCH d.aula JOIN FETCH d.turnoExamen WHERE 1=1");
-            if (idAula != null) jpql.append(" AND d.aula.idAula = :idAula");
-            if (idTurno != null) jpql.append(" AND d.turnoExamen.idTurnoExamen = :idTurno");
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<DisponibilidadAulaTurno> cq = cb.createQuery(DisponibilidadAulaTurno.class);
+            Root<DisponibilidadAulaTurno> root = cq.from(DisponibilidadAulaTurno.class);
 
-            var query = em.createQuery(jpql.toString(), DisponibilidadAulaTurno.class);
-            if (idAula != null) query.setParameter("idAula", idAula);
-            if (idTurno != null) query.setParameter("idTurno", idTurno);
+            // 1. Configurar los JOIN FETCH para evitar LazyInitializationException en el Resource
+            root.fetch("aula", JoinType.INNER);
+            root.fetch("turnoExamen", JoinType.INNER);
+
+            // 2. Construir los filtros dinámicamente
+            List<Predicate> predicados = new ArrayList<>();
+
+            if (idAula != null) {
+                predicados.add(cb.equal(root.get("aula").get("idAula"), idAula));
+            }
+            if (idTurno != null) {
+                predicados.add(cb.equal(root.get("turnoExamen").get("idTurnoExamen"), idTurno));
+            }
+
+            // 3. Aplicar los filtros si existen
+            if (!predicados.isEmpty()) {
+                cq.where(cb.and(predicados.toArray(new Predicate[0])));
+            }
+
+            // 4. Crear el query, aplicar paginación y retornar
+            var query = em.createQuery(cq);
+            query.setFirstResult(first);
+            query.setMaxResults(max);
 
             return query.getResultList();
+
         } catch (Exception e) {
-            throw new IllegalStateException("Error al realizar la consulta filtrada de disponibilidad.", e);
+            throw new IllegalStateException("Error al realizar la consulta filtrada de disponibilidad mediante Criteria API.", e);
         }
     }
-
 }

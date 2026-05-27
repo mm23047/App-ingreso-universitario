@@ -24,7 +24,7 @@ import java.util.UUID;
  * Recurso REST para gestionar la Disponibilidad de Aulas por Turno.
  * Base dinámica para soportar rutas multi-raíz.
  */
-@Path("")
+@Path("aulas-turnos")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class DisponibilidadAulaTurnoResource extends AbstractResource<DisponibilidadAulaTurno> {
@@ -51,12 +51,14 @@ public class DisponibilidadAulaTurnoResource extends AbstractResource<Disponibil
     @Path("disponibilidad")
     public Response listDisponibilidad(
             @QueryParam("idAula") String idAulaStr,
-            @QueryParam("idTurno") String idTurnoStr) {
+            @QueryParam("idTurno") String idTurnoStr,
+            @DefaultValue("0") @QueryParam("first") int first,
+            @DefaultValue("50") @QueryParam("max") int max) {
         try {
             UUID idAula = (idAulaStr != null && !idAulaStr.isBlank()) ? UUID.fromString(idAulaStr) : null;
             UUID idTurno = (idTurnoStr != null && !idTurnoStr.isBlank()) ? UUID.fromString(idTurnoStr) : null;
 
-            List<DisponibilidadAulaTurno> lista = disponibilidadDAO.findFiltrado(idAula, idTurno);
+            List<DisponibilidadAulaTurno> lista = disponibilidadDAO.findFiltrado(idAula, idTurno, first, max);
             return Response.ok(lista).build();
         } catch (IllegalArgumentException e) {
             return Response.status(Response.Status.BAD_REQUEST)

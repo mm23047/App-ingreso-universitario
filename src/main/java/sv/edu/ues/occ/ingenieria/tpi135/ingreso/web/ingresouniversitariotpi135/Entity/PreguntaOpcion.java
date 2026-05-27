@@ -30,6 +30,10 @@ import java.util.UUID;
         @NamedQuery(
                 name = "PreguntaOpcion.findOpcionesCorrectasByPregunta",
                 query = "SELECT p FROM PreguntaOpcion p WHERE p.bancoPregunta.idBancoPregunta = :idPregunta AND p.esCorrecta = true"
+        ),
+        @NamedQuery(
+                name = "PreguntaOpcion.findByIdsConBancoPregunta",
+                query = "SELECT o FROM PreguntaOpcion o JOIN FETCH o.bancoPregunta WHERE o.idPreguntaOpcion IN :ids"
         )
 })
 public class PreguntaOpcion implements Serializable {

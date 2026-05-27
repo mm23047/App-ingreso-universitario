@@ -17,7 +17,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
-@Path("/")
+@Path("asignaciones-aula")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class AsignacionAulaAspiranteResource extends AbstractResource<AsignacionAulaAspirante> {
@@ -40,7 +40,7 @@ public class AsignacionAulaAspiranteResource extends AbstractResource<Asignacion
      * POST /inscripciones/{idInscripcion}/asignacion-aula
      */
     @POST
-    @Path("inscripciones/{idInscripcion}/asignacion-aula")
+    @Path("inscripciones/{idInscripcion}")
     public Response asignarAulaAspirante(
             @PathParam("idInscripcion") String idInscripcionStr,
             AsignacionRequest payload, // Uso del DTO para simplificar la entrada
@@ -64,7 +64,8 @@ public class AsignacionAulaAspiranteResource extends AbstractResource<Asignacion
             }
 
             // 2. REUTILIZACIÓN: Usamos el método 'findFiltrado' del DAO de tu compañero
-            List<DisponibilidadAulaTurno> listaDisp = disponibilidadDAO.findFiltrado(payload.getIdAula(), payload.getIdTurno());
+            // DESPUÉS (Llamada corregida solicitando exactamente 1 registro)
+            List<DisponibilidadAulaTurno> listaDisp = disponibilidadDAO.findFiltrado(payload.getIdAula(), payload.getIdTurno(), 0, 1);
             if (listaDisp.isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)
                         .entity("No existe una asignación de disponibilidad para el Aula y Turno especificados.")
@@ -107,26 +108,22 @@ public class AsignacionAulaAspiranteResource extends AbstractResource<Asignacion
      * GET /disponibilidad/{idAula}/{idTurno}/asignaciones
      */
     @GET
-    @Path("disponibilidad/{idAula}/{idTurno}/asignaciones")
+    @Path("disponibilidad/{idAula}/{idTurno}") // Limpiamos el "/asignaciones" del final
     public Response getAsignacionesPorAulaYTurno(
             @PathParam("idAula") String idAulaStr,
             @PathParam("idTurno") String idTurnoStr,
             @DefaultValue("0") @QueryParam("first") int first,
             @DefaultValue("50") @QueryParam("max") int max) {
-
         try {
             UUID idAula = UUID.fromString(idAulaStr);
             UUID idTurno = UUID.fromString(idTurnoStr);
 
             // Llama al método propio de AsignacionAulaAspiranteDAO
-            List<AsignacionAulaAspirante> asignaciones = asignacionAulaAspiranteDAO.findByAulaAndTurno(idAula, idTurno);
-
-            int fromIndex = Math.min(first, asignaciones.size());
-            int toIndex = Math.min(first + max, asignaciones.size());
-            List<AsignacionAulaAspirante> paginados = asignaciones.subList(fromIndex, toIndex);
+            List<AsignacionAulaAspirante> paginados = asignacionAulaAspiranteDAO.findByAulaAndTurno(idAula, idTurno, first, max);
+            long totalRecords = asignacionAulaAspiranteDAO.countByAulaAndTurno(idAula, idTurno);
 
             return Response.ok(paginados)
-                    .header(RestHeaders.TOTAL_RECORDS, asignaciones.size())
+                    .header(RestHeaders.TOTAL_RECORDS, totalRecords)
                     .build();
 
         } catch (IllegalArgumentException e) {
@@ -144,7 +141,7 @@ public class AsignacionAulaAspiranteResource extends AbstractResource<Asignacion
      * DELETE /asignaciones-aula/{idAsignacion}
      */
     @DELETE
-    @Path("asignaciones-aula/{idAsignacion}")
+    @Path("{idAsignacion}")
     public Response deleteAsignacion(@PathParam("idAsignacion") String idAsignacionStr) {
         try {
             UUID idAsignacion = UUID.fromString(idAsignacionStr);

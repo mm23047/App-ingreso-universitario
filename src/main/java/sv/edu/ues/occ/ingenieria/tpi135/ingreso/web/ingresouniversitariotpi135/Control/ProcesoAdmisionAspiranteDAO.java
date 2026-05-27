@@ -76,11 +76,17 @@ public class ProcesoAdmisionAspiranteDAO extends IngresoDefaultDataAccess<Proces
         proceso.setEstado("NO_ADMITIDO");
         return proceso;
     }
-
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    /**
+     * Si en las pruebas de estrés notas que tu endpoint POST /asignar-masivo se demora más de 30 segundos,
+     * considera volver el método de tu DAO asíncrono agregando la anotación @Asynchronous de EJB,
+     * y responde desde tu Resource con un código HTTP 202 ACCEPTED (que significa: "Recibí la orden,
+     * la estoy procesando en segundo plano, revisa más tarde").
+     */
     /**
      * Procesa en lote a todos los estudiantes garantizando Todo o Nada (Transaccionalidad)
      */
-    @Transactional(Transactional.TxType.REQUIRED) // Toda la iteración ocurre en una sola transacción
+    @Transactional(Transactional.TxType.REQUIRED)
     public void procesarAsignacionMasiva(UUID idEtapa) {
         if (idEtapa == null) {
             throw new IllegalArgumentException("El id de la etapa es requerido.");
@@ -91,10 +97,22 @@ public class ProcesoAdmisionAspiranteDAO extends IngresoDefaultDataAccess<Proces
                 .setParameter("idEtapa", idEtapa)
                 .getResultList();
 
+        int batchSize = 50; // Tamaño prudente del lote
+        int count = 0;
+
         for (ProcesoAdmisionAspirante aspirante : aspirantesOrdenados) {
             this.asignarCarreraFinal(aspirante.getIdProcesoAdmisionAspirante());
-            em.flush(); // Sincroniza con la base de datos en cada paso para no desbordar la memoria
+            count++;
+
+            // MAGIA DE RENDIMIENTO: Sincroniza y destruye la basura en la memoria de Java
+            if (count % batchSize == 0) {
+                em.flush();
+                em.clear();
+            }
         }
+        // Empujar los remanentes
+        em.flush();
+        em.clear();
     }
 
     /**

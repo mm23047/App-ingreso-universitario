@@ -11,7 +11,10 @@ import java.util.Objects;
         // NUEVA CONSULTA: Para leer por ID trayendo el Aula y el Turno de una vez (Evita LazyInitializationException en el padre)
         @NamedQuery(
                 name = "DisponibilidadAulaTurno.findByIdConRelaciones",
-                query = "SELECT d FROM DisponibilidadAulaTurno d JOIN FETCH d.aula JOIN FETCH d.turnoExamen WHERE d.idDisponibilidadAulaTurno = :id"
+                // CORRECCIÓN: Comparamos los campos del ID incrustado directamente
+                query = "SELECT d FROM DisponibilidadAulaTurno d JOIN FETCH d.aula JOIN FETCH d.turnoExamen " +
+                        "WHERE d.idDisponibilidadAulaTurno.idAula = :idAula " +
+                        "AND d.idDisponibilidadAulaTurno.idTurno = :idTurno"
         ),
         @NamedQuery(
                 name = "DisponibilidadAulaTurno.countByAulaAndTurno",

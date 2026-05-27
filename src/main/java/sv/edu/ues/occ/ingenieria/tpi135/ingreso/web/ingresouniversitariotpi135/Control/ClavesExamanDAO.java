@@ -54,9 +54,14 @@ public class ClavesExamanDAO extends IngresoDefaultDataAccess<ClavesExamen> impl
         return super.actualizar(entity);
     }
 
+
     private void validarCampos(ClavesExamen entity) {
         if (entity == null || entity.getPruebaAdmision() == null || entity.getNombreClave() == null || entity.getNombreClave().isBlank()) {
             throw new IllegalArgumentException("La prueba asociada y el nombre de la clave son campos estrictamente obligatorios.");
+        }
+        // NUEVO: Validar que venga la etapa
+        if (entity.getEtapaAdmision() == null || entity.getEtapaAdmision().getIdEtapaAdmision() == null) {
+            throw new IllegalArgumentException("La clave debe pertenecer a una etapa de admisión válida.");
         }
     }
 
@@ -95,5 +100,19 @@ public class ClavesExamanDAO extends IngresoDefaultDataAccess<ClavesExamen> impl
                 .setParameter("nombreClave", nombreClave.trim())
                 .getSingleResult();
         return count > 0;
+    }
+    // 2. Agrega este nuevo método para uso exclusivo del Resource
+    /**
+     * Extrae la clave y carga proactivamente su Etapa de Admisión (JOIN FETCH)
+     * para evitar LazyInitializationException al consultar sus límites.
+     */
+    public ClavesExamen findByIdWithEtapa(UUID idClave) {
+        try {
+            return em.createNamedQuery("ClavesExaman.findByIdWithEtapa",  ClavesExamen.class)
+                    .setParameter("idClave", idClave)
+                    .getSingleResult();
+        } catch (jakarta.persistence.NoResultException e) {
+            return null;
+        }
     }
 }

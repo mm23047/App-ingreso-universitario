@@ -11,6 +11,10 @@ import java.util.Objects;
         @UniqueConstraint(name = "uk_inscripcion_prioridad", columnNames = {"id_inscripcion", "prioridad"})
 })
 @NamedQueries({
+        @NamedQuery(
+                name = "CarrerasElegida.findByInscripcionAndPrioridadLevel",
+                query = "SELECT c FROM CarrerasElegida c JOIN FETCH c.inscripcionesPrueba JOIN FETCH c.catalogoCarrera WHERE c.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion AND c.prioridad = :prioridad"
+        ),
         // Las consultas de COUNT se quedan exactamente igual (no devuelven entidades)
         @NamedQuery(
                 name = "CarrerasElegida.countByInscripcionAndPrioridad",

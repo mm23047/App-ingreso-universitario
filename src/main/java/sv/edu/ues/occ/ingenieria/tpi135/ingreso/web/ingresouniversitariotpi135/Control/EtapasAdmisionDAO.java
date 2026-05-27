@@ -64,6 +64,9 @@ public class EtapasAdmisionDAO extends IngresoDefaultDataAccess<EtapasAdmision> 
         if (entity.getNombre() == null || entity.getNombre().isBlank()) {
             throw new IllegalArgumentException("El nombre de la etapa es un campo obligatorio.");
         }
+        if (entity.getCantidadPreguntasRequeridas() == null || entity.getCantidadPreguntasRequeridas() <= 0) {
+            throw new IllegalArgumentException("La etapa debe requerir al menos 1 pregunta válida.");
+        }
         if (entity.getPuntajeMinimo() != null && entity.getPuntajeMaximo() != null) {
             if (entity.getPuntajeMinimo().compareTo(entity.getPuntajeMaximo()) > 0) {
                 throw new IllegalArgumentException("Inconsistencia en el rango de notas: El puntaje mínimo ("

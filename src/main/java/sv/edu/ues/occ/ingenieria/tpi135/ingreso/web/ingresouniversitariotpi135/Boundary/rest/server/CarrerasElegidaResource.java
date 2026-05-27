@@ -231,4 +231,100 @@ public class CarrerasElegidaResource extends AbstractResource<CarrerasElegida> {
                     .build();
         }
     }
+    /**
+     * GET /inscripciones/{idInscripcion}/carreras/primera-opcion
+     * Retorna únicamente la carrera marcada con prioridad 1 (máximo deseo).
+     */
+    @GET
+    @Path("primera-opcion")
+    public Response getPrimeraOpcion(@PathParam("idInscripcion") String idInscripcionStr) {
+        try {
+            UUID idInscripcion = UUID.fromString(idInscripcionStr);
+
+            // Buscamos directamente la prioridad 1 usando el nuevo método del DAO
+            CarrerasElegida primeraOpcion = carrerasElegidaDAO.findByInscripcionAndPrioridadLevel(idInscripcion, (short) 1);
+
+            if (primeraOpcion == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("El aspirante aún no ha registrado una primera opción.")
+                        .build();
+            }
+
+            return Response.ok(primeraOpcion).build();
+
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("UUID de inscripción inválido.").build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * PATCH /inscripciones/{idInscripcion}/carreras/reordenar
+     * Actualiza el orden de prioridad de todas las carreras en una sola transacción.
+     * Payload esperado: ["MED", "ISI", "ARQ"] (Array de IDs de catálogo en el nuevo orden).
+     */
+    @PATCH
+    @Path("reordenar")
+    public Response reordenarCarreras(
+            @PathParam("idInscripcion") String idInscripcionStr,
+            List<String> nuevoOrdenIds) {
+
+        if (nuevoOrdenIds == null || nuevoOrdenIds.isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Debe enviar la lista con el nuevo orden de las carreras.")
+                    .build();
+        }
+
+        try {
+            UUID idInscripcion = UUID.fromString(idInscripcionStr);
+
+            // 1. Obtenemos las carreras que el aspirante tiene registradas actualmente
+            List<CarrerasElegida> carrerasActuales = carrerasElegidaDAO.findByInscripcionOrderByPrioridad(idInscripcion);
+
+            // 2. Validación de integridad: ¿Envió la misma cantidad que tiene registradas?
+            if (carrerasActuales.size() != nuevoOrdenIds.size()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("La cantidad de carreras enviadas no coincide con las registradas por el aspirante.")
+                        .build();
+            }
+
+            // 3. Procesamiento en memoria y actualización masiva
+            // Iteramos sobre la lista de IDs que envió el frontend
+            for (int i = 0; i < nuevoOrdenIds.size(); i++) {
+                String idCarreraBuscada = nuevoOrdenIds.get(i);
+                Short nuevaPrioridad = (short) (i + 1); // El índice 0 será prioridad 1, índice 1 será prioridad 2, etc.
+
+                // Buscamos esta carrera en la lista que sacamos de la BD
+                CarrerasElegida carreraAActualizar = carrerasActuales.stream()
+                        .filter(c -> c.getCatalogoCarrera().getIdCarrera().equals(idCarreraBuscada))
+                        .findFirst()
+                        .orElse(null);
+
+                // Si mandó un ID de carrera que no tenía registrado, abortamos
+                if (carreraAActualizar == null) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                            .entity("La carrera " + idCarreraBuscada + " no está en la lista de opciones del aspirante.")
+                            .build();
+                }
+
+                // Actualizamos la prioridad y persistimos con tu DAO
+                carreraAActualizar.setPrioridad(nuevaPrioridad);
+                carrerasElegidaDAO.actualizar(carreraAActualizar);
+            }
+
+            // Retornamos la lista ya ordenada correctamente
+            List<CarrerasElegida> listaActualizada = carrerasElegidaDAO.findByInscripcionOrderByPrioridad(idInscripcion);
+            return Response.ok(listaActualizada).build();
+
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("UUID de inscripción inválido.").build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
+                    .build();
+        }
+    }
 }

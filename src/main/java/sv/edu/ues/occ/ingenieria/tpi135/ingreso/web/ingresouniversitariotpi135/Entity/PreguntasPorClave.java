@@ -19,7 +19,11 @@ import java.util.Objects;
         @NamedQuery(
                 name = "PreguntasPorClave.findById",
                 query = "SELECT p FROM PreguntasPorClave p JOIN FETCH p.claveExamen JOIN FETCH p.bancoPregunta WHERE p.idPreguntaPorClave = :idPreguntaPorClave"
-        )
+        ),
+        @NamedQuery(
+                name = "PreguntasPorClave.countByClave",
+                query = "SELECT COUNT(p) FROM PreguntasPorClave p WHERE p.idPreguntaPorClave.idClave = :idClave"
+        ),
 })
 public class PreguntasPorClave implements Serializable {
 

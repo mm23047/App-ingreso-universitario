@@ -52,6 +52,20 @@ public class EtapasAdmision implements Serializable {
     @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;
 
+    // NUEVO CAMPO: Define cuántas preguntas debe tener cualquier examen de esta etapa
+    @NotNull(message = "Debe especificar la cantidad de preguntas para esta etapa.")
+    @Column(name = "cantidad_preguntas_requeridas", nullable = false)
+    private Integer cantidadPreguntasRequeridas;
+
+    // ... Getters y Setters ...
+    public Integer getCantidadPreguntasRequeridas() {
+        return cantidadPreguntasRequeridas;
+    }
+
+    public void setCantidadPreguntasRequeridas(Integer cantidadPreguntasRequeridas) {
+        this.cantidadPreguntasRequeridas = cantidadPreguntasRequeridas;
+    }
+
     public UUID getIdEtapaAdmision() {
         return idEtapaAdmision;
     }

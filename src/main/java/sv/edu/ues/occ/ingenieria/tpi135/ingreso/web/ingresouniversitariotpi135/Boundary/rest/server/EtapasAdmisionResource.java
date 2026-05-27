@@ -53,6 +53,13 @@ public class EtapasAdmisionResource extends AbstractResource<EtapasAdmision> {
                     .header(RestHeaders.MISSING_PARAMETER, "nombre")
                     .build();
         }
+        // --- NUEVA VALIDACIÓN DE FRONTERA ---
+        if (etapa.getCantidadPreguntasRequeridas() == null || etapa.getCantidadPreguntasRequeridas() <= 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Debe especificar una cantidad válida (mayor a 0) de preguntas requeridas para esta etapa.")
+                    .header(RestHeaders.MISSING_PARAMETER, "cantidadPreguntasRequeridas")
+                    .build();
+        }
 
         try {
             etapasAdmisionDAO.crear(etapa);

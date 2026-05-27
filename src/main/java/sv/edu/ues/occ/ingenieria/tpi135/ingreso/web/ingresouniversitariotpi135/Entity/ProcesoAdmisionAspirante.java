@@ -21,7 +21,10 @@ import java.util.UUID;
         // NUEVA CONSULTA: Trae los procesos de aspirantes pendientes filtrados por nota final (ExamenRealizado) de mayor a menor
         @NamedQuery(
                 name = "ProcesoAdmisionAspirante.findPendientesPorPuntaje",
-                query = "SELECT p FROM ProcesoAdmisionAspirante p JOIN ExamenRealizado er ON er.inscripcionesPrueba = p.idProcesoAdmisionAspirante WHERE p.etapaAdmision.idEtapaAdmision = :idEtapa AND p.estado = 'PENDIENTE' ORDER BY er.puntajeFinal DESC"
+                query = "SELECT p FROM ProcesoAdmisionAspirante p " +
+                        "JOIN ExamenRealizado er ON er.inscripcionesPrueba.idInscripcionPrueba = p.idProcesoAdmisionAspirante " +
+                        "WHERE p.etapaAdmision.idEtapaAdmision = :idEtapa AND p.estado = 'PENDIENTE' " +
+                        "ORDER BY er.puntajeFinal DESC"
         ),
         // NUEVA CONSULTA: Carga el proceso y sus relaciones para REST.
         // Se usa LEFT JOIN en carreraAsignada porque puede ser NULL si aún no ha sido admitido.

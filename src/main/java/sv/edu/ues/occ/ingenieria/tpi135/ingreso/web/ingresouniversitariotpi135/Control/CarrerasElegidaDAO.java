@@ -120,4 +120,23 @@ public class CarrerasElegidaDAO extends IngresoDefaultDataAccess<CarrerasElegida
             throw new IllegalStateException("Error al verificar duplicidad de carrera", e);
         }
     }
+
+    /**
+     * Busca la carrera elegida por el aspirante según un nivel de prioridad específico.
+     */
+    public CarrerasElegida findByInscripcionAndPrioridadLevel(UUID idInscripcion, Short prioridad) {
+        if (idInscripcion == null || prioridad == null) {
+            throw new IllegalArgumentException("Parámetros nulos no permitidos");
+        }
+        try {
+            return em.createNamedQuery("CarrerasElegida.findByInscripcionAndPrioridadLevel", CarrerasElegida.class)
+                    .setParameter("idInscripcion", idInscripcion)
+                    .setParameter("prioridad", prioridad)
+                    .getResultStream()
+                    .findFirst()
+                    .orElse(null);
+        } catch (Exception e) {
+            throw new IllegalStateException("Error al buscar carrera por prioridad en BD", e);
+        }
+    }
 }

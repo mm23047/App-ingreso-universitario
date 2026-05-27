@@ -28,6 +28,10 @@ import java.util.UUID;
         @NamedQuery(
                 name = "ClavesExaman.countByPruebaAndNombreNotId",
                 query = "SELECT COUNT(c) FROM ClavesExamen c WHERE c.pruebaAdmision.idPruebaAdmision = :idPrueba AND c.nombreClave = :nombreClave AND c.idClaveExaman <> :idClave"
+        ),
+        @NamedQuery(
+                name = "ClavesExaman.findByIdWithEtapa",
+                query="SELECT c FROM ClavesExamen c JOIN FETCH c.etapaAdmision WHERE c.idClaveExaman = :idClave"
         )
 })
 public class ClavesExamen implements Serializable {
@@ -47,6 +51,21 @@ public class ClavesExamen implements Serializable {
     @NotNull
     @Column(name = "nombre_clave", nullable = false, length = 50)
     private String nombreClave;
+
+    // NUEVA RELACIÓN: Conecta el examen con la etapa para heredar sus reglas
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_etapa", nullable = false)
+    private EtapasAdmision etapaAdmision;
+
+    // Getter y Setter
+    public EtapasAdmision getEtapaAdmision() {
+        return etapaAdmision;
+    }
+
+    public void setEtapaAdmision(EtapasAdmision etapaAdmision) {
+        this.etapaAdmision = etapaAdmision;
+    }
 
     public UUID getIdClaveExaman() {
         return idClaveExaman;

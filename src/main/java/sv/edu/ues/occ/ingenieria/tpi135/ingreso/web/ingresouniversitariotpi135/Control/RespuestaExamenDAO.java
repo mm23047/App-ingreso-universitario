@@ -5,10 +5,14 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExamenRealizado;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntaOpcion;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.RespuestaExamen;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Stateless
@@ -115,5 +119,72 @@ public class RespuestaExamenDAO extends IngresoDefaultDataAccess<RespuestaExamen
         } catch (Exception e) {
             throw new IllegalStateException("Error al acceder a la base de datos", e);
         }
+    }
+
+    /**
+     * Guarda un lote de respuestas. Ideal para el botón "Enviar Todo" o para la Máquina Lectora OMR.
+     * Guarda un lote de respuestas optimizando los accesos a la base de datos (O(1) en búsquedas).
+     * Hace uso de la Query declarada en la entidad PreguntaOpcion.
+     */
+    public void guardarLoteMejorado(UUID idExamen, List<UUID> idsOpciones) {
+        if (idExamen == null || idsOpciones == null || idsOpciones.isEmpty()) {
+            return;
+        }
+
+        // 1. Traer la referencia del examen
+        ExamenRealizado examen = em.find(ExamenRealizado.class, idExamen);
+        if (examen == null) {
+            throw new IllegalArgumentException("El examen no existe en la base de datos.");
+        }
+
+        // 2. CORREGIDO: Invocación limpia usando el NamedQuery de la entidad PreguntaOpcion
+        List<PreguntaOpcion> opcionesEntrantes = em.createNamedQuery(
+                        "PreguntaOpcion.findByIdsConBancoPregunta", PreguntaOpcion.class)
+                .setParameter("ids", idsOpciones)
+                .getResultList();
+
+        // 3. Traer las respuestas previas del estudiante
+        List<RespuestaExamen> respuestasPrevias = em.createNamedQuery("RespuestaExamen.findByExamenId", RespuestaExamen.class)
+                .setParameter("idExamen", idExamen)
+                .getResultList();
+
+        // 4. Mapear en memoria para acceso rápido O(1)
+        Map<UUID, RespuestaExamen> mapaRespuestasPrevias = new HashMap<>();
+        for (RespuestaExamen r : respuestasPrevias) {
+            if (r.getPreguntaOpcion() != null && r.getPreguntaOpcion().getBancoPregunta() != null) {
+                UUID idPregunta = r.getPreguntaOpcion().getBancoPregunta().getIdBancoPregunta();
+                mapaRespuestasPrevias.put(idPregunta, r);
+            }
+        }
+
+        // 5. Proceso Upsert en lotes
+        int batchSize = 50;
+        int count = 0;
+
+        for (PreguntaOpcion nuevaOpcion : opcionesEntrantes) {
+            UUID idPreguntaActual = nuevaOpcion.getBancoPregunta().getIdBancoPregunta();
+
+            if (mapaRespuestasPrevias.containsKey(idPreguntaActual)) {
+                // UPDATE
+                RespuestaExamen existente = mapaRespuestasPrevias.get(idPreguntaActual);
+                existente.setPreguntaOpcion(nuevaOpcion);
+                em.merge(existente);
+            } else {
+                // INSERT
+                RespuestaExamen nuevaRespuesta = new RespuestaExamen();
+                nuevaRespuesta.setExamenRealizado(examen);
+                nuevaRespuesta.setPreguntaOpcion(nuevaOpcion);
+                em.persist(nuevaRespuesta);
+            }
+
+            count++;
+            if (count % batchSize == 0) {
+                em.flush();
+                em.clear();
+            }
+        }
+
+        em.flush();
+        em.clear();
     }
 }

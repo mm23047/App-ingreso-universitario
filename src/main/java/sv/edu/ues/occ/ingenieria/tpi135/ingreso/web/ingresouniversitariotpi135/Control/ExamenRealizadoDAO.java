@@ -3,13 +3,16 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExamenRealizado;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,6 +34,18 @@ public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado
         return em;
     }
 
+    /**
+     * NUEVO MÉTODO DE NEGOCIO ENCAPSULADO
+     * Cuenta cuántos exámenes han sido generados usando una clave específica.
+     */
+    public long countByClaveExamen(UUID idClave) {
+        if (idClave == null) {
+            throw new IllegalArgumentException("El ID de la clave no puede ser nulo.");
+        }
+        return em.createNamedQuery("ExamenRealizado.countByClave", Long.class)
+                .setParameter("idClave", idClave)
+                .getSingleResult();
+    }
     @Override
     public void crear(ExamenRealizado entity) {
         validarConsistenciaEntidad(entity);
@@ -80,7 +95,7 @@ public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado
 
     public ExamenRealizado calificarExamen(UUID examenId) {
         if (examenId == null) {
-            throw new IllegalArgumentException("examenId must not be null");
+            throw new IllegalArgumentException("El ID del examen NO debe de ser NULL");
         }
         try {
             ExamenRealizado examen = em.find(ExamenRealizado.class, examenId);
@@ -142,18 +157,16 @@ public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado
      * MÉTODOS DE NEGOCIO (FASE 1 COMPLETADA)
      * Retorna el listado de calificaciones en orden descendente para la asignación competitiva de plazas físicas.
      */
-    public List<ExamenRealizado> findRankingByPruebaAndEtapa(UUID idPrueba, UUID idEtapa, int maxResults) {
+    public List<ExamenRealizado> findRankingByPruebaAndEtapa(UUID idPrueba, UUID idEtapa, int offset, int limit) {
         if (idPrueba == null || idEtapa == null) {
-            throw new IllegalArgumentException("Los IDs de prueba y etapa son mandatorios para generar la clasificación.");
-        }
-        if (maxResults < 1) {
-            throw new IllegalArgumentException("El límite de registros del ranking debe ser como mínimo 1.");
+            throw new IllegalArgumentException("Los IDs de prueba y etapa son mandatorios.");
         }
         try {
             return em.createNamedQuery("ExamenRealizado.findRankingByPruebaAndEtapa", ExamenRealizado.class)
                     .setParameter("idPrueba", idPrueba)
                     .setParameter("idEtapa", idEtapa)
-                    .setMaxResults(maxResults)
+                    .setFirstResult(offset) // <-- ESTA ES LA MAGIA DEL OFFSET
+                    .setMaxResults(limit)   // <-- ESTE ES EL LIMIT
                     .getResultList();
         } catch (Exception e) {
             throw new IllegalStateException("Error al calcular el orden de mérito de los exámenes.", e);
@@ -180,5 +193,85 @@ public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado
         } catch (Exception ex) {
             throw new IllegalStateException("Error al leer registro de ExamenRealizado con relaciones", ex);
         }
+    }
+
+    /**
+     * MÉTODO DE NEGOCIO CORREGIDO Y VALIDADO CON NAMEDQUERIES
+     */
+    public ExamenRealizado iniciarExamenAspirante(UUID idInscripcion, UUID idEtapa) {
+        if (idInscripcion == null || idEtapa == null) {
+            throw new IllegalArgumentException("La inscripción y la etapa son campos obligatorios.");
+        }
+
+        // REGLA DE NEGOCIO PROTECTORA: Verificar si ya existe un intento previo para no romper el Unique Constraint
+        try {
+            ExamenRealizado examenExistente = em.createNamedQuery("ExamenRealizado.findByInscripcionAndEtapa", ExamenRealizado.class)
+                    .setParameter("idInscripcion", idInscripcion)
+                    .setParameter("idEtapa", idEtapa)
+                    .getSingleResult();
+            return examenExistente; // Si ya existe, lo devuelve de forma segura en vez de duplicarlo
+        } catch (NoResultException e) {
+            // El comportamiento es correcto: No existe, procedemos a crearlo.
+        }
+
+        InscripcionesPrueba inscripcion = em.find(InscripcionesPrueba.class, idInscripcion);
+        if (inscripcion == null) {
+            throw new IllegalArgumentException("La inscripción proveída no existe.");
+        }
+        UUID idAspirante = inscripcion.getAspiranteDato().getId();
+
+        TurnosExamen turnoActivo;
+        try {
+            turnoActivo = em.createNamedQuery("TurnosExamen.findTurnoActivoAspirante", TurnosExamen.class)
+                    .setParameter("idAspirante", idAspirante)
+                    .setParameter("fechaActual", LocalDate.now())
+                    .setParameter("horaActual", LocalTime.now())
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            throw new IllegalStateException("El aspirante no posee un turno asignado para este horario o el aula no está disponible.");
+        }
+
+        UUID idPrueba = turnoActivo.getPruebaAdmision().getIdPruebaAdmision();
+
+        // CORRECCIÓN DE ACOPLAMIENTO: Consumo a través del NamedQuery estático de la Entidad
+        List<ClavesExamen> clavesDisponibles = em.createNamedQuery("ExamenRealizado.findClavesByPrueba", ClavesExamen.class)
+                .setParameter("idPrueba", idPrueba)
+                .getResultList();
+
+        if (clavesDisponibles.isEmpty()) {
+            throw new IllegalStateException("No se han configurado claves de examen para esta prueba de admisión.");
+        }
+
+        // ALGORITMO DE ASIGNACIÓN ALEATORIO
+        Collections.shuffle(clavesDisponibles);
+
+        // REGLA DE NEGOCIO ADICIONAL: Validar completitud antes de asignar
+        ClavesExamen claveAsignada = null;
+        for (ClavesExamen clave : clavesDisponibles) {
+            Long cantidadPreguntas = em.createNamedQuery("ExamenRealizado.countPreguntasByClave", Long.class)
+                    .setParameter("idClave", clave.getIdClaveExaman())
+                    .getSingleResult();
+
+            if (cantidadPreguntas != null && cantidadPreguntas > 0) {
+                claveAsignada = clave;
+                break;
+            }
+        }
+
+        if (claveAsignada == null) {
+            throw new IllegalStateException("Las claves disponibles carecen de preguntas configuradas.");
+        }
+
+        ExamenRealizado nuevoExamen = new ExamenRealizado();
+        nuevoExamen.setInscripcionesPrueba(inscripcion);
+        nuevoExamen.setClaveExamen(claveAsignada);
+
+        EtapasAdmision etapa = em.find(EtapasAdmision.class, idEtapa);
+        nuevoExamen.setEtapaAdmision(etapa);
+
+        em.persist(nuevoExamen);
+        em.flush();
+
+        return nuevoExamen;
     }
 }
