@@ -11,17 +11,17 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CuposCarreraResourceST extends AbstractResourceST {
 
     // IDs semilla
-    private static final UUID ID_PRUEBA_1 = UUID.fromString("d1000000-0000-0000-0000-000000000001");
-    private static final String ID_CARRERA_ICS = "ICS";
-    private static final String ID_CARRERA_MAT = "MAT";
+    private static final UUID ID_PRUEBA_1 = UUID.fromString("dddddddd-dddd-dddd-dddd-dddddddddddd");
+    private static final String ID_CARRERA_ISI = "ISI";
+    private static final String ID_CARRERA_MED = "MED";
 
     // Etapas
-    private static final UUID ID_ETAPA_1_MATEMATICAS = UUID.fromString("c1000000-0000-0000-0000-000000000001");
-    private static final UUID ID_ETAPA_2_CIENCIAS = UUID.fromString("c1000000-0000-0000-0000-000000000002");
-    private static final UUID ID_ETAPA_3_FINAL = UUID.fromString("c1000000-0000-0000-0000-000000000003");
+    private static final UUID ID_ETAPA_1_MATEMATICAS = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+    private static final UUID ID_ETAPA_2_CIENCIAS = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+    private static final UUID ID_ETAPA_3_FINAL = UUID.fromString("cccccccc-cccc-cccc-cccc-cccccccccccc");
 
     // Construimos la ruta parcial reutilizable para los GET/PUT/DELETE
-    private static final String PATH_CUPO_1 = ID_PRUEBA_1 + "/" + ID_CARRERA_ICS + "/" + ID_ETAPA_3_FINAL;
+    private static final String PATH_CUPO_1 = ID_PRUEBA_1 + "/" + ID_CARRERA_ISI + "/" + ID_ETAPA_3_FINAL;
 
     //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     //Casos de LECTURA (GET)
@@ -54,11 +54,11 @@ public class CuposCarreraResourceST extends AbstractResourceST {
 
         // Validamos la llave primaria compuesta
         assertEquals(ID_PRUEBA_1, entidad.getIdCupoCarrera().getIdPrueba());
-        assertEquals(ID_CARRERA_ICS, entidad.getIdCupoCarrera().getIdCarrera());
+        assertEquals(ID_CARRERA_ISI, entidad.getIdCupoCarrera().getIdCarrera());
         assertEquals(ID_ETAPA_3_FINAL, entidad.getIdCupoCarrera().getIdEtapa());
 
-        // ICS tiene 50 cupos
-        assertEquals(50, entidad.getCupos());
+        // ISI tiene 100 cupos
+        assertEquals(100, entidad.getCupos());
     }
 
     @Test
@@ -76,7 +76,7 @@ public class CuposCarreraResourceST extends AbstractResourceST {
 
     @Test
     void create_ConEntidadValida_DebeRetornar201_YPermitirConsultar() {
-        CuposCarrera nuevoCupo = construirPayload(ID_PRUEBA_1, ID_CARRERA_MAT, ID_ETAPA_3_FINAL, 35);
+        CuposCarrera nuevoCupo = construirPayload(ID_PRUEBA_1, ID_CARRERA_MED, ID_ETAPA_1_MATEMATICAS, 35);
 
         Response responseCreacion = post("cupos_carrera", nuevoCupo);
 
@@ -84,7 +84,7 @@ public class CuposCarreraResourceST extends AbstractResourceST {
         assertNotNull(responseCreacion.getHeaderString("Location"));
 
         // Verificamos persistencia
-        String pathNuevo = ID_PRUEBA_1 + "/" + ID_CARRERA_MAT + "/" + ID_ETAPA_3_FINAL;
+        String pathNuevo = ID_PRUEBA_1 + "/" + ID_CARRERA_MED + "/" + ID_ETAPA_1_MATEMATICAS;
         Response responseConsulta = get("cupos_carrera/" + pathNuevo);
 
         assertEquals(200, responseConsulta.getStatus());
@@ -108,11 +108,11 @@ public class CuposCarreraResourceST extends AbstractResourceST {
 
     @Test
     void update_ConEntidadValida_DebeRetornar200() {
-        // Creamos cupo temporal en ICS en Etapa 1
-        String pathTemporal = crearCupoReal(ID_PRUEBA_1, ID_CARRERA_ICS, ID_ETAPA_1_MATEMATICAS, 10);
+        // Creamos cupo temporal en ISI en Etapa 1
+        String pathTemporal = crearCupoReal(ID_PRUEBA_1, ID_CARRERA_ISI, ID_ETAPA_1_MATEMATICAS, 10);
 
         // Actualizamos a 100 cupos
-        CuposCarrera actualizada = construirPayload(ID_PRUEBA_1, ID_CARRERA_ICS, ID_ETAPA_1_MATEMATICAS, 100);
+        CuposCarrera actualizada = construirPayload(ID_PRUEBA_1, ID_CARRERA_ISI, ID_ETAPA_1_MATEMATICAS, 100);
 
         // Hacemos PUT
         Response responseUpdate = put("cupos_carrera/" + pathTemporal, actualizada);
@@ -145,8 +145,8 @@ public class CuposCarreraResourceST extends AbstractResourceST {
 
     @Test
     void delete_ConIdExistente_DebeRetornar204_YLuego404() {
-        // Creamos un cupo temporal en ICS en Etapa 2
-        String pathTemporal = crearCupoReal(ID_PRUEBA_1, ID_CARRERA_ICS, ID_ETAPA_2_CIENCIAS, 99);
+        // Creamos un cupo temporal en ISI en Etapa 2
+        String pathTemporal = crearCupoReal(ID_PRUEBA_1, ID_CARRERA_ISI, ID_ETAPA_2_CIENCIAS, 99);
 
         // Eliminamos
         Response responseDelete = delete("cupos_carrera/" + pathTemporal);
@@ -204,10 +204,10 @@ public class CuposCarreraResourceST extends AbstractResourceST {
         carrera.setIdCarrera(idCarrera);
 
         switch (idCarrera) {
-            case "ICS" -> carrera.setNombreCatalogoCarrera("Ingeniería en Ciencias de la Computación");
-            case "ISI" -> carrera.setNombreCatalogoCarrera("Ingeniería de Sistemas Informáticos");
-            case "ICC" -> carrera.setNombreCatalogoCarrera("Ingeniería en Computación");
-            case "MAT" -> carrera.setNombreCatalogoCarrera("Licenciatura en Matemáticas");
+            case "ISI" -> carrera.setNombreCatalogoCarrera("Ingeniería en Sistemas Informáticos");
+            case "MED" -> carrera.setNombreCatalogoCarrera("Doctorado en Medicina");
+            case "ARQ" -> carrera.setNombreCatalogoCarrera("Arquitectura");
+            case "ADM" -> carrera.setNombreCatalogoCarrera("Administración de Empresas");
             default -> {
                 // Para IDs inventados en pruebas negativas no se requiere metadata adicional.
             }

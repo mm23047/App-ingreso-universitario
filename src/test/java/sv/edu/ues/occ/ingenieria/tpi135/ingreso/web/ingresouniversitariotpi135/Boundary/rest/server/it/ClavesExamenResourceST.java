@@ -3,6 +3,7 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExamen;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
 import java.util.UUID;
@@ -19,12 +20,15 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ClavesExamenResourceST extends AbstractResourceST {
 
     // UUIDs de claves del init.sql
-    private static final UUID ID_CLAVE_A = UUID.fromString("08000000-0000-0000-0000-000000000001");
-    private static final UUID ID_CLAVE_B = UUID.fromString("08000000-0000-0000-0000-000000000002");
+    private static final UUID ID_CLAVE_A = UUID.fromString("aaaabbbb-cccc-dddd-eeee-ffffffffffff");
+    private static final UUID ID_CLAVE_B = UUID.fromString("abababab-abab-abab-abab-abababababab");
 
     // UUIDs de pruebas del init.sql
-    private static final UUID ID_PRUEBA_1 = UUID.fromString("d1000000-0000-0000-0000-000000000001");
-    private static final UUID ID_PRUEBA_2 = UUID.fromString("d1000000-0000-0000-0000-000000000002");
+    private static final UUID ID_PRUEBA_1 = UUID.fromString("dddddddd-dddd-dddd-dddd-dddddddddddd");
+    private static final UUID ID_PRUEBA_2 = UUID.fromString("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee");
+
+    // UUID de etapa del init.sql
+    private static final UUID ID_ETAPA_1 = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
 
     /**
      * GET /resources/v1/claves_examen debe retornar al menos las 2 claves iniciales.
@@ -128,7 +132,7 @@ public class ClavesExamenResourceST extends AbstractResourceST {
 
         ClavesExamen[] arreglo = response.readEntity(ClavesExamen[].class);
         assertNotNull(arreglo);
-        assertTrue(arreglo.length >= 2, "Prueba 1 debe tener al menos 2 claves");
+        assertTrue(arreglo.length >= 1, "Prueba 1 debe tener al menos 1 clave");
 
         // Verificar que al menos una clave pertenece a Prueba 1
         boolean encontroDeLaPrueba = false;
@@ -283,6 +287,9 @@ public class ClavesExamenResourceST extends AbstractResourceST {
         prueba.setIdPruebaAdmision(idPrueba);
         clave.setPruebaAdmision(prueba);
         clave.setNombreClave(nombreClave);
+        EtapasAdmision etapa = new EtapasAdmision();
+        etapa.setIdEtapaAdmision(ID_ETAPA_1);
+        clave.setEtapaAdmision(etapa);
         return clave;
     }
 

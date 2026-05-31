@@ -78,9 +78,7 @@ class OpcionesRespuestaDAOTest {
 
         UUID preguntaId = UUID.randomUUID();
 
-        // CAMBIO AQUÍ: Cambiamos createQuery por createNamedQuery.
-        // Usamos anyString() para que la prueba no se rompa si decides cambiar el nombre del NamedQuery en el futuro.
-        when(entityManager.createNamedQuery(anyString(), eq(PreguntaOpcion.class))).thenReturn(queryOpciones);
+        when(entityManager.createNamedQuery("PreguntaOpcion.findByPregunta", PreguntaOpcion.class)).thenReturn(queryOpciones);
         when(queryOpciones.setParameter(eq("idPregunta"), eq(preguntaId))).thenReturn(queryOpciones);
 
         List<PreguntaOpcion> esperado = List.of(new PreguntaOpcion());
@@ -90,8 +88,7 @@ class OpcionesRespuestaDAOTest {
 
         assertSame(esperado, result);
 
-        // Verificamos que se haya llamado a createNamedQuery
-        verify(entityManager).createNamedQuery(anyString(), eq(PreguntaOpcion.class));
+        verify(entityManager).createNamedQuery("PreguntaOpcion.findByPregunta", PreguntaOpcion.class);
         verify(queryOpciones).setParameter("idPregunta", preguntaId);
         verify(queryOpciones).getResultList();
     }
@@ -104,8 +101,7 @@ class OpcionesRespuestaDAOTest {
         UUID preguntaId = UUID.randomUUID();
         UUID respuestaId = UUID.randomUUID();
 
-        // CAMBIO AQUÍ: Cambiamos createQuery por createNamedQuery.
-        when(entityManager.createNamedQuery(anyString(), eq(Long.class))).thenReturn(queryLong);
+        when(entityManager.createNamedQuery("PreguntaOpcion.countByPreguntaAndRespuesta", Long.class)).thenReturn(queryLong);
         when(queryLong.setParameter(eq("idPregunta"), eq(preguntaId))).thenReturn(queryLong);
         when(queryLong.setParameter(eq("idRespuestaGlobal"), eq(respuestaId))).thenReturn(queryLong);
         when(queryLong.getSingleResult()).thenReturn(2L);
@@ -122,8 +118,7 @@ class OpcionesRespuestaDAOTest {
         UUID preguntaId = UUID.randomUUID();
         UUID respuestaId = UUID.randomUUID();
 
-        // CAMBIO AQUÍ: Cambiamos createQuery por createNamedQuery.
-        when(entityManager.createNamedQuery(anyString(), eq(Long.class))).thenReturn(queryLong);
+        when(entityManager.createNamedQuery("PreguntaOpcion.countByPreguntaAndRespuesta", Long.class)).thenReturn(queryLong);
         when(queryLong.setParameter(eq("idPregunta"), eq(preguntaId))).thenReturn(queryLong);
         when(queryLong.setParameter(eq("idRespuestaGlobal"), eq(respuestaId))).thenReturn(queryLong);
         when(queryLong.getSingleResult()).thenReturn(0L);

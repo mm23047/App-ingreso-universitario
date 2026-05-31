@@ -55,22 +55,18 @@ class RespuestaExamenDAOTest {
         UUID examenId = UUID.randomUUID();
         UUID preguntaId = UUID.randomUUID();
 
-        // CAMBIO: Configuramos Mockito para interceptar createNamedQuery en lugar de createQuery
-        when(entityManager.createNamedQuery(anyString(), eq(Long.class))).thenReturn(queryLong);
+        when(entityManager.createNamedQuery("RespuestaExamen.countByExamenAndPregunta", Long.class)).thenReturn(queryLong);
 
-        // Encadenamos los parámetros exactos que usa tu DAO
         when(queryLong.setParameter(eq("idExamen"), eq(examenId))).thenReturn(queryLong);
         when(queryLong.setParameter(eq("idPregunta"), eq(preguntaId))).thenReturn(queryLong);
 
-        // Simulamos que la base de datos encontró 1 registro
         when(queryLong.getSingleResult()).thenReturn(1L);
 
         boolean result = cut.existsByExamenAndPregunta(examenId, preguntaId);
 
         assertTrue(result);
 
-        // Verificamos que se haya ejecutado correctamente
-        verify(entityManager).createNamedQuery(anyString(), eq(Long.class));
+        verify(entityManager).createNamedQuery("RespuestaExamen.countByExamenAndPregunta", Long.class);
     }
 
     @Test
@@ -81,21 +77,17 @@ class RespuestaExamenDAOTest {
         UUID examenId = UUID.randomUUID();
         UUID preguntaId = UUID.randomUUID();
 
-        // CAMBIO: Configuramos Mockito para interceptar createNamedQuery
-        when(entityManager.createNamedQuery(anyString(), eq(Long.class))).thenReturn(queryLong);
+        when(entityManager.createNamedQuery("RespuestaExamen.countByExamenAndPregunta", Long.class)).thenReturn(queryLong);
 
-        // Encadenamos los parámetros
         when(queryLong.setParameter(eq("idExamen"), eq(examenId))).thenReturn(queryLong);
         when(queryLong.setParameter(eq("idPregunta"), eq(preguntaId))).thenReturn(queryLong);
 
-        // Simulamos que la base de datos NO encontró registros (0L)
         when(queryLong.getSingleResult()).thenReturn(0L);
 
         boolean result = cut.existsByExamenAndPregunta(examenId, preguntaId);
 
         assertFalse(result);
 
-        // Verificamos que se haya ejecutado correctamente
-        verify(entityManager).createNamedQuery(anyString(), eq(Long.class));
+        verify(entityManager).createNamedQuery("RespuestaExamen.countByExamenAndPregunta", Long.class);
     }
 }
