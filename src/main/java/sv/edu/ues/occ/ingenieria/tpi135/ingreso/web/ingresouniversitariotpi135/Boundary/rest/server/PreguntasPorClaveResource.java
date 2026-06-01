@@ -114,7 +114,8 @@ public class PreguntasPorClaveResource extends AbstractResource<PreguntasPorClav
             }
 
             // Validar existencia en el banco y evitar duplicados
-            if (preguntasDAO.leer(idPregunta) == null) {
+            BancoPregunta preguntaExistente = preguntasDAO.leer(idPregunta);
+            if (preguntaExistente == null) {
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity("La pregunta especificada no existe en el banco.")
                         .build();
@@ -126,13 +127,18 @@ public class PreguntasPorClaveResource extends AbstractResource<PreguntasPorClav
                         .build();
             }
 
-            // Persistir la relación
+            // Persistir la relación.
+            // Se asignan claveExamen y bancoPregunta porque PreguntasPorClave tiene
+            // @ManyToOne(optional = false) en ambas relaciones; EclipseLink las requiere
+            // para poder ejecutar el INSERT (no basta con el @EmbeddedId).
             PreguntasPorClaveId compositeId = new PreguntasPorClaveId();
             compositeId.setIdClave(idClave);
             compositeId.setIdPregunta(idPregunta);
 
             PreguntasPorClave nuevaAsignacion = new PreguntasPorClave();
             nuevaAsignacion.setIdPreguntaPorClave(compositeId);
+            nuevaAsignacion.setClaveExamen(clave);
+            nuevaAsignacion.setBancoPregunta(preguntaExistente);
 
             preguntasPorClaveDAO.crear(nuevaAsignacion);
 

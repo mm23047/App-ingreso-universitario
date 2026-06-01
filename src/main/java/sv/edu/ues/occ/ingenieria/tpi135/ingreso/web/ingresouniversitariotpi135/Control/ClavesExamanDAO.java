@@ -2,12 +2,16 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
+import jakarta.persistence.CacheRetrieveMode;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExamen;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Stateless
@@ -32,7 +36,15 @@ public class ClavesExamanDAO extends IngresoDefaultDataAccess<ClavesExamen> impl
         if (existsByPruebaAndNombre(entity.getPruebaAdmision().getIdPruebaAdmision(), entity.getNombreClave().trim())) {
             throw new IllegalArgumentException("Ya existe una clave con el nombre '" + entity.getNombreClave() + "' registrada para esta prueba de admisión.");
         }
+        UUID idEtapa  = entity.getEtapaAdmision().getIdEtapaAdmision();
+        UUID idPrueba = entity.getPruebaAdmision().getIdPruebaAdmision();
+        // Usar referencias JPA gestionadas para no meter proxies parciales en el caché L2.
+        entity.setEtapaAdmision(em.getReference(EtapasAdmision.class,  idEtapa));
+        entity.setPruebaAdmision(em.getReference(PruebasAdmision.class, idPrueba));
         super.crear(entity);
+        // Después del flush, EclipseLink puede dejar una EtapasAdmision "hollow" (solo id)
+        // en el caché L2. Evictarla obliga a que findByIdWithEtapa la lea siempre desde BD.
+        em.getEntityManagerFactory().getCache().evict(EtapasAdmision.class, idEtapa);
     }
 
     @Override
@@ -107,12 +119,18 @@ public class ClavesExamanDAO extends IngresoDefaultDataAccess<ClavesExamen> impl
      * para evitar LazyInitializationException al consultar sus límites.
      */
     public ClavesExamen findByIdWithEtapa(UUID idClave) {
-        try {
-            return em.createNamedQuery("ClavesExaman.findByIdWithEtapa",  ClavesExamen.class)
-                    .setParameter("idClave", idClave)
-                    .getSingleResult();
-        } catch (jakarta.persistence.NoResultException e) {
-            return null;
+        // Dos em.find() independientes con BYPASS, ambos dentro de la transacción EJB.
+        // Garantiza que EtapasAdmision se carga desde BD y queda inicializada antes de
+        // que el método retorne y la entidad sea desanclada del contexto de persistencia.
+        Map<String, Object> bypass = Map.of(
+                "jakarta.persistence.cache.retrieveMode", CacheRetrieveMode.BYPASS);
+        ClavesExamen result = em.find(ClavesExamen.class, idClave, bypass);
+        if (result == null) return null;
+        if (result.getEtapaAdmision() != null) {
+            UUID idEtapa = result.getEtapaAdmision().getIdEtapaAdmision();
+            EtapasAdmision etapa = em.find(EtapasAdmision.class, idEtapa, bypass);
+            result.setEtapaAdmision(etapa);
         }
+        return result;
     }
 }

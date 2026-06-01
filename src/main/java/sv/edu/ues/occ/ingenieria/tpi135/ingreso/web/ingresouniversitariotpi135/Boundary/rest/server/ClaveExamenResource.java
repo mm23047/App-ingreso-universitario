@@ -34,6 +34,33 @@ public class ClaveExamenResource extends AbstractResource<ClavesExamen> {
     }
 
     /**
+     * GET /claves
+     * Retorna lista paginada de claves, con filtro opcional por prueba.
+     */
+    @GET
+    public Response listClaves(
+            @DefaultValue("0") @QueryParam("first") int first,
+            @DefaultValue("50") @QueryParam("max") int max,
+            @QueryParam("idPrueba") UUID idPrueba) {
+        try {
+            if (idPrueba != null) {
+                java.util.List<ClavesExamen> claves = clavesExamanDAO.findByPrueba(idPrueba);
+                int fromIndex = Math.min(first, claves.size());
+                int toIndex = Math.min(first + max, claves.size());
+                java.util.List<ClavesExamen> paginadas = claves.subList(fromIndex, toIndex);
+                return Response.ok(paginadas)
+                        .header(RestHeaders.TOTAL_RECORDS, claves.size())
+                        .build();
+            }
+            return findRange(first, max);
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
      * GET /claves/{idClave}
      * Obtiene una clave específica por su ID.
      */

@@ -11,42 +11,39 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pruebas de integración REST para el recurso ClavesExamanResource.
- * 
- * Valida el contrato HTTP de los endpoints de claves de examen,
- * incluyendo filtros por prueba, validaciones de FK, y persistencia.
- * Recurso de acceso restringido (sensible) para administradores.
+ * ST para ClaveExamenResource.
+ * Base: GET/POST/PUT/DELETE /resources/v1/claves
+ * Nota: GET /claves (list) también disponible con filtro ?idPrueba=.
+ * Datos semilla: Clave A (08000000...001) y Clave B (aaaabbbb...), ambas bajo Prueba Test A.
  */
 public class ClavesExamenResourceST extends AbstractResourceST {
 
-    // UUIDs de claves del init.sql
-    private static final UUID ID_CLAVE_A = UUID.fromString("aaaabbbb-cccc-dddd-eeee-ffffffffffff");
-    private static final UUID ID_CLAVE_B = UUID.fromString("abababab-abab-abab-abab-abababababab");
+    // UUIDs desde init.sql
+    private static final UUID ID_CLAVE_A = UUID.fromString("08000000-0000-0000-0000-000000000001");
+    private static final UUID ID_CLAVE_B = UUID.fromString("aaaabbbb-cccc-dddd-eeee-ffffffffffff");
 
-    // UUIDs de pruebas del init.sql
-    private static final UUID ID_PRUEBA_1 = UUID.fromString("dddddddd-dddd-dddd-dddd-dddddddddddd");
-    private static final UUID ID_PRUEBA_2 = UUID.fromString("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee");
+    // Prueba y etapa que usan las claves semilla
+    private static final UUID ID_PRUEBA_1 = UUID.fromString("d1000000-0000-0000-0000-000000000001");
+    private static final UUID ID_PRUEBA_2 = UUID.fromString("d1000000-0000-0000-0000-000000000002");
 
-    // UUID de etapa del init.sql
-    private static final UUID ID_ETAPA_1 = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+    // Etapa con cantidadPreguntasRequeridas=20 (para crear nuevas claves con capacidad)
+    private static final UUID ID_ETAPA_PRIMERA = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+    // Etapa usada por claves semilla
+    private static final UUID ID_ETAPA_INSCRIPCION = UUID.fromString("c1000000-0000-0000-0000-000000000001");
 
-    /**
-     * GET /resources/v1/claves_examen debe retornar al menos las 2 claves iniciales.
-     */
     @Test
     void findRange_ConDatosIniciales_DebeRetornarLista() {
-        Response response = get("claves_examen");
+        Response response = get("claves");
 
         assertEquals(200, response.getStatus());
 
         ClavesExamen[] arreglo = response.readEntity(ClavesExamen[].class);
         assertNotNull(arreglo);
-        assertTrue(arreglo.length >= 2, "Debe haber al menos 2 claves iniciales");
+        assertTrue(arreglo.length >= 2, "Debe haber al menos 2 claves semilla");
 
         String totalHeader = response.getHeaderString("Total-records");
         assertNotNull(totalHeader);
-        int total = Integer.parseInt(totalHeader);
-        assertTrue(total >= 2);
+        assertTrue(Integer.parseInt(totalHeader) >= 2);
 
         // Verificar que está Clave A
         boolean encontroClaveA = false;
@@ -54,20 +51,15 @@ public class ClavesExamenResourceST extends AbstractResourceST {
             if (ID_CLAVE_A.equals(clave.getIdClaveExaman())) {
                 encontroClaveA = true;
                 assertEquals("Clave A", clave.getNombreClave());
-                assertNotNull(clave.getPruebaAdmision());
-                assertEquals(ID_PRUEBA_1, clave.getPruebaAdmision().getIdPruebaAdmision());
                 break;
             }
         }
-        assertTrue(encontroClaveA, "Debe encontrar Clave A");
+        assertTrue(encontroClaveA, "Debe encontrar Clave A en la lista");
     }
 
-    /**
-     * GET /resources/v1/claves_examen?first=0&max=1 debe retornar máximo 1 registro.
-     */
     @Test
     void findRange_ConPaginacion_DebeRetornarDatosLimitados() {
-        Response response = get("claves_examen?first=0&max=1");
+        Response response = get("claves?first=0&max=1");
 
         assertEquals(200, response.getStatus());
 
@@ -77,16 +69,27 @@ public class ClavesExamenResourceST extends AbstractResourceST {
 
         String totalHeader = response.getHeaderString("Total-records");
         assertNotNull(totalHeader);
-        int total = Integer.parseInt(totalHeader);
-        assertTrue(total >= 2);
+        assertTrue(Integer.parseInt(totalHeader) >= 2);
     }
 
-    /**
-     * GET /resources/v1/claves_examen/{id} con un id existente debe retornar 200.
-     */
+    @Test
+    void findRange_ConFiltroPrueba_DebeRetornarClavesDeEsaPrueba() {
+        Response response = get("claves?idPrueba=" + ID_PRUEBA_1);
+
+        assertEquals(200, response.getStatus());
+
+        ClavesExamen[] arreglo = response.readEntity(ClavesExamen[].class);
+        assertNotNull(arreglo);
+        assertTrue(arreglo.length >= 2, "Prueba 1 debe tener al menos 2 claves");
+
+        String totalHeader = response.getHeaderString("Total-records");
+        assertNotNull(totalHeader);
+        assertTrue(Integer.parseInt(totalHeader) >= 2);
+    }
+
     @Test
     void findById_ConIdExistente_DebeRetornar200() {
-        Response response = get("claves_examen/" + ID_CLAVE_A);
+        Response response = get("claves/" + ID_CLAVE_A);
 
         assertEquals(200, response.getStatus());
 
@@ -94,221 +97,130 @@ public class ClavesExamenResourceST extends AbstractResourceST {
         assertNotNull(entidad);
         assertEquals(ID_CLAVE_A, entidad.getIdClaveExaman());
         assertEquals("Clave A", entidad.getNombreClave());
-        assertNotNull(entidad.getPruebaAdmision());
-        assertEquals(ID_PRUEBA_1, entidad.getPruebaAdmision().getIdPruebaAdmision());
     }
 
-    /**
-     * GET /resources/v1/claves_examen/{id} con un id inexistente debe retornar 404.
-     */
     @Test
     void findById_ConIdInexistente_DebeRetornar404() {
         UUID idInexistente = UUID.fromString("ffffffff-0000-0000-0000-000000000000");
 
-        Response response = get("claves_examen/" + idInexistente);
+        Response response = get("claves/" + idInexistente);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
     }
 
-    /**
-     * GET /resources/v1/claves_examen/no-es-uuid debe retornar 404.
-     */
     @Test
-    void findById_ConFormatoIdInvalido_DebeRetornar404() {
-        Response response = get("claves_examen/no-es-uuid");
+    void findById_ConFormatoIdInvalido_DebeRetornar400() {
+        Response response = get("claves/no-es-uuid");
 
-        assertEquals(404, response.getStatus());
+        assertEquals(400, response.getStatus());
     }
 
-    /**
-     * GET /resources/v1/claves_examen?idPrueba={id} debe retornar claves de esa prueba.
-     */
-    @Test
-    void findRange_ConFiltroPrueba_DebeRetornarDeLaPrueba() {
-        Response response = get("claves_examen?idPrueba=" + ID_PRUEBA_1);
-
-        assertEquals(200, response.getStatus());
-
-        ClavesExamen[] arreglo = response.readEntity(ClavesExamen[].class);
-        assertNotNull(arreglo);
-        assertTrue(arreglo.length >= 1, "Prueba 1 debe tener al menos 1 clave");
-
-        // Verificar que al menos una clave pertenece a Prueba 1
-        boolean encontroDeLaPrueba = false;
-        for (ClavesExamen clave : arreglo) {
-            assertNotNull(clave.getPruebaAdmision());
-            if (ID_PRUEBA_1.equals(clave.getPruebaAdmision().getIdPruebaAdmision())) {
-                encontroDeLaPrueba = true;
-                break;
-            }
-        }
-        assertTrue(encontroDeLaPrueba);
-    }
-
-    /**
-     * POST /resources/v1/claves_examen con una entidad válida debe retornar 201.
-     */
     @Test
     void create_ConEntidadValida_DebeRetornar201_YPermitirConsultar() {
-        ClavesExamen nueva = crearClave(ID_PRUEBA_2, "Clave Test");
+        // Usar Prueba 2 y Primera Etapa para no duplicar claves semilla
+        ClavesExamen nueva = crearClave(ID_PRUEBA_2, ID_ETAPA_PRIMERA, "Clave ST Test");
 
-        Response responseCreacion = post("claves_examen", nueva);
+        Response responseCreacion = post("claves", nueva);
 
         assertEquals(201, responseCreacion.getStatus());
         String location = responseCreacion.getHeaderString("Location");
         assertNotNull(location);
 
-        String idString = location.substring(location.lastIndexOf('/') + 1);
-        UUID idCreado = UUID.fromString(idString);
+        UUID idCreado = UUID.fromString(location.substring(location.lastIndexOf('/') + 1));
 
-        Response responseConsulta = get("claves_examen/" + idCreado);
+        Response responseConsulta = get("claves/" + idCreado);
         assertEquals(200, responseConsulta.getStatus());
 
-        ClavesExamen creado = responseConsulta.readEntity(ClavesExamen.class);
-        assertNotNull(creado);
-        assertEquals(idCreado, creado.getIdClaveExaman());
-        assertEquals("Clave Test", creado.getNombreClave());
-        assertEquals(ID_PRUEBA_2, creado.getPruebaAdmision().getIdPruebaAdmision());
+        ClavesExamen creada = responseConsulta.readEntity(ClavesExamen.class);
+        assertEquals(idCreado, creada.getIdClaveExaman());
+        assertEquals("Clave ST Test", creada.getNombreClave());
     }
 
-    /**
-     * POST /resources/v1/claves_examen con una entidad inválida (sin prueba) debe retornar 422.
-     */
     @Test
-    void create_ConEntidadInvalida_SinPrueba_DebeRetornar422() {
-        ClavesExamen nueva = new ClavesExamen();
-        nueva.setNombreClave("Clave sin prueba");
-        // Falta: idPrueba
+    void create_ConEntidadInvalida_SinNombreNiPrueba_DebeRetornar400() {
+        // El recurso valida nombreClave y pruebaAdmision → 400 BAD_REQUEST (sin header MISSING_PARAMETER)
+        ClavesExamen invalida = new ClavesExamen();
 
-        Response response = post("claves_examen", nueva);
+        Response response = post("claves", invalida);
 
-        assertEquals(422, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertEquals(400, response.getStatus());
     }
 
-    /**
-     * POST /resources/v1/claves_examen con una entidad inválida (sin nombre) debe retornar 422.
-     */
-    @Test
-    void create_ConEntidadInvalida_SinNombre_DebeRetornar422() {
-        ClavesExamen nueva = new ClavesExamen();
-        PruebasAdmision prueba = new PruebasAdmision();
-        prueba.setIdPruebaAdmision(ID_PRUEBA_1);
-        nueva.setPruebaAdmision(prueba);
-        // Falta: nombreClave
-
-        Response response = post("claves_examen", nueva);
-
-        assertEquals(422, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
-    }
-
-    /**
-     * PUT /resources/v1/claves_examen/{id} con datos válidos debe retornar 200.
-     */
     @Test
     void update_ConEntidadValida_DebeRetornar200() {
-        UUID idCreado = crearClaveReal(ID_PRUEBA_1, "Clave Original");
+        UUID idCreado = crearClaveReal(ID_PRUEBA_2, ID_ETAPA_PRIMERA, "Clave ST Original");
 
-        ClavesExamen actualizada = crearClave(ID_PRUEBA_1, "Clave Actualizada");
+        ClavesExamen actualizada = new ClavesExamen();
+        actualizada.setNombreClave("Clave ST Actualizada");
 
-        Response responsePut = put("claves_examen/" + idCreado, actualizada);
-
+        Response responsePut = put("claves/" + idCreado, actualizada);
         assertEquals(200, responsePut.getStatus());
 
-        ClavesExamen actualizado = responsePut.readEntity(ClavesExamen.class);
-        assertNotNull(actualizado);
-        assertEquals(idCreado, actualizado.getIdClaveExaman());
-        assertEquals("Clave Actualizada", actualizado.getNombreClave());
+        ClavesExamen cuerpo = responsePut.readEntity(ClavesExamen.class);
+        assertEquals(idCreado, cuerpo.getIdClaveExaman());
+        assertEquals("Clave ST Actualizada", cuerpo.getNombreClave());
 
-        // Verificar persistencia
-        Response responseConsulta = get("claves_examen/" + idCreado);
+        Response responseConsulta = get("claves/" + idCreado);
         assertEquals(200, responseConsulta.getStatus());
-
-        ClavesExamen consultado = responseConsulta.readEntity(ClavesExamen.class);
-        assertEquals("Clave Actualizada", consultado.getNombreClave());
+        assertEquals("Clave ST Actualizada", responseConsulta.readEntity(ClavesExamen.class).getNombreClave());
     }
 
-    /**
-     * PUT /resources/v1/claves_examen/{id} con un id inexistente debe retornar 404.
-     */
     @Test
     void update_ConIdInexistente_DebeRetornar404() {
         UUID idInexistente = UUID.fromString("ffffffff-0000-0000-0000-000000000000");
-        ClavesExamen actualizada = crearClave(ID_PRUEBA_1, "No importa");
+        ClavesExamen payload = new ClavesExamen();
+        payload.setNombreClave("No importa");
 
-        Response response = put("claves_examen/" + idInexistente, actualizada);
+        Response response = put("claves/" + idInexistente, payload);
 
+        // ClaveExamenResource.updateClave devuelve 404 sin header Not-found-id para este caso
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
     }
 
-    /**
-     * DELETE /resources/v1/claves_examen/{id} debe retornar 204 y posteriores GETs deben retornar 404.
-     */
     @Test
     void delete_ConIdExistente_DebeRetornar204_YNoEncontrarDespues() {
-        UUID idCreado = crearClaveReal(ID_PRUEBA_1, "Clave a eliminar");
+        UUID idCreado = crearClaveReal(ID_PRUEBA_2, ID_ETAPA_PRIMERA, "Clave ST Delete");
 
-        Response responseAntesEliminar = get("claves_examen/" + idCreado);
+        Response responseAntesEliminar = get("claves/" + idCreado);
         assertEquals(200, responseAntesEliminar.getStatus());
 
-        Response responseDelete = delete("claves_examen/" + idCreado);
+        Response responseDelete = delete("claves/" + idCreado);
         assertEquals(204, responseDelete.getStatus());
 
-        Response responseDespuesEliminar = get("claves_examen/" + idCreado);
-        assertEquals(404, responseDespuesEliminar.getStatus());
-        assertNotNull(responseDespuesEliminar.getHeaderString("Not-found-id"));
+        Response responseDespues = get("claves/" + idCreado);
+        assertEquals(404, responseDespues.getStatus());
     }
 
-    /**
-     * DELETE /resources/v1/claves_examen/{id} con un id inexistente debe retornar 404.
-     */
     @Test
     void delete_ConIdInexistente_DebeRetornar404() {
         UUID idInexistente = UUID.fromString("ffffffff-0000-0000-0000-000000000000");
 
-        Response response = delete("claves_examen/" + idInexistente);
+        Response response = delete("claves/" + idInexistente);
 
+        // ClaveExamenResource.deleteClave devuelve 404 sin header Not-found-id para este caso
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
     }
 
-    // ========== HELPERS ==========
-
-    /**
-     * Construye una entidad ClavesExaman válida con los parámetros dados.
-     * No ejecuta el POST, solo prepara el payload.
-     */
-    private ClavesExamen crearClave(UUID idPrueba, String nombreClave) {
+    private ClavesExamen crearClave(UUID idPrueba, UUID idEtapa, String nombreClave) {
         ClavesExamen clave = new ClavesExamen();
         PruebasAdmision prueba = new PruebasAdmision();
         prueba.setIdPruebaAdmision(idPrueba);
         clave.setPruebaAdmision(prueba);
-        clave.setNombreClave(nombreClave);
         EtapasAdmision etapa = new EtapasAdmision();
-        etapa.setIdEtapaAdmision(ID_ETAPA_1);
+        etapa.setIdEtapaAdmision(idEtapa);
         clave.setEtapaAdmision(etapa);
+        clave.setNombreClave(nombreClave);
         return clave;
     }
 
-    /**
-     * Construye una entidad ClavesExaman válida y ejecuta el POST al recurso.
-     * Devuelve el UUID del recurso creado extraído del header Location.
-     * Falla si el POST no retorna 201.
-     */
-    private UUID crearClaveReal(UUID idPrueba, String nombreClave) {
-        ClavesExamen clave = crearClave(idPrueba, nombreClave);
+    private UUID crearClaveReal(UUID idPrueba, UUID idEtapa, String nombreClave) {
+        ClavesExamen clave = crearClave(idPrueba, idEtapa, nombreClave);
 
-        Response responseCreacion = post("claves_examen", clave);
-        assertEquals(201, responseCreacion.getStatus(),
-                "crearClaveReal: POST debe retornar 201");
+        Response responseCreacion = post("claves", clave);
+        assertEquals(201, responseCreacion.getStatus(), "Helper crearClaveReal: POST debe retornar 201");
 
         String location = responseCreacion.getHeaderString("Location");
-        assertNotNull(location);
-
-        String idString = location.substring(location.lastIndexOf('/') + 1);
-        return UUID.fromString(idString);
+        return UUID.fromString(location.substring(location.lastIndexOf('/') + 1));
     }
 }

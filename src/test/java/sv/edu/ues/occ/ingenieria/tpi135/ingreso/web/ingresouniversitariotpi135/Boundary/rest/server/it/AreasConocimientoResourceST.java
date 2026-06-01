@@ -8,116 +8,103 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class AreasConocimientoResourceST extends AbstractResourceST{
+/**
+ * ST para AreasConocimientoResource.
+ * Base: GET/POST/PUT/DELETE /resources/v1/areas
+ * Datos semilla: init.sql tiene 3 áreas (Matemática, Lenguaje, Ciencias Naturales).
+ */
+public class AreasConocimientoResourceST extends AbstractResourceST {
 
-    //ID desde el script
-    private static final UUID ID_AREA_1 = UUID.fromString("a1000000-0000-0000-0000-000000000001");
-
-    //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    //Casos de LECTURA (GET)
+    // IDs desde init.sql
+    private static final UUID ID_AREA_MATEMATICA = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
     @Test
-    void findRange_ConDatosIniciales_DebeRetornarLista(){
-        Response response = get("areas_conocimiento");
+    void findRange_ConDatosIniciales_DebeRetornarLista() {
+        Response response = get("areas");
 
         assertEquals(200, response.getStatus());
 
         AreasConocimiento[] arreglo = response.readEntity(AreasConocimiento[].class);
         assertNotNull(arreglo);
-        //Hay 3 arreglos en nuestra BD
-        assertTrue(arreglo.length == 3);
-        // Ver por consola lo que nos han enviado...
-        if (arreglo.length > 0) {
-            System.out.println("El ID del primer registro es: " + arreglo[0].getIdAreaConocimiento());
-            System.out.println("El nombre del primer registro es: " + arreglo[0].getNombreArea());
-        }
+        assertTrue(arreglo.length >= 3, "Debe haber al menos 3 áreas semilla");
 
         String totalHeader = response.getHeaderString("Total-records");
         assertNotNull(totalHeader);
-        //
-        assertTrue(Integer.parseInt(totalHeader) >=3);
+        assertTrue(Integer.parseInt(totalHeader) >= 3);
     }
 
     @Test
-    void findById_ConIdExistente_DebeRetornar200(){
-        Response response = get("areas_conocimiento/" + ID_AREA_1);
+    void findById_ConIdExistente_DebeRetornar200() {
+        Response response = get("areas/" + ID_AREA_MATEMATICA);
 
         assertEquals(200, response.getStatus());
 
         AreasConocimiento entidad = response.readEntity(AreasConocimiento.class);
         assertNotNull(entidad);
-        assertEquals(ID_AREA_1, entidad.getIdAreaConocimiento());
-        assertEquals("Matemáticas", entidad.getNombreArea());
-        System.out.println("El Nombre del primer registro es: " + entidad.getNombreArea());
+        assertEquals(ID_AREA_MATEMATICA, entidad.getIdAreaConocimiento());
+        assertEquals("Matemática", entidad.getNombreArea());
     }
 
     @Test
-    void findById_ConIdInexistente_DebeRetornar404(){
-        UUID idNotExistente = UUID.randomUUID();
+    void findById_ConIdInexistente_DebeRetornar404() {
+        UUID idInexistente = UUID.fromString("ffffffff-0000-0000-0000-000000000000");
 
-        Response response = get("areas_conocimiento/" + idNotExistente);
+        Response response = get("areas/" + idInexistente);
+
         assertEquals(404, response.getStatus());
-
         assertNotNull(response.getHeaderString("Not-found-id"));
     }
 
     @Test
-    void create_ConEntidadValida_DebeRetornar201_YPermitirConsultar(){
-        AreasConocimiento nuevaAreaConocimiento =  new AreasConocimiento();
+    void create_ConEntidadValida_DebeRetornar201_YPermitirConsultar() {
+        AreasConocimiento nueva = new AreasConocimiento();
+        nueva.setNombreArea("Humanidades");
 
-        nuevaAreaConocimiento.setNombreArea("Humanidades");
-
-        Response responseCreacion = post("areas_conocimiento", nuevaAreaConocimiento);
+        Response responseCreacion = post("areas", nueva);
 
         assertEquals(201, responseCreacion.getStatus());
-        String Location = responseCreacion.getHeaderString("Location");
-        assertNotNull(Location);
+        String location = responseCreacion.getHeaderString("Location");
+        assertNotNull(location);
 
-        String idString = Location.substring(Location.lastIndexOf('/') + 1);
+        String idString = location.substring(location.lastIndexOf('/') + 1);
         UUID idCreado = UUID.fromString(idString);
 
-        Response responseConsultando = get("areas_conocimiento/" + idCreado);
-        assertEquals(200, responseConsultando.getStatus());
+        Response responseConsulta = get("areas/" + idCreado);
+        assertEquals(200, responseConsulta.getStatus());
 
-        AreasConocimiento creadado = responseConsultando.readEntity(AreasConocimiento.class);
-        assertEquals(idCreado, creadado.getIdAreaConocimiento());
-        assertEquals("Humanidades", creadado.getNombreArea());
+        AreasConocimiento creada = responseConsulta.readEntity(AreasConocimiento.class);
+        assertEquals(idCreado, creada.getIdAreaConocimiento());
+        assertEquals("Humanidades", creada.getNombreArea());
     }
 
     @Test
-    void create_ConEntidadInvalida_ConIdYaAsignado_DebeRetornar422(){
-        AreasConocimiento areasConocimientoInvalida = new AreasConocimiento();
-        // EL ID debe de ser NULL al momento de crear
-        areasConocimientoInvalida.setIdAreaConocimiento(UUID.randomUUID());
-        areasConocimientoInvalida.setNombreArea("Área Inválida");
+    void create_ConEntidadInvalida_SinNombre_DebeRetornar400() {
+        // El recurso valida que nombreArea no sea nulo/blank → 400 BAD_REQUEST
+        AreasConocimiento invalida = new AreasConocimiento();
+        // nombreArea es null → debe retornar 400
 
-        Response response = post("areas_conocimiento", areasConocimientoInvalida);
+        Response response = post("areas", invalida);
 
-        assertEquals(422, response.getStatus());
+        assertEquals(400, response.getStatus());
         assertNotNull(response.getHeaderString("Missing-parameter"));
     }
 
     @Test
     void update_ConEntidadValida_DebeRetornar200() {
-        // creamos una area temporal
-        UUID idCreado = crearAreaReal("Área Temporal para Update");
+        UUID idCreado = crearAreaReal("Área Temporal Update");
 
-        // COnstruimos el payload actualizado
         AreasConocimiento actualizada = new AreasConocimiento();
-        actualizada.setNombreArea("Área Modificada IT");
+        actualizada.setNombreArea("Área Modificada ST");
 
-        // Hacemos PUT
-        Response responseUpdate = put("areas_conocimiento/" + idCreado, actualizada);
+        Response responseUpdate = put("areas/" + idCreado, actualizada);
         assertEquals(200, responseUpdate.getStatus());
 
         AreasConocimiento cuerpo = responseUpdate.readEntity(AreasConocimiento.class);
-        assertEquals("Área Modificada IT", cuerpo.getNombreArea());
+        assertEquals("Área Modificada ST", cuerpo.getNombreArea());
 
-        // verificamos persistencia
-        Response responseConsulta = get("areas_conocimiento/" + idCreado);
+        Response responseConsulta = get("areas/" + idCreado);
         assertEquals(200, responseConsulta.getStatus());
-        assertEquals("Área Modificada IT", responseConsulta.readEntity(AreasConocimiento.class).getNombreArea());
-
+        assertEquals("Área Modificada ST", responseConsulta.readEntity(AreasConocimiento.class).getNombreArea());
     }
 
     @Test
@@ -126,48 +113,33 @@ public class AreasConocimientoResourceST extends AbstractResourceST{
         AreasConocimiento payload = new AreasConocimiento();
         payload.setNombreArea("Intento de actualización");
 
-        Response response = put("areas_conocimiento/" + idInexistente, payload);
+        Response response = put("areas/" + idInexistente, payload);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
     }
 
-    //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    //Casos de DELETE
-
     @Test
     void delete_ConIdExistente_DebeRetornar204_YLuego404() {
-        // creamos un area temporal
-        UUID idCreado = crearAreaReal("Área Temporal para Delete");
+        // Las áreas semilla tienen temas → 409 Conflict. Creamos una nueva sin temas.
+        UUID idCreado = crearAreaReal("Área Temporal Delete");
 
-        // ELiminamos el area temporal
-        Response responseDelete = delete("areas_conocimiento/" + idCreado);
+        Response responseDelete = delete("areas/" + idCreado);
         assertEquals(204, responseDelete.getStatus());
 
-        // Verofocamos que ya no existe
-        Response responseConsulta = get("areas_conocimiento/" + idCreado);
+        Response responseConsulta = get("areas/" + idCreado);
         assertEquals(404, responseConsulta.getStatus());
         assertNotNull(responseConsulta.getHeaderString("Not-found-id"));
     }
 
-    //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    //Casos de HELPER
-
-    /**
-     * Creamo un area real en la BD usando el endpoint REST.
-     * Para poder generar precondiciones en los tests de PUT y DELETE.
-     */
     private UUID crearAreaReal(String nombreArea) {
         AreasConocimiento nueva = new AreasConocimiento();
         nueva.setNombreArea(nombreArea);
 
-        Response responseCreacion = post("areas_conocimiento", nueva);
-        assertEquals(201, responseCreacion.getStatus());
+        Response responseCreacion = post("areas", nueva);
+        assertEquals(201, responseCreacion.getStatus(), "Helper crearAreaReal: POST debe retornar 201");
 
         String location = responseCreacion.getHeaderString("Location");
-        String idString = location.substring(location.lastIndexOf('/') + 1);
-        return UUID.fromString(idString);
+        return UUID.fromString(location.substring(location.lastIndexOf('/') + 1));
     }
-
-
 }

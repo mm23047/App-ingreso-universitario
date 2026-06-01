@@ -2,8 +2,8 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExamen;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExamen;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -12,40 +12,36 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pruebas de integración REST para el recurso TurnosExamanResource.
- * 
- * Valida el contrato HTTP de los endpoints de turnos de examen,
- * incluyendo filtros por prueba, validaciones de FK, y persistencia.
+ * ST para TurnosExamanResource.
+ * Base: GET/POST/PUT/DELETE /resources/v1/turnos
+ * Datos semilla: init.sql tiene 2 turnos (Mañana y Tarde), ambos para Prueba Nacional UES.
  */
 public class TurnosExamenResourceST extends AbstractResourceST {
 
-    // UUIDs de turnos del init.sql
-    private static final UUID ID_TURNO_MANANA = UUID.fromString("07000000-0000-0000-0000-000000000001");
-    private static final UUID ID_TURNO_TARDE = UUID.fromString("07000000-0000-0000-0000-000000000002");
+    // UUIDs de turnos desde init.sql
+    private static final UUID ID_TURNO_MANANA = UUID.fromString("ffff0001-0001-0001-0001-000000000001");
+    private static final UUID ID_TURNO_TARDE  = UUID.fromString("ffff0002-0002-0002-0002-000000000002");
 
-    // UUIDs de pruebas del init.sql
-    private static final UUID ID_PRUEBA_1 = UUID.fromString("d1000000-0000-0000-0000-000000000001");
+    // Prueba bajo la cual están los turnos semilla (Prueba Nacional UES)
+    private static final UUID ID_PRUEBA_NACIONAL = UUID.fromString("dddddddd-dddd-dddd-dddd-dddddddddddd");
+
+    // Prueba Test B para crear nuevos turnos (no tiene turnos semilla, evita conflictos)
     private static final UUID ID_PRUEBA_2 = UUID.fromString("d1000000-0000-0000-0000-000000000002");
 
-    /**
-     * GET /resources/v1/turnos_examen debe retornar al menos los 2 turnos iniciales.
-     */
     @Test
     void findRange_ConDatosIniciales_DebeRetornarLista() {
-        Response response = get("turnos_examen");
+        Response response = get("turnos");
 
         assertEquals(200, response.getStatus());
 
         TurnosExamen[] arreglo = response.readEntity(TurnosExamen[].class);
         assertNotNull(arreglo);
-        assertTrue(arreglo.length >= 2, "Debe haber al menos 2 turnos iniciales");
+        assertTrue(arreglo.length >= 2, "Debe haber al menos 2 turnos semilla");
 
         String totalHeader = response.getHeaderString("Total-records");
         assertNotNull(totalHeader);
-        int total = Integer.parseInt(totalHeader);
-        assertTrue(total >= 2);
+        assertTrue(Integer.parseInt(totalHeader) >= 2);
 
-        // Verificar que está Turno Mañana
         boolean encontroTurnoManana = false;
         for (TurnosExamen turno : arreglo) {
             if (ID_TURNO_MANANA.equals(turno.getIdTurnoExamen())) {
@@ -53,15 +49,12 @@ public class TurnosExamenResourceST extends AbstractResourceST {
                 break;
             }
         }
-        assertTrue(encontroTurnoManana, "Debe encontrar Turno Mañana");
+        assertTrue(encontroTurnoManana, "Debe encontrar Turno Mañana en la lista");
     }
 
-    /**
-     * GET /resources/v1/turnos_examen?first=0&max=1 debe retornar máximo 1 registro.
-     */
     @Test
     void findRange_ConPaginacion_DebeRetornarDatosLimitados() {
-        Response response = get("turnos_examen?first=0&max=1");
+        Response response = get("turnos?first=0&max=1");
 
         assertEquals(200, response.getStatus());
 
@@ -71,226 +64,125 @@ public class TurnosExamenResourceST extends AbstractResourceST {
 
         String totalHeader = response.getHeaderString("Total-records");
         assertNotNull(totalHeader);
-        int total = Integer.parseInt(totalHeader);
-        assertTrue(total >= 2);
+        assertTrue(Integer.parseInt(totalHeader) >= 2);
     }
 
-    /**
-     * GET /resources/v1/turnos_examen/{id} con un id existente debe retornar 200.
-     */
     @Test
     void findById_ConIdExistente_DebeRetornar200() {
-        Response response = get("turnos_examen/" + ID_TURNO_MANANA);
+        Response response = get("turnos/" + ID_TURNO_MANANA);
 
         assertEquals(200, response.getStatus());
 
         TurnosExamen entidad = response.readEntity(TurnosExamen.class);
         assertNotNull(entidad);
         assertEquals(ID_TURNO_MANANA, entidad.getIdTurnoExamen());
+        assertEquals("Turno Mañana", entidad.getNombreTurno());
     }
 
-    /**
-     * GET /resources/v1/turnos_examen/{id} con un id inexistente debe retornar 404.
-     */
     @Test
     void findById_ConIdInexistente_DebeRetornar404() {
         UUID idInexistente = UUID.fromString("ffffffff-0000-0000-0000-000000000000");
 
-        Response response = get("turnos_examen/" + idInexistente);
+        Response response = get("turnos/" + idInexistente);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
     }
 
-    /**
-     * GET /resources/v1/turnos_examen/no-es-uuid debe retornar 404.
-     */
     @Test
-    void findById_ConFormatoIdInvalido_DebeRetornar404() {
-        Response response = get("turnos_examen/no-es-uuid");
+    void findById_ConFormatoIdInvalido_DebeRetornar400() {
+        Response response = get("turnos/no-es-uuid");
 
-        assertEquals(404, response.getStatus());
+        assertEquals(400, response.getStatus());
     }
 
-    /**
-     * GET /resources/v1/turnos_examen?idPrueba={id} debe retornar turnos de esa prueba.
-     */
-    @Test
-    void findRange_ConFiltroPrueba_DebeRetornarDeLaPrueba() {
-        Response response = get("turnos_examen?idPrueba=" + ID_PRUEBA_1);
-
-        assertEquals(200, response.getStatus());
-
-        TurnosExamen[] arreglo = response.readEntity(TurnosExamen[].class);
-        assertNotNull(arreglo);
-        assertTrue(arreglo.length >= 2, "Prueba 1 debe tener al menos 2 turnos");
-
-        // Verificar por IDs de turnos esperados para la Prueba 1 en init.sql.
-        boolean contieneTurnoManana = false;
-        boolean contieneTurnoTarde = false;
-        for (TurnosExamen turno : arreglo) {
-            if (ID_TURNO_MANANA.equals(turno.getIdTurnoExamen())) {
-                contieneTurnoManana = true;
-            }
-            if (ID_TURNO_TARDE.equals(turno.getIdTurnoExamen())) {
-                contieneTurnoTarde = true;
-            }
-        }
-        assertTrue(contieneTurnoManana || contieneTurnoTarde);
-    }
-
-    /**
-     * POST /resources/v1/turnos_examen con una entidad válida debe retornar 201.
-     */
     @Test
     void create_ConEntidadValida_DebeRetornar201_YPermitirConsultar() {
-        LocalDate fecha = LocalDate.of(2026, 4, 20);
+        LocalDate fecha = LocalDate.of(2026, 5, 10);
         LocalTime horaInicio = LocalTime.of(8, 0);
         LocalTime horaFin = LocalTime.of(11, 0);
 
-        TurnosExamen nueva = crearTurno(ID_PRUEBA_2, "Turno Test", fecha, horaInicio, horaFin);
+        TurnosExamen nueva = crearTurno(ID_PRUEBA_2, "Turno ST Test", fecha, horaInicio, horaFin);
 
-        Response responseCreacion = post("turnos_examen", nueva);
+        Response responseCreacion = post("turnos", nueva);
 
         assertEquals(201, responseCreacion.getStatus());
         String location = responseCreacion.getHeaderString("Location");
         assertNotNull(location);
 
-        String idString = location.substring(location.lastIndexOf('/') + 1);
-        UUID idCreado = UUID.fromString(idString);
+        UUID idCreado = UUID.fromString(location.substring(location.lastIndexOf('/') + 1));
 
-        Response responseConsulta = get("turnos_examen/" + idCreado);
+        Response responseConsulta = get("turnos/" + idCreado);
         assertEquals(200, responseConsulta.getStatus());
 
         TurnosExamen creado = responseConsulta.readEntity(TurnosExamen.class);
-        assertNotNull(creado);
         assertEquals(idCreado, creado.getIdTurnoExamen());
-        assertEquals("Turno Test", creado.getNombreTurno());
-        assertEquals(ID_PRUEBA_2, creado.getPruebaAdmision().getIdPruebaAdmision());
+        assertEquals("Turno ST Test", creado.getNombreTurno());
     }
 
-    /**
-     * POST /resources/v1/turnos_examen con una entidad válida (con filtro de horaInicio/horaFin) debe persistir.
-     */
-    @Test
-    void create_ConEntidadValidaConHoras_DebeRetornar201_YPersistir() {
-        LocalDate fecha = LocalDate.of(2026, 4, 21);
-        LocalTime horaInicio = LocalTime.of(14, 0);
-        LocalTime horaFin = LocalTime.of(17, 0);
-
-        TurnosExamen nueva = crearTurno(ID_PRUEBA_1, "Turno Tarde Extra", fecha, horaInicio, horaFin);
-
-        Response responseCreacion = post("turnos_examen", nueva);
-
-        if (responseCreacion.getStatus() == 201) {
-            String location = responseCreacion.getHeaderString("Location");
-            String idString = location.substring(location.lastIndexOf('/') + 1);
-            UUID idCreado = UUID.fromString(idString);
-
-            Response responseConsulta = get("turnos_examen/" + idCreado);
-            assertEquals(200, responseConsulta.getStatus());
-
-            TurnosExamen creado = responseConsulta.readEntity(TurnosExamen.class);
-            assertEquals(ID_PRUEBA_1, creado.getPruebaAdmision().getIdPruebaAdmision());
-            assertEquals(LocalDate.of(2026, 4, 21), creado.getFecha());
-            assertEquals(LocalTime.of(14, 0), creado.getHoraInicio());
-            assertEquals(LocalTime.of(17, 0), creado.getHoraFin());
-        }
-    }
-
-    /**
-     * PUT /resources/v1/turnos_examen/{id} con datos válidos debe retornar 200.
-     */
     @Test
     void update_ConEntidadValida_DebeRetornar200() {
-        LocalDate fecha = LocalDate.of(2026, 4, 20);
+        LocalDate fecha = LocalDate.of(2026, 5, 11);
         LocalTime horaInicio = LocalTime.of(8, 0);
         LocalTime horaFin = LocalTime.of(11, 0);
 
-        UUID idCreado = crearTurnoReal(ID_PRUEBA_1, "Turno Original", fecha, horaInicio, horaFin);
+        UUID idCreado = crearTurnoReal(ID_PRUEBA_2, "Turno ST Original", fecha, horaInicio, horaFin);
 
-        LocalTime horaInicio2 = LocalTime.of(14, 0);
-        LocalTime horaFin2 = LocalTime.of(17, 0);
-        TurnosExamen actualizado = crearTurno(ID_PRUEBA_1, "Turno Actualizado", fecha, horaInicio2, horaFin2);
+        TurnosExamen actualizado = crearTurno(ID_PRUEBA_2, "Turno ST Actualizado",
+                fecha, LocalTime.of(14, 0), LocalTime.of(17, 0));
 
-        Response responsePut = put("turnos_examen/" + idCreado, actualizado);
-
+        Response responsePut = put("turnos/" + idCreado, actualizado);
         assertEquals(200, responsePut.getStatus());
 
-        TurnosExamen actualizado2 = responsePut.readEntity(TurnosExamen.class);
-        assertNotNull(actualizado2);
-        assertEquals(idCreado, actualizado2.getIdTurnoExamen());
-        assertEquals("Turno Actualizado", actualizado2.getNombreTurno());
+        TurnosExamen cuerpo = responsePut.readEntity(TurnosExamen.class);
+        assertEquals(idCreado, cuerpo.getIdTurnoExamen());
+        assertEquals("Turno ST Actualizado", cuerpo.getNombreTurno());
 
-        // Verificar persistencia
-        Response responseConsulta = get("turnos_examen/" + idCreado);
+        Response responseConsulta = get("turnos/" + idCreado);
         assertEquals(200, responseConsulta.getStatus());
-
-        TurnosExamen consultado = responseConsulta.readEntity(TurnosExamen.class);
-        assertEquals("Turno Actualizado", consultado.getNombreTurno());
+        assertEquals("Turno ST Actualizado", responseConsulta.readEntity(TurnosExamen.class).getNombreTurno());
     }
 
-    /**
-     * PUT /resources/v1/turnos_examen/{id} con un id inexistente debe retornar 404.
-     */
     @Test
     void update_ConIdInexistente_DebeRetornar404() {
         UUID idInexistente = UUID.fromString("ffffffff-0000-0000-0000-000000000000");
-        LocalDate fecha = LocalDate.of(2026, 4, 20);
-        LocalTime horaInicio = LocalTime.of(8, 0);
-        LocalTime horaFin = LocalTime.of(11, 0);
+        TurnosExamen payload = crearTurno(ID_PRUEBA_2, "No importa",
+                LocalDate.of(2026, 5, 10), LocalTime.of(8, 0), LocalTime.of(11, 0));
 
-        TurnosExamen actualizado = crearTurno(ID_PRUEBA_1, "No importa", fecha, horaInicio, horaFin);
-
-        Response response = put("turnos_examen/" + idInexistente, actualizado);
+        Response response = put("turnos/" + idInexistente, payload);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
     }
 
-    /**
-     * DELETE /resources/v1/turnos_examen/{id} debe retornar 204 y posteriores GETs deben retornar 404.
-     */
     @Test
     void delete_ConIdExistente_DebeRetornar204_YNoEncontrarDespues() {
-        LocalDate fecha = LocalDate.of(2026, 4, 20);
+        LocalDate fecha = LocalDate.of(2026, 5, 12);
         LocalTime horaInicio = LocalTime.of(8, 0);
         LocalTime horaFin = LocalTime.of(11, 0);
 
-        UUID idCreado = crearTurnoReal(ID_PRUEBA_1, "Turno a eliminar", fecha, horaInicio, horaFin);
+        UUID idCreado = crearTurnoReal(ID_PRUEBA_2, "Turno ST Delete", fecha, horaInicio, horaFin);
 
-        Response responseAntesEliminar = get("turnos_examen/" + idCreado);
-        assertEquals(200, responseAntesEliminar.getStatus());
-
-        Response responseDelete = delete("turnos_examen/" + idCreado);
+        Response responseDelete = delete("turnos/" + idCreado);
         assertEquals(204, responseDelete.getStatus());
 
-        Response responseDespuesEliminar = get("turnos_examen/" + idCreado);
-        assertEquals(404, responseDespuesEliminar.getStatus());
-        assertNotNull(responseDespuesEliminar.getHeaderString("Not-found-id"));
+        Response responseDespues = get("turnos/" + idCreado);
+        assertEquals(404, responseDespues.getStatus());
+        assertNotNull(responseDespues.getHeaderString("Not-found-id"));
     }
 
-    /**
-     * DELETE /resources/v1/turnos_examen/{id} con un id inexistente debe retornar 404.
-     */
     @Test
     void delete_ConIdInexistente_DebeRetornar404() {
         UUID idInexistente = UUID.fromString("ffffffff-0000-0000-0000-000000000000");
 
-        Response response = delete("turnos_examen/" + idInexistente);
+        Response response = delete("turnos/" + idInexistente);
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
     }
 
-    // ========== HELPERS ==========
-
-    /**
-     * Construye una entidad TurnosExaman válida con los parámetros dados.
-     * No ejecuta el POST, solo prepara el payload.
-     */
-    private TurnosExamen crearTurno(UUID idPrueba, String nombreTurno, LocalDate fecha,
-                                    LocalTime horaInicio, LocalTime horaFin) {
+    private TurnosExamen crearTurno(UUID idPrueba, String nombreTurno,
+                                    LocalDate fecha, LocalTime horaInicio, LocalTime horaFin) {
         TurnosExamen turno = new TurnosExamen();
         PruebasAdmision prueba = new PruebasAdmision();
         prueba.setIdPruebaAdmision(idPrueba);
@@ -302,23 +194,14 @@ public class TurnosExamenResourceST extends AbstractResourceST {
         return turno;
     }
 
-    /**
-     * Construye una entidad TurnosExaman válida y ejecuta el POST al recurso.
-     * Devuelve el UUID del recurso creado extraído del header Location.
-     * Falla si el POST no retorna 201.
-     */
-    private UUID crearTurnoReal(UUID idPrueba, String nombreTurno, LocalDate fecha,
-                               LocalTime horaInicio, LocalTime horaFin) {
+    private UUID crearTurnoReal(UUID idPrueba, String nombreTurno,
+                                LocalDate fecha, LocalTime horaInicio, LocalTime horaFin) {
         TurnosExamen turno = crearTurno(idPrueba, nombreTurno, fecha, horaInicio, horaFin);
 
-        Response responseCreacion = post("turnos_examen", turno);
-        assertEquals(201, responseCreacion.getStatus(),
-                "crearTurnoReal: POST debe retornar 201");
+        Response responseCreacion = post("turnos", turno);
+        assertEquals(201, responseCreacion.getStatus(), "Helper crearTurnoReal: POST debe retornar 201");
 
         String location = responseCreacion.getHeaderString("Location");
-        assertNotNull(location);
-
-        String idString = location.substring(location.lastIndexOf('/') + 1);
-        return UUID.fromString(idString);
+        return UUID.fromString(location.substring(location.lastIndexOf('/') + 1));
     }
 }

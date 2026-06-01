@@ -3,7 +3,6 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegida;
@@ -47,7 +46,6 @@ public class ProcesoAdmisionAspiranteDAO extends IngresoDefaultDataAccess<Proces
     /**
      * Asigna la carrera final a un aspirante garantizando que el cupo se reste a nivel SQL.
      */
-    @Transactional(Transactional.TxType.REQUIRED) // Aseguramos la integridad de la transacción
     public ProcesoAdmisionAspirante asignarCarreraFinal(UUID idInscripcion) {
         if (idInscripcion == null) {
             throw new IllegalArgumentException("idInscripcion es requerido");
@@ -94,7 +92,6 @@ public class ProcesoAdmisionAspiranteDAO extends IngresoDefaultDataAccess<Proces
     /**
      * Procesa en lote a todos los estudiantes garantizando Todo o Nada (Transaccionalidad)
      */
-    @Transactional(Transactional.TxType.REQUIRED)
     public void procesarAsignacionMasiva(UUID idEtapa) {
         if (idEtapa == null) {
             throw new IllegalArgumentException("El id de la etapa es requerido.");
