@@ -45,10 +45,10 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
             int resultado = cut.count();
 
-            // BD recién iniciada con init.sql → 2 disponibilidades
-            // (aula1+turno1, aula2+turno2)
+            // BD recién iniciada con init.sql → 3 disponibilidades
+            // (aula1+turno1, aula2+turno1, aula2+turno2)
             assertTrue(resultado > 0);
-            assertEquals(2, resultado);
+            assertEquals(3, resultado);
 
             return null;
         });
@@ -67,7 +67,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
             assertNotNull(resultado);
             assertFalse(resultado.isEmpty());
-            assertEquals(2, resultado.size());
+            assertEquals(3, resultado.size());
 
             return null;
         });
@@ -96,7 +96,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
             cut.crear(nueva);
 
-            assertEquals(3, cut.count());
+            assertEquals(4, cut.count());
 
             return null;
         });
@@ -106,7 +106,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
             DisponibilidadAulaTurnoDAO cut = new DisponibilidadAulaTurnoDAO();
             cut.em = em;
 
-            assertEquals(2, cut.count());
+            assertEquals(3, cut.count());
             return null;
         });
     }

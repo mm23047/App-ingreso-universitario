@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Entity
+@Table(name = "proceso_admision_aspirante", schema = "public")
 @NamedQueries({
         @NamedQuery(
                 name = "ProcesoAdmisionAspirante.findCarrerasElegidas",

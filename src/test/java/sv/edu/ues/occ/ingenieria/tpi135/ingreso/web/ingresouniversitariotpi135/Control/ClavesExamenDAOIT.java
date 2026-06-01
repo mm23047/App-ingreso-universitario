@@ -2,6 +2,7 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 
 import org.junit.jupiter.api.Test;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExamen;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
 import java.util.List;
@@ -13,6 +14,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     private static final UUID ID_PRUEBA_1 = UUID.fromString("d1000000-0000-0000-0000-000000000001");
+    private static final UUID ID_ETAPA_1  = UUID.fromString("c1000000-0000-0000-0000-000000000001");
 
     @Test
     public void testCount() {
@@ -62,10 +64,13 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
 
             // Asociar la nueva clave a la prueba de admisión 2026 (d1...001)
             PruebasAdmision prueba = em.find(PruebasAdmision.class, ID_PRUEBA_1);
+            EtapasAdmision etapa   = em.find(EtapasAdmision.class, ID_ETAPA_1);
             assertNotNull(prueba);
+            assertNotNull(etapa);
 
             ClavesExamen nueva = new ClavesExamen();
             nueva.setPruebaAdmision(prueba);
+            nueva.setEtapaAdmision(etapa);
             nueva.setNombreClave("Clave C");
 
             cut.crear(nueva);
@@ -121,10 +126,13 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
 
             // Crear una nueva clave para eliminarla
             PruebasAdmision prueba = em.find(PruebasAdmision.class, ID_PRUEBA_1);
+            EtapasAdmision etapa   = em.find(EtapasAdmision.class, ID_ETAPA_1);
             assertNotNull(prueba);
+            assertNotNull(etapa);
 
             ClavesExamen nueva = new ClavesExamen();
             nueva.setPruebaAdmision(prueba);
+            nueva.setEtapaAdmision(etapa);
             nueva.setNombreClave("Clave para eliminar");
 
             cut.crear(nueva);

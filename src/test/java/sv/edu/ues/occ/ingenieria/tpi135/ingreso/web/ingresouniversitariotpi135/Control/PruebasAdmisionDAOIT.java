@@ -24,8 +24,8 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
 
             int resultado = cut.count();
 
-            // Tenemos 2 registros iniciales en la BD
-            assertEquals(2, resultado);
+            // Tenemos 3 registros iniciales en la BD
+            assertEquals(3, resultado);
             return null;
         });
     }
@@ -43,7 +43,7 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
 
             assertNotNull(resultado);
             assertFalse(resultado.isEmpty());
-            assertEquals(2, resultado.size());
+            assertEquals(2, resultado.size()); // findRange(0,2) devuelve max 2 aunque haya 3
 
             return null;
         });
@@ -65,18 +65,18 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
 
             cut.crear(nuevo);
 
-            // Verificamos que se sumó una prueba en esta transacción
-            assertEquals(3, cut.count());
+            // Verificamos que se sumó una prueba en esta transacción (3 iniciales + 1 = 4)
+            assertEquals(4, cut.count());
             assertNotNull(nuevo.getIdPruebaAdmision());
             //Para verificar por consola
             System.out.println("NUmeor de registros actaules: "+cut.count());
             return null;
         });
-        //Verificar el rollback: no debemos ensuciar la BD
+        //Verificar el rollback: no debemos ensuciar la BD (vuelve a 3)
         ejecutarEnTransaccion(em -> {
             PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
             cut.em = em;
-            assertEquals(2, cut.count());
+            assertEquals(3, cut.count());
             return null;
         });
     }
@@ -152,14 +152,14 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
 
             cut.crear(pruebaAEliminar);
 
-            // Verificamos que se creó
-            assertEquals(3, cut.count());
+            // Verificamos que se creó (3 iniciales + 1 = 4)
+            assertEquals(4, cut.count());
 
             //Eliminamos
             cut.eliminar(pruebaAEliminar);
 
-            // Verificamos que bajó de nuevo a 2 y que el ID ya no existe
-            assertEquals(2, cut.count());
+            // Verificamos que bajó de nuevo a 3 y que el ID ya no existe
+            assertEquals(3, cut.count());
             assertNull(cut.leer(pruebaAEliminar.getIdPruebaAdmision()), "La prueba debería haber sido eliminada y retornar null");
             //Verificamos en consola
             System.out.println("Dato eliminado: "+ cut.leer(pruebaAEliminar.getIdPruebaAdmision()));

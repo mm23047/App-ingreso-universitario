@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
+@Table(name = "cupos_carrera", schema = "public")
 @NamedQueries({
         // 1. NUEVA CONSULTA: Para buscar por ID y traer todo de una vez
         @NamedQuery(

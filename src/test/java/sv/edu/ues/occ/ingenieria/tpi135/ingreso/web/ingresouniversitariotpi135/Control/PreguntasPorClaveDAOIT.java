@@ -22,7 +22,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     private static final UUID ID_CLAVE_A    = UUID.fromString("08000000-0000-0000-0000-000000000001");
-    private static final UUID ID_CLAVE_B    = UUID.fromString("08000000-0000-0000-0000-000000000002");
+    private static final UUID ID_CLAVE_B    = UUID.fromString("aaaabbbb-cccc-dddd-eeee-ffffffffffff");
     private static final UUID ID_PREGUNTA_1 = UUID.fromString("f1000000-0000-0000-0000-000000000001");
     private static final UUID ID_PREGUNTA_3 = UUID.fromString("f1000000-0000-0000-0000-000000000003");
 

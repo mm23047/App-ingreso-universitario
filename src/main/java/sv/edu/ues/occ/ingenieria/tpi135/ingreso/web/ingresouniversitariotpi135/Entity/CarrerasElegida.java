@@ -2,49 +2,32 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-
-import java.io.Serializable;
 import java.util.Objects;
+import java.util.UUID;
 
 @Entity
 @Table(name = "carrera_elegida", schema = "public", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_inscripcion_prioridad", columnNames = {"id_inscripcion", "prioridad"})
+        @UniqueConstraint(columnNames = {"id_inscripcion", "prioridad"})
 })
 @NamedQueries({
-        @NamedQuery(
-                name = "CarrerasElegida.findByInscripcionAndPrioridadLevel",
-                query = "SELECT c FROM CarrerasElegida c JOIN FETCH c.inscripcionesPrueba JOIN FETCH c.catalogoCarrera WHERE c.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion AND c.prioridad = :prioridad"
-        ),
-        // Las consultas de COUNT se quedan exactamente igual (no devuelven entidades)
         @NamedQuery(
                 name = "CarrerasElegida.countByInscripcionAndPrioridad",
                 query = "SELECT COUNT(c) FROM CarrerasElegida c WHERE c.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion AND c.prioridad = :prioridad"
         ),
         @NamedQuery(
-                name = "CarrerasElegida.countByInscripcionAndPrioridadNotId",
-                query = "SELECT COUNT(c) FROM CarrerasElegida c WHERE c.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion AND c.prioridad = :prioridad AND c.catalogoCarrera.idCarrera <> :idCarrera"
+                name = "CarrerasElegida.findByInscripcionOrderByPrioridad",
+                query = "SELECT c FROM CarrerasElegida c JOIN FETCH c.inscripcionesPrueba JOIN FETCH c.catalogoCarrera WHERE c.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion ORDER BY c.prioridad ASC"
         ),
-
-        // APLICAMOS JOIN FETCH A LAS CONSULTAS DE LECTURA (SELECT)
         @NamedQuery(
                 name = "CarrerasElegida.findByInscripcionAndCarrera",
                 query = "SELECT c FROM CarrerasElegida c JOIN FETCH c.inscripcionesPrueba JOIN FETCH c.catalogoCarrera WHERE c.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion AND c.catalogoCarrera.idCarrera = :idCarrera"
         ),
         @NamedQuery(
-                name = "CarrerasElegida.findByInscripcionOrderByPrioridad",
-                query = "SELECT c FROM CarrerasElegida c JOIN FETCH c.inscripcionesPrueba JOIN FETCH c.catalogoCarrera WHERE c.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion ORDER BY c.prioridad ASC"
-        ),
-
-        // (OPCIONAL) NUEVA CONSULTA POR SI NECESITAS SOBRESCRIBIR EL MÉTODO leer() EN EL FUTURO
-        @NamedQuery(
-                name = "CarrerasElegida.findByIdConRelaciones",
-                query = "SELECT c FROM CarrerasElegida c JOIN FETCH c.inscripcionesPrueba JOIN FETCH c.catalogoCarrera WHERE c.idCarreraElegida = :id"
+                name = "CarrerasElegida.findByInscripcionAndPrioridadLevel",
+                query = "SELECT c FROM CarrerasElegida c JOIN FETCH c.inscripcionesPrueba JOIN FETCH c.catalogoCarrera WHERE c.inscripcionesPrueba.idInscripcionPrueba = :idInscripcion AND c.prioridad = :prioridad"
         )
 })
-
-public class CarrerasElegida implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class CarrerasElegida {
 
     @EmbeddedId
     private CarrerasElegidaId idCarreraElegida;
@@ -68,28 +51,16 @@ public class CarrerasElegida implements Serializable {
         return idCarreraElegida;
     }
 
-    public void setIdCarreraElegida(CarrerasElegidaId id) {
-        this.idCarreraElegida = id;
-        if (id != null) {
-            if (this.inscripcionesPrueba == null) {
-                InscripcionesPrueba inscripcion = new InscripcionesPrueba();
-                inscripcion.setIdInscripcionPrueba(id.getIdInscripcion());
-                this.inscripcionesPrueba = inscripcion;
-            }
-            if (this.catalogoCarrera == null) {
-                CatalogoCarrera carrera = new CatalogoCarrera();
-                carrera.setIdCarrera(id.getIdCarrera());
-                this.catalogoCarrera = carrera;
-            }
-        }
+    public void setIdCarreraElegida(CarrerasElegidaId idCarreraElegida) {
+        this.idCarreraElegida = idCarreraElegida;
     }
 
     public InscripcionesPrueba getInscripcionesPrueba() {
         return inscripcionesPrueba;
     }
 
-    public void setInscripcionesPrueba(InscripcionesPrueba idInscripcion) {
-        this.inscripcionesPrueba = idInscripcion;
+    public void setInscripcionesPrueba(InscripcionesPrueba inscripcionesPrueba) {
+        this.inscripcionesPrueba = inscripcionesPrueba;
         sincronizarId();
     }
 
@@ -97,8 +68,8 @@ public class CarrerasElegida implements Serializable {
         return catalogoCarrera;
     }
 
-    public void setCatalogoCarrera(CatalogoCarrera idCarrera) {
-        this.catalogoCarrera = idCarrera;
+    public void setCatalogoCarrera(CatalogoCarrera catalogoCarrera) {
+        this.catalogoCarrera = catalogoCarrera;
         sincronizarId();
     }
 
@@ -110,14 +81,26 @@ public class CarrerasElegida implements Serializable {
         this.prioridad = prioridad;
     }
 
-    @PrePersist
-    @PreUpdate
-    private void sincronizarIdPersistible() {
-        sincronizarId();
+    private void sincronizarId() {
+        if (this.inscripcionesPrueba != null && this.catalogoCarrera != null) {
+            UUID uuid = this.inscripcionesPrueba.getIdInscripcionPrueba();
+            String idCarrera = this.catalogoCarrera.getIdCarrera();
+            if (uuid != null && idCarrera != null) {
+                if (this.idCarreraElegida == null) {
+                    this.idCarreraElegida = new CarrerasElegidaId();
+                }
+                this.idCarreraElegida.setIdInscripcion(uuid);
+                this.idCarreraElegida.setIdCarrera(idCarrera);
+            }
+        }
     }
 
-    private void sincronizarId() {
-        if (this.idCarreraElegida == null && this.inscripcionesPrueba != null && this.catalogoCarrera != null) {
+    @PrePersist
+    @PreUpdate
+    private void sincronizarIdPersist() {
+        if (this.idCarreraElegida == null
+                && this.inscripcionesPrueba != null
+                && this.catalogoCarrera != null) {
             CarrerasElegidaId compuesto = new CarrerasElegidaId();
             compuesto.setIdInscripcion(this.inscripcionesPrueba.getIdInscripcionPrueba());
             compuesto.setIdCarrera(this.catalogoCarrera.getIdCarrera());

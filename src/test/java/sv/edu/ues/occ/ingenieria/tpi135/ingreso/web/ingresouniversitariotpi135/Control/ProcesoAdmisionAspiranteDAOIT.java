@@ -218,6 +218,9 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
         ejecutarEnTransaccion(em -> {
             ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
             cut.em = em;
+            CuposCarreraDAO cuposDAO = new CuposCarreraDAO();
+            cuposDAO.em = em;
+            cut.setCuposCarreraDAO(cuposDAO);
 
             AspirantesDato aspirante = em.find(AspirantesDato.class, ID_ASPIRANTE_1);
             PruebasAdmision prueba = em.find(PruebasAdmision.class, ID_PRUEBA_2025);
@@ -226,6 +229,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
             EtapasAdmision etapaAsignacion = new EtapasAdmision();
             etapaAsignacion.setNombre("Etapa Asignacion Carrera IT");
+            etapaAsignacion.setCantidadPreguntasRequeridas(1);
             em.persist(etapaAsignacion);
             em.flush();
 
@@ -243,18 +247,18 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             proceso.setEstado("EN_PROCESO");
             em.persist(proceso);
 
-            CatalogoCarrera carreraICS = em.find(CatalogoCarrera.class, "ICS");
+            CatalogoCarrera carreraADM = em.find(CatalogoCarrera.class, "ADM");
             CatalogoCarrera carreraISI = em.find(CatalogoCarrera.class, "ISI");
-            assertNotNull(carreraICS);
+            assertNotNull(carreraADM);
             assertNotNull(carreraISI);
 
             CarrerasElegidaId pk1 = new CarrerasElegidaId();
             pk1.setIdInscripcion(inscripcion.getIdInscripcionPrueba());
-            pk1.setIdCarrera("ICS");
+            pk1.setIdCarrera("ADM");
             CarrerasElegida elegida1 = new CarrerasElegida();
             elegida1.setIdCarreraElegida(pk1);
             elegida1.setInscripcionesPrueba(inscripcion);
-            elegida1.setCatalogoCarrera(carreraICS);
+            elegida1.setCatalogoCarrera(carreraADM);
             elegida1.setPrioridad((short) 1);
             em.persist(elegida1);
 
@@ -268,17 +272,17 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             elegida2.setPrioridad((short) 2);
             em.persist(elegida2);
 
-            CuposCarreraId cuposICSId = new CuposCarreraId();
-            cuposICSId.setIdPrueba(prueba.getIdPruebaAdmision());
-            cuposICSId.setIdCarrera("ICS");
-            cuposICSId.setIdEtapa(etapaAsignacion.getIdEtapaAdmision());
-            CuposCarrera cuposICS = new CuposCarrera();
-            cuposICS.setIdCupoCarrera(cuposICSId);
-            cuposICS.setPruebaAdmision(prueba);
-            cuposICS.setCatalogoCarrera(carreraICS);
-            cuposICS.setEtapaAdmision(etapaAsignacion);
-            cuposICS.setCupos(0);
-            em.persist(cuposICS);
+            CuposCarreraId cuposADMId = new CuposCarreraId();
+            cuposADMId.setIdPrueba(prueba.getIdPruebaAdmision());
+            cuposADMId.setIdCarrera("ADM");
+            cuposADMId.setIdEtapa(etapaAsignacion.getIdEtapaAdmision());
+            CuposCarrera cuposADM = new CuposCarrera();
+            cuposADM.setIdCupoCarrera(cuposADMId);
+            cuposADM.setPruebaAdmision(prueba);
+            cuposADM.setCatalogoCarrera(carreraADM);
+            cuposADM.setEtapaAdmision(etapaAsignacion);
+            cuposADM.setCupos(0);
+            em.persist(cuposADM);
 
             CuposCarreraId cuposISIId = new CuposCarreraId();
             cuposISIId.setIdPrueba(prueba.getIdPruebaAdmision());
@@ -291,6 +295,8 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             cuposISI.setEtapaAdmision(etapaAsignacion);
             cuposISI.setCupos(2);
             em.persist(cuposISI);
+
+            em.flush();
 
             ProcesoAdmisionAspirante resultado = cut.asignarCarreraFinal(inscripcion.getIdInscripcionPrueba());
 
@@ -306,9 +312,8 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             assertNotNull(desdeBd.getCarreraAsignada());
             assertEquals("ISI", desdeBd.getCarreraAsignada().getIdCarrera());
 
-            CuposCarrera cuposISIDesdeBd = em.find(CuposCarrera.class, cuposISIId);
-            assertNotNull(cuposISIDesdeBd);
-            assertEquals(1, cuposISIDesdeBd.getCupos());
+            em.refresh(cuposISI);
+            assertEquals(1, cuposISI.getCupos());
 
             return null;
         });
@@ -322,6 +327,9 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
         ejecutarEnTransaccion(em -> {
             ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
             cut.em = em;
+            CuposCarreraDAO cuposDAO = new CuposCarreraDAO();
+            cuposDAO.em = em;
+            cut.setCuposCarreraDAO(cuposDAO);
 
             AspirantesDato aspirante = em.find(AspirantesDato.class, ID_ASPIRANTE_1);
             PruebasAdmision prueba = em.find(PruebasAdmision.class, ID_PRUEBA_2025);
@@ -330,6 +338,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
             EtapasAdmision etapaAsignacion = new EtapasAdmision();
             etapaAsignacion.setNombre("Etapa Asignacion Carrera IT - Sin cupos");
+            etapaAsignacion.setCantidadPreguntasRequeridas(1);
             em.persist(etapaAsignacion);
             em.flush();
 

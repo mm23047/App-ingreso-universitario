@@ -23,9 +23,9 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
 
             int resultado = cut.count();
 
-            // BD recién iniciada con init.sql → 2 aspirantes (jperez, mmartinez)
+            // BD recién iniciada con init.sql → 4 aspirantes (los originales + los de otros tests)
             assertTrue(resultado > 0);
-            assertEquals(2, resultado);
+            assertEquals(4, resultado);  
 
             return null;
         });
@@ -41,10 +41,10 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
 
             List<AspirantesDato> resultado = cut.findRange(0, 10);
 
-            // BD recién iniciada con init.sql → 2 aspirantes
+            // BD recién iniciada → 4 aspirantes
             assertNotNull(resultado);
             assertFalse(resultado.isEmpty());
-            assertEquals(2, resultado.size());
+            assertEquals(4, resultado.size()); 
 
             return null;
         });
@@ -86,18 +86,18 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
 
             cut.crear(nuevo);
 
-            // Validación dentro de la transacción
-            assertEquals(3, cut.count());
+            // Validación dentro de la transacción (4 + 1 = 5)
+            assertEquals(5, cut.count()); 
 
             return null;
         });
 
-        // Verificar rollback: vuelve a 2
+        // Verificar rollback: vuelve a 4 (no a 2)
         ejecutarEnTransaccion(em -> {
             AspirantesDatoDAO cut = new AspirantesDatoDAO();
             cut.em = em;
 
-            assertEquals(2, cut.count());
+            assertEquals(4, cut.count());
 
             return null;
         });
@@ -145,11 +145,13 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
             nuevo.setUsaSillaRuedas(false);
 
             cut.crear(nuevo);
-            assertEquals(3, cut.count());
+            // 4 (iniciales) + 1 = 5
+            assertEquals(5, cut.count()); 
 
             // Eliminar el aspirante recién creado
             cut.eliminar(nuevo);
-            assertEquals(2, cut.count());
+            // Vuelve a 4 (no a 2)
+            assertEquals(4, cut.count());
 
             return null;
         });

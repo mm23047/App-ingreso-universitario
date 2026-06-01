@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AreasConocimiento;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.Tema;
 
 import java.util.List;
 
@@ -70,10 +71,17 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
             assertNotNull(area);
             System.out.println(" Área de conocimiento asignada: " + area.getNombreArea());
 
+            // Obtenemos un tema gestionado (managed) para evitar cascade PERSIST
+            Tema tema = em.createQuery("SELECT t FROM Tema t WHERE t.areaConocimiento = :area", Tema.class)
+                    .setParameter("area", area)
+                    .setMaxResults(1)
+                    .getSingleResult();
+            assertNotNull(tema);
+
             //Creamos la pregunta
             BancoPregunta nuevoBancoPregunta = new BancoPregunta();
             nuevoBancoPregunta.setEnunciado("¿Cuál es la capital de Francia?");
-            nuevoBancoPregunta.setIdArea(area);
+            nuevoBancoPregunta.setTema(tema);
 
             cut.crear(nuevoBancoPregunta);
 
@@ -164,10 +172,16 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
                     .setMaxResults(1)
                     .getSingleResult();
 
+            // Obtenemos un tema gestionado (managed)
+            Tema tema = em.createQuery("SELECT t FROM Tema t WHERE t.areaConocimiento = :area", Tema.class)
+                    .setParameter("area", area)
+                    .setMaxResults(1)
+                    .getSingleResult();
+
             // Creamos dato temporal
             BancoPregunta preguntaTemporal = new BancoPregunta();
             preguntaTemporal.setEnunciado("Pregunta temporal a eliminar");
-            preguntaTemporal.setIdArea(area);
+            preguntaTemporal.setTema(tema);
 
             cut.crear(preguntaTemporal);
             System.out.println("Pregunta temporal creada con ID: " + preguntaTemporal.getIdBancoPregunta());

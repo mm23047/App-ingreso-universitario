@@ -25,7 +25,15 @@ public class ProcesoAdmisionAspiranteDAO extends IngresoDefaultDataAccess<Proces
 
     // MAGIA AQUÍ: Inyectamos el DAO que tiene el método de descuento seguro en SQL
     @Inject
-    private CuposCarreraDAO cuposCarreraDAO;
+    protected CuposCarreraDAO cuposCarreraDAO;
+
+    public CuposCarreraDAO getCuposCarreraDAO() {
+        return cuposCarreraDAO;
+    }
+
+    public void setCuposCarreraDAO(CuposCarreraDAO cuposCarreraDAO) {
+        this.cuposCarreraDAO = cuposCarreraDAO;
+    }
 
     public ProcesoAdmisionAspiranteDAO() {
         super(ProcesoAdmisionAspirante.class);
