@@ -28,9 +28,9 @@ import static org.mockito.Mockito.*;
 /**
  * Pruebas unitarias para AsignacionAulaAspiranteResource.
  * Endpoints:
- *   POST   /asignaciones-aula/inscripciones/{id}  → asignarAulaAspirante
- *   GET    /asignaciones-aula/disponibilidad/{idAula}/{idTurno}
- *   DELETE /asignaciones-aula/{idAsignacion}
+ *   POST   /asignaciones_aula/inscripciones/{id}  → asignarAulaAspirante
+ *   GET    /asignaciones_aula/disponibilidad/{idAula}/{idTurno}
+ *   DELETE /asignaciones_aula/{idAsignacion}
  */
 @ExtendWith(MockitoExtension.class)
 class AsignacionAulaAspiranteResourceHardeningTest {
@@ -146,7 +146,7 @@ class AsignacionAulaAspiranteResourceHardeningTest {
         }).when(asignacionAulaAspiranteDAO).crear(any(AsignacionAulaAspirante.class));
         when(uriInfo.getBaseUriBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
-        when(uriBuilder.build()).thenReturn(URI.create("http://localhost/asignaciones-aula/1"));
+        when(uriBuilder.build()).thenReturn(URI.create("http://localhost/asignaciones_aula/1"));
 
         Response response = resource.asignarAulaAspirante(idInscripcion.toString(), payload, uriInfo);
 

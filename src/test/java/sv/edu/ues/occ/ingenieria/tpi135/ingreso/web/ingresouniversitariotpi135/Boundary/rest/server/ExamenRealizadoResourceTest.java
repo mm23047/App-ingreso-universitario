@@ -73,7 +73,7 @@ class ExamenRealizadoResourceTest {
         when(dao.iniciarExamenAspirante(inscripcionId, etapaId)).thenReturn(testExamen);
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
-        when(uriBuilder.build()).thenReturn(URI.create("http://localhost/examenes/" + examenId));
+        when(uriBuilder.build()).thenReturn(URI.create("http://localhost/examen_realizado/" + examenId));
 
         Response response = resource.iniciarExamen(dto, uriInfo);
 

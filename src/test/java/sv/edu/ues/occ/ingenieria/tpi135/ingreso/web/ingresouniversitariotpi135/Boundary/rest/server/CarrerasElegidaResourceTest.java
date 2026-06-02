@@ -101,7 +101,7 @@ class CarrerasElegidaResourceTest {
         when(carrerasElegidaDAO.existsByInscripcionAndPrioridad(idInscripcion, (short) 1)).thenReturn(false);
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
-        when(uriBuilder.build()).thenReturn(URI.create("http://localhost/inscripciones/1/carreras/ISI"));
+        when(uriBuilder.build()).thenReturn(URI.create("http://localhost/inscripciones_prueba/1/carreras/ISI"));
 
         Response response = resource.addCarreraElegida(idInscripcionStr, nuevaEleccion, uriInfo);
 

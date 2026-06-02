@@ -12,9 +12,9 @@ import java.util.UUID;
 
 /**
  * Recurso REST para gestionar el Proceso de Admisión de los Aspirantes.
- * Base: /resources/v1/proceso-admision
+ * Base: /resources/v1/proceso_admision
  */
-@Path("proceso-admision")
+@Path("proceso_admision")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ProcesoAdmisionAspiranteResource extends AbstractResource<ProcesoAdmisionAspirante> {

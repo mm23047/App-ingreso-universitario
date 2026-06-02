@@ -13,9 +13,9 @@ import java.util.UUID;
 
 /**
  * Recurso REST para gestionar el ciclo de vida de los Exámenes Realizados.
- * Base: /resources/v1/examenes
+ * Base: /resources/v1/examen_realizado
  */
-@Path("examenes")
+@Path("examen_realizado")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ExamenRealizadoResource extends AbstractResource<ExamenRealizado> {

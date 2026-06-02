@@ -19,9 +19,9 @@ import java.util.UUID;
 
 /**
  * Recurso REST para gestionar las carreras elegidas por un aspirante en su inscripción.
- * * Base: /resources/v1/inscripciones/{idInscripcion}/carreras
+ * * Base: /resources/v1/inscripciones_prueba/{idInscripcion}/carreras
  */
-@Path("inscripciones/{idInscripcion}/carreras")
+@Path("inscripciones_prueba/{idInscripcion}/carreras")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class CarrerasElegidaResource extends AbstractResource<CarrerasElegida> {

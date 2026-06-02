@@ -98,7 +98,7 @@ class RespuestaExamenResourceTest {
 
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
-        when(uriBuilder.build()).thenReturn(URI.create("http://localhost/respuestas/1"));
+        when(uriBuilder.build()).thenReturn(URI.create("http://localhost/respuestas_examen/1"));
 
         Response response = resource.submitRespuesta(nueva, uriInfo);
 

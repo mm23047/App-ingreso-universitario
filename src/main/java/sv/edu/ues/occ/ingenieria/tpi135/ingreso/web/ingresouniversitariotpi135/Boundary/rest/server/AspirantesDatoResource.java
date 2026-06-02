@@ -304,7 +304,7 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
 
             // 4. Retornamos 201 Created y la Location
             URI location = uriInfo.getBaseUriBuilder()
-                    .path("inscripciones")
+                    .path("inscripciones_prueba")
                     .path(nuevaInscripcion.getIdInscripcionPrueba().toString())
                     .build();
 

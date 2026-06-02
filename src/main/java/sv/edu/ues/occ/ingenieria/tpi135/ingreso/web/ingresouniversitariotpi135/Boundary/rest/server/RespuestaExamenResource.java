@@ -24,9 +24,9 @@ import java.util.UUID;
 
 /**
  * Recurso REST para gestionar las Respuestas del Examen.
- * Base: /resources/v1/respuestas
+ * Base: /resources/v1/respuestas_examen
  */
-@Path("respuestas")
+@Path("respuestas_examen")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class RespuestaExamenResource extends AbstractResource<RespuestaExamen> {

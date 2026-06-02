@@ -19,9 +19,9 @@ import java.util.UUID;
 
 /**
  * Recurso REST para gestionar Inscripciones de manera global.
- * Base: /resources/v1/inscripciones
+ * Base: /resources/v1/inscripciones_prueba
  */
-@Path("inscripciones")
+@Path("inscripciones_prueba")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class InscripcionesPruebaResource extends AbstractResource<InscripcionesPrueba> {

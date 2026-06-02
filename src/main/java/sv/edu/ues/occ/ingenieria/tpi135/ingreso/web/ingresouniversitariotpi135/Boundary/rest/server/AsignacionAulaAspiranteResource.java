@@ -17,7 +17,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
-@Path("asignaciones-aula")
+@Path("asignaciones_aula")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class AsignacionAulaAspiranteResource extends AbstractResource<AsignacionAulaAspirante> {
@@ -83,7 +83,7 @@ public class AsignacionAulaAspiranteResource extends AbstractResource<Asignacion
             asignacionAulaAspiranteDAO.crear(nuevaAsignacion);
 
             URI location = uriInfo.getBaseUriBuilder()
-                    .path("asignaciones-aula")
+                    .path("asignaciones_aula")
                     .path(nuevaAsignacion.getIdAsignacionAulaAspirante().toString())
                     .build();
 
@@ -138,7 +138,7 @@ public class AsignacionAulaAspiranteResource extends AbstractResource<Asignacion
     }
 
     /**
-     * DELETE /asignaciones-aula/{idAsignacion}
+     * DELETE /asignaciones_aula/{idAsignacion}
      */
     @DELETE
     @Path("{idAsignacion}")

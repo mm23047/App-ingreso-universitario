@@ -10,7 +10,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.C
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.DisponibilidadAulaTurno;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.DisponibilidadAulaTurnoId;
 
-// ⚠️ Se asume la existencia de estos DAOs para validar la existencia de los padres
+//  Se asume la existencia de estos DAOs para validar la existencia de los padres
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.AulaDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.TurnosExamenDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.Aula;
@@ -24,7 +24,7 @@ import java.util.UUID;
  * Recurso REST para gestionar la Disponibilidad de Aulas por Turno.
  * Base dinámica para soportar rutas multi-raíz.
  */
-@Path("aulas-turnos")
+@Path("aulas_turnos")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class DisponibilidadAulaTurnoResource extends AbstractResource<DisponibilidadAulaTurno> {

@@ -105,13 +105,13 @@ public class AsignacionAulaAspiranteBDD {
         asignacion.setDisponibilidad(disponibilidad);
 
         Response respuestaAsignacion = target
-                .path("asignacion_aula_aspirante")
+                .path("asignaciones_aula/inscripciones/" + idInscripcionCreada)
                 .request(MediaType.APPLICATION_JSON)
                 .post(Entity.json(asignacion));
 
         Assertions.assertEquals(201, respuestaAsignacion.getStatus(), "La asignacion debe crearse exitosamente");
         String locationAsignacion = respuestaAsignacion.getHeaderString("Location");
-        idAsignacionCreada = UUID.fromString(locationAsignacion.split("asignacion_aula_aspirante/")[1]);
+        idAsignacionCreada = UUID.fromString(locationAsignacion.split("asignaciones_aula/")[1]);
         System.out.println("Asignacion creada con ID: " + idAsignacionCreada);
     }
 
@@ -127,7 +127,7 @@ public class AsignacionAulaAspiranteBDD {
         Assertions.assertNotNull(idAsignacionCreada, "La asignacion debe existir");
 
         Response respuesta = target
-                .path("asignacion_aula_aspirante/{id}")
+                .path("asignaciones_aula/{id}")
                 .resolveTemplate("id", idAsignacionCreada)
                 .request(MediaType.APPLICATION_JSON)
                 .get();
