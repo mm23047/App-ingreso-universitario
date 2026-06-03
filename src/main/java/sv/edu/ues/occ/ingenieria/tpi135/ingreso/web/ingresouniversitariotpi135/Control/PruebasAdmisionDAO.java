@@ -5,10 +5,6 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
 import java.io.Serializable;
@@ -69,26 +65,29 @@ public class PruebasAdmisionDAO extends IngresoDefaultDataAccess<PruebasAdmision
     public List<PruebasAdmision> buscarPorTermino(String termino, int first, int max) {
         try {
             String patron = "%" + termino.toLowerCase() + "%";
-            CriteriaBuilder cb = em.getCriteriaBuilder();
-            CriteriaQuery<PruebasAdmision> cq = cb.createQuery(PruebasAdmision.class);
-            Root<PruebasAdmision> root = cq.from(PruebasAdmision.class);
-
-            Predicate porNombre = cb.like(cb.lower(root.get("nombrePrueba")), patron);
-            Predicate condicion;
             try {
-                Integer anio = Integer.parseInt(termino.trim());
-                condicion = cb.or(porNombre, cb.equal(root.get("anio"), anio));
-            } catch (NumberFormatException nfe) {
-                condicion = porNombre;
-            }
-
-            cq.select(root).where(condicion)
-              .orderBy(cb.desc(root.get("anio")), cb.asc(root.get("nombrePrueba")));
-
-            return em.createQuery(cq)
+                int anio = Integer.parseInt(termino.trim());
+                return em.createQuery(
+                        "SELECT p FROM PruebasAdmision p " +
+                        "WHERE LOWER(p.nombrePrueba) LIKE :patron OR p.anio = :anio " +
+                        "ORDER BY p.anio DESC, p.nombrePrueba ASC",
+                        PruebasAdmision.class)
+                    .setParameter("patron", patron)
+                    .setParameter("anio", anio)
                     .setFirstResult(first)
                     .setMaxResults(max)
                     .getResultList();
+            } catch (NumberFormatException nfe) {
+                return em.createQuery(
+                        "SELECT p FROM PruebasAdmision p " +
+                        "WHERE LOWER(p.nombrePrueba) LIKE :patron " +
+                        "ORDER BY p.anio DESC, p.nombrePrueba ASC",
+                        PruebasAdmision.class)
+                    .setParameter("patron", patron)
+                    .setFirstResult(first)
+                    .setMaxResults(max)
+                    .getResultList();
+            }
         } catch (Exception e) {
             throw new IllegalStateException("Error al acceder a la base de datos", e);
         }
