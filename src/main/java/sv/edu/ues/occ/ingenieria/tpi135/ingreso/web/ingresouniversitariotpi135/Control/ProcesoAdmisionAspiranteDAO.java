@@ -120,6 +120,19 @@ public class ProcesoAdmisionAspiranteDAO extends IngresoDefaultDataAccess<Proces
         em.clear();
     }
 
+    public List<ProcesoAdmisionAspirante> findByAspiranteId(UUID aspiranteId) {
+        if (aspiranteId == null) {
+            throw new IllegalArgumentException("El ID del aspirante no puede ser nulo.");
+        }
+        try {
+            return em.createNamedQuery("ProcesoAdmisionAspirante.findByAspiranteId", ProcesoAdmisionAspirante.class)
+                    .setParameter("aspiranteId", aspiranteId)
+                    .getResultList();
+        } catch (Exception e) {
+            throw new IllegalStateException("Error al consultar los procesos del aspirante.", e);
+        }
+    }
+
     /**
      * Sobrescribimos el método leer del padre para evitar LazyInitializationException en REST.
      * Carga de una vez la inscripción, la etapa y (si existe) la carrera asignada.

@@ -36,6 +36,14 @@ import java.util.UUID;
                         "JOIN FETCH p.etapaAdmision " +
                         "LEFT JOIN FETCH p.carreraAsignada " +
                         "WHERE p.idProcesoAdmisionAspirante = :idProceso"
+        ),
+        @NamedQuery(
+                name = "ProcesoAdmisionAspirante.findByAspiranteId",
+                query = "SELECT p FROM ProcesoAdmisionAspirante p " +
+                        "JOIN FETCH p.inscripcionesPrueba " +
+                        "JOIN FETCH p.etapaAdmision " +
+                        "LEFT JOIN FETCH p.carreraAsignada " +
+                        "WHERE p.inscripcionesPrueba.aspiranteDato.id = :aspiranteId"
         )
 })
 public class ProcesoAdmisionAspirante implements Serializable {

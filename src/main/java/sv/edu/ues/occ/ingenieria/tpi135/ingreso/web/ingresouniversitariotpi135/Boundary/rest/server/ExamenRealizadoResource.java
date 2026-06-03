@@ -5,10 +5,20 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.ExamenRealizadoDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.PreguntasPorClaveDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.ProcesoAdmisionAspiranteDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExamen;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExamenRealizado;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClave;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ProcesoAdmisionAspirante;
 
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -25,6 +35,9 @@ public class ExamenRealizadoResource extends AbstractResource<ExamenRealizado> {
 
     @Inject
     private PreguntasPorClaveDAO preguntasPorClaveDAO;
+
+    @Inject
+    private ProcesoAdmisionAspiranteDAO procesoAdmisionDAO;
 
     @Override
     protected ExamenRealizadoDAO getDAO() {
@@ -181,18 +194,33 @@ public class ExamenRealizadoResource extends AbstractResource<ExamenRealizado> {
     }
 
     /**
-     * GET /examenes/aspirante/{idAspirante}
-     * Permite consultar el historial de exámenes de un estudiante específico.
+     * GET /examen_realizado/aspirante/{idAspirante}
+     * Devuelve el historial de exámenes del aspirante enriquecido con el estado de admisión
+     * y la carrera asignada (si ya existe ProcesoAdmisionAspirante).
+     * Orden garantizado por backend: fechaRealizacion DESC.
      */
     @GET
     @Path("aspirante/{idAspirante}")
     public Response getExamenesPorAspirante(@PathParam("idAspirante") String idAspiranteStr) {
         try {
             UUID idAspirante = UUID.fromString(idAspiranteStr);
-            List<ExamenRealizado> examenes = examenRealizadoDAO.findByAspiranteId(idAspirante);
 
-            return Response.ok(examenes)
-                    .header(RestHeaders.TOTAL_RECORDS, examenes.size())
+            List<ExamenRealizado> examenes = examenRealizadoDAO.findByAspiranteId(idAspirante);
+            List<ProcesoAdmisionAspirante> procesos = procesoAdmisionDAO.findByAspiranteId(idAspirante);
+
+            Map<UUID, ProcesoAdmisionAspirante> procesosPorInscripcion = new HashMap<>();
+            for (ProcesoAdmisionAspirante p : procesos) {
+                procesosPorInscripcion.put(p.getIdProcesoAdmisionAspirante(), p);
+            }
+
+            List<ResultadoAspiranteDTO> resultado = new ArrayList<>();
+            for (ExamenRealizado e : examenes) {
+                UUID idInscripcion = e.getInscripcionesPrueba().getIdInscripcionPrueba();
+                resultado.add(new ResultadoAspiranteDTO(e, procesosPorInscripcion.get(idInscripcion)));
+            }
+
+            return Response.ok(resultado)
+                    .header(RestHeaders.TOTAL_RECORDS, resultado.size())
                     .build();
         } catch (IllegalArgumentException e) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -267,6 +295,37 @@ public class ExamenRealizadoResource extends AbstractResource<ExamenRealizado> {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
                     .build();
+        }
+    }
+
+    /**
+     * DTO de respuesta para GET /examen_realizado/aspirante/{id}.
+     * Preserva la estructura de ExamenRealizado que el frontend ya consume
+     * y agrega estadoAdmision y carreraAsignada del ProcesoAdmisionAspirante.
+     */
+    public static class ResultadoAspiranteDTO {
+        public UUID idExamenRealizado;
+        public OffsetDateTime fechaRealizacion;
+        public BigDecimal puntajeFinal;
+        public InscripcionesPrueba inscripcionesPrueba;
+        public ClavesExamen claveExamen;
+        public EtapasAdmision etapaAdmision;
+        public String estadoAdmision;   // PENDIENTE / ADMITIDO / NO_ADMITIDO — null si no hay proceso aún
+        public String carreraAsignada;  // nombre de la carrera asignada — null si no aplica
+
+        public ResultadoAspiranteDTO(ExamenRealizado ex, ProcesoAdmisionAspirante proceso) {
+            this.idExamenRealizado   = ex.getIdExamenRealizado();
+            this.fechaRealizacion    = ex.getFechaRealizacion();
+            this.puntajeFinal        = ex.getPuntajeFinal();
+            this.inscripcionesPrueba = ex.getInscripcionesPrueba();
+            this.claveExamen         = ex.getClaveExamen();
+            this.etapaAdmision       = ex.getEtapaAdmision();
+            if (proceso != null) {
+                this.estadoAdmision = proceso.getEstado();
+                if (proceso.getCarreraAsignada() != null) {
+                    this.carreraAsignada = proceso.getCarreraAsignada().getNombreCatalogoCarrera();
+                }
+            }
         }
     }
 
