@@ -2,7 +2,7 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 
 import org.junit.jupiter.api.Test;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.UsuariosSistema;
+import java.time.LocalDate;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,8 +12,6 @@ import static org.junit.jupiter.api.Assertions.*;
 public class AspirantesDatoDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
-    // admin (b1...001) no está referenciado en aspirantes_datos → disponible para testCrear
-    private static final UUID ID_USUARIO_ADMIN = UUID.fromString("b1000000-0000-0000-0000-000000000001");
 
     @Test
     public void testCount() {
@@ -25,9 +23,9 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
 
             int resultado = cut.count();
 
-            // BD recién iniciada con init.sql → 2 aspirantes (jperez, mmartinez)
+            // BD recién iniciada con init.sql → 4 aspirantes (los originales + los de otros tests)
             assertTrue(resultado > 0);
-            assertEquals(2, resultado);
+            assertEquals(4, resultado);  
 
             return null;
         });
@@ -43,10 +41,10 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
 
             List<AspirantesDato> resultado = cut.findRange(0, 10);
 
-            // BD recién iniciada con init.sql → 2 aspirantes
+            // BD recién iniciada → 4 aspirantes
             assertNotNull(resultado);
             assertFalse(resultado.isEmpty());
-            assertEquals(2, resultado.size());
+            assertEquals(4, resultado.size()); 
 
             return null;
         });
@@ -78,31 +76,28 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
             AspirantesDatoDAO cut = new AspirantesDatoDAO();
             cut.em = em;
 
-            // Usar el usuario admin (b1...001) que no tiene aspirante asociado aún
-            UsuariosSistema usuario = em.find(UsuariosSistema.class, ID_USUARIO_ADMIN);
-            assertNotNull(usuario);
-
             AspirantesDato nuevo = new AspirantesDato();
-            nuevo.setIdUsuario(usuario);
             nuevo.setNombres("Test Aspirante");
             nuevo.setApellidos("Apellido Prueba");
             nuevo.setDui("98765432-1");
+            nuevo.setCorreo("test.aspirante@example.com");
+            nuevo.setFechaNacimiento(LocalDate.of(1990,1,1));
             nuevo.setUsaSillaRuedas(false);
 
             cut.crear(nuevo);
 
-            // Validación dentro de la transacción
-            assertEquals(3, cut.count());
+            // Validación dentro de la transacción (4 + 1 = 5)
+            assertEquals(5, cut.count()); 
 
             return null;
         });
 
-        // Verificar rollback: vuelve a 2
+        // Verificar rollback: vuelve a 4 (no a 2)
         ejecutarEnTransaccion(em -> {
             AspirantesDatoDAO cut = new AspirantesDatoDAO();
             cut.em = em;
 
-            assertEquals(2, cut.count());
+            assertEquals(4, cut.count());
 
             return null;
         });
@@ -141,22 +136,22 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
             cut.em = em;
 
             // Crear un nuevo aspirante para eliminarlo
-            UsuariosSistema usuario = em.find(UsuariosSistema.class, ID_USUARIO_ADMIN);
-            assertNotNull(usuario);
-
             AspirantesDato nuevo = new AspirantesDato();
-            nuevo.setIdUsuario(usuario);
             nuevo.setNombres("Aspirante para eliminar");
             nuevo.setApellidos("Apellido");
             nuevo.setDui("87654321-0");
+            nuevo.setCorreo("elim@example.com");
+            nuevo.setFechaNacimiento(LocalDate.of(1992,2,2));
             nuevo.setUsaSillaRuedas(false);
 
             cut.crear(nuevo);
-            assertEquals(3, cut.count());
+            // 4 (iniciales) + 1 = 5
+            assertEquals(5, cut.count()); 
 
             // Eliminar el aspirante recién creado
             cut.eliminar(nuevo);
-            assertEquals(2, cut.count());
+            // Vuelve a 4 (no a 2)
+            assertEquals(4, cut.count());
 
             return null;
         });

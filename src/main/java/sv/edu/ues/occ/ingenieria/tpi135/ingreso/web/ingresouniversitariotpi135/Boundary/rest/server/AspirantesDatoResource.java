@@ -1,7 +1,5 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.rest.server;
 
-import static sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.rest.server.RestHeaders.*;
-
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
@@ -9,207 +7,317 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.AspirantesDatoDAO;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.UsuariosSistemaDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.InscripcionesPruebaDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.PruebasAdmisionDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.UsuariosSistema;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
+import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 /**
- * Recurso REST para la gestión de Datos del Aspirante.
- * Hereda el endpoint GET paginado de AbstractResource.
- * Expone operaciones CRUD completas bajo /resources/v1/aspirantes_datos
+ * Recurso REST para gestionar los datos de los Aspirantes.
+ * * Base: /resources/v1/aspirantes
  */
-@Path("aspirantes_datos")
+@Path("aspirantes")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
 
     @Inject
-    AspirantesDatoDAO aspirantesDatoDAO;
+    private AspirantesDatoDAO aspirantesDAO;
 
+    //Para Saber si existen pruebas activas
     @Inject
-    UsuariosSistemaDAO usuariosSistemaDAO;
+    private PruebasAdmisionDAO pruebasDAO;
 
-    @QueryParam("dui")
-    String duiParam;
+    // TODO: Inyectar InscripcionesPruebaDAO cuando se implemente la validación de borrado
+     @Inject
+     private InscripcionesPruebaDAO inscripcionesDAO;
 
     @Override
-    protected IngresoDefaultDataAccess<AspirantesDato> getDAO() {
-        return aspirantesDatoDAO;
+    protected AspirantesDatoDAO getDAO() {
+        return aspirantesDAO;
     }
 
-    @Override
+    /**
+     * GET /aspirantes
+     * Retorna lista paginada de aspirantes o filtra por requerimiento de accesibilidad
+     * Ejemplo: /aspirantes?usaSilla=true
+     */
     @GET
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response findRange(
+    public Response listAspirantes(
             @DefaultValue("0") @QueryParam("first") int first,
-            @DefaultValue("50") @QueryParam("max") int max
-    ) {
-        if (duiParam != null) {
-            if (duiParam.isBlank()) {
-                return Response.status(422)
-                        .header(MISSING_PARAMETER, "dui")
-                        .build();
-            }
-            try {
-                AspirantesDato encontrado = aspirantesDatoDAO.findByDui(duiParam.trim());
-                if (encontrado != null) {
-                    return Response.ok(encontrado).build();
-                }
-                return Response.status(Response.Status.NOT_FOUND)
-                        .header(NOT_FOUND_ID, "Record with dui " + duiParam + " not found")
-                        .build();
-            } catch (IllegalArgumentException ex) {
-                return Response.status(422)
-                        .header(MISSING_PARAMETER, "dui")
-                        .build();
-            } catch (Exception ex) {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .header(SERVER_EXCEPTION, "Cannot access db")
-                        .build();
-            }
-        }
+            @DefaultValue("50") @QueryParam("max") int max,
+            @QueryParam("usaSilla") Boolean usaSilla) { // Nuevo parámetro opcional
 
-        return super.findRange(first, max);
-    }
-
-    @GET
-    @Path("{id}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response findById(@PathParam("id") UUID id) {
-        if (id != null) {
-            try {
-                AspirantesDato resp = aspirantesDatoDAO.leer(id);
-                if (resp != null) {
-                    return Response.ok(resp).build();
-                }
-                return Response.status(Response.Status.NOT_FOUND)
-                        .header(NOT_FOUND_ID, "Record with id " + id + " not found")
-                        .build();
-            } catch (Exception ex) {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .header(SERVER_EXCEPTION, "Cannot access db")
-                        .build();
+        try {
+            // Si el cliente envía ?usaSilla=true en la URL
+            if (usaSilla != null && usaSilla) {
+                // El DAO intercepta y trae solo a los que requieren silla de ruedas
+                return Response.ok(aspirantesDAO.findByRequiereSillaRuedas()).build();
             }
-        }
-        return Response.status(422)
-                .header(MISSING_PARAMETER, "id")
-                .build();
-    }
 
-    @POST
-    @Produces({MediaType.APPLICATION_JSON})
-    @Consumes({MediaType.APPLICATION_JSON})
-    public Response create(AspirantesDato entity, @Context UriInfo uriInfo) {
-        if (entity != null && entity.getId() == null
-                && entity.getIdUsuario() != null
-            && entity.getIdUsuario().getId() != null
-                && entity.getNombres() != null
-                && entity.getApellidos() != null
-                && entity.getDui() != null) {
-            try {
-            UsuariosSistema usuario = usuariosSistemaDAO.leer(entity.getIdUsuario().getId());
-            if (usuario == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                    .header(NOT_FOUND_ID, "Record with id " + entity.getIdUsuario().getId() + " not found")
+            // Si no hay filtro, se comporta de forma estándar (paginación)
+            return findRange(first, max);
+
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Error al obtener la lista de aspirantes")
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
                     .build();
-            }
-
-            AspirantesDato nuevo = new AspirantesDato();
-            nuevo.setIdUsuario(usuario);
-            nuevo.setNombres(entity.getNombres());
-            nuevo.setApellidos(entity.getApellidos());
-            nuevo.setDui(entity.getDui());
-            nuevo.setUsaSillaRuedas(entity.getUsaSillaRuedas());
-
-            aspirantesDatoDAO.crear(nuevo);
-                return Response.created(
-                        uriInfo.getAbsolutePathBuilder()
-                    .path(String.valueOf(nuevo.getId()))
-                                .build())
-                        .build();
-            } catch (Exception ex) {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .header(SERVER_EXCEPTION, "Cannot access db")
-                        .build();
-            }
         }
-        return Response.status(422)
-            .header(MISSING_PARAMETER, "entity must not be null; id must be null; idUsuario.id, nombres, apellidos, dui must not be null")
-                .build();
     }
 
+    /**
+     * POST /aspirantes
+     * Crea un nuevo aspirante.
+     */
+    @POST
+    public Response createAspirante(AspirantesDato aspirante, @Context UriInfo uriInfo) {
+        // Validaciones básicas de entrada
+        if (aspirante == null || aspirante.getDui() == null || aspirante.getDui().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("El DUI del aspirante es obligatorio")
+                    .header(RestHeaders.MISSING_PARAMETER, "dui")
+                    .build();
+        }
+        if (aspirante.getCorreo() == null || aspirante.getCorreo().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("El correo electrónico es obligatorio")
+                    .header(RestHeaders.MISSING_PARAMETER, "correo")
+                    .build();
+        }
+
+        try {
+            // El DAO validará unicidad de DUI/Correo y que sea mayor
+            aspirantesDAO.crear(aspirante);
+
+            URI location = uriInfo.getAbsolutePathBuilder()
+                    .path(aspirante.getId().toString())
+                    .build();
+
+            return Response.created(location)
+                    .entity(aspirante)
+                    .build();
+        } catch (IllegalArgumentException e) {
+            // Captura los errores de reglas de negocio del DAO (DUI repetido, edad menor, etc.)
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(e.getMessage())
+                    .header(RestHeaders.CONFLICT_REASON, e.getMessage())
+                    .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Error al crear el aspirante")
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * GET /aspirantes/{idAspirante}
+     * Obtiene un aspirante específico por ID.
+     */
+    @GET
+    @Path("{idAspirante}")
+    public Response getAspirante(@PathParam("idAspirante") String idAspiranteStr) {
+        try {
+            UUID idAspirante = UUID.fromString(idAspiranteStr);
+            AspirantesDato aspirante = aspirantesDAO.leer(idAspirante);
+
+            if (aspirante == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Aspirante no encontrado")
+                        .header(RestHeaders.NOT_FOUND_ID, idAspiranteStr)
+                        .build();
+            }
+            return Response.ok(aspirante).build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("UUID inválido")
+                    .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * PUT /aspirantes/{idAspirante}
+     * Actualiza un aspirante existente.
+     */
     @PUT
-    @Path("{id}")
-    @Produces({MediaType.APPLICATION_JSON})
-    @Consumes({MediaType.APPLICATION_JSON})
-    public Response update(@PathParam("id") UUID id, AspirantesDato entity) {
-        if (id != null && entity != null) {
-            try {
-                AspirantesDato existing = aspirantesDatoDAO.leer(id);
-                if (existing != null) {
-                    if (entity.getIdUsuario() != null && entity.getIdUsuario().getId() != null) {
-                        UsuariosSistema usuario = usuariosSistemaDAO.leer(entity.getIdUsuario().getId());
-                        if (usuario == null) {
-                            return Response.status(Response.Status.NOT_FOUND)
-                                    .header(NOT_FOUND_ID, "Record with id " + entity.getIdUsuario().getId() + " not found")
-                                    .build();
-                        }
-                        existing.setIdUsuario(usuario);
-                    }
+    @Path("{idAspirante}")
+    public Response updateAspirante(@PathParam("idAspirante") String idAspiranteStr, AspirantesDato aspirante) {
+        // Validaciones básicas de entrada
+        if (aspirante == null || aspirante.getDui() == null || aspirante.getDui().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("El DUI del aspirante es obligatorio")
+                    .header(RestHeaders.MISSING_PARAMETER, "dui")
+                    .build();
+        }
+        if (aspirante.getCorreo() == null || aspirante.getCorreo().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("El correo electrónico es obligatorio")
+                    .header(RestHeaders.MISSING_PARAMETER, "correo")
+                    .build();
+        }
+        try {
+            UUID idAspirante = UUID.fromString(idAspiranteStr);
+            AspirantesDato existente = aspirantesDAO.leer(idAspirante);
 
-                    if (entity.getNombres() != null) {
-                        existing.setNombres(entity.getNombres());
-                    }
-                    if (entity.getApellidos() != null) {
-                        existing.setApellidos(entity.getApellidos());
-                    }
-                    if (entity.getDui() != null) {
-                        existing.setDui(entity.getDui());
-                    }
-                    if (entity.getUsaSillaRuedas() != null) {
-                        existing.setUsaSillaRuedas(entity.getUsaSillaRuedas());
-                    }
-
-                    AspirantesDato actualizado = aspirantesDatoDAO.actualizar(existing);
-                    return Response.ok(actualizado).build();
-                }
+            if (existente == null) {
                 return Response.status(Response.Status.NOT_FOUND)
-                        .header(NOT_FOUND_ID, "Record with id " + id + " not found")
-                        .build();
-            } catch (Exception ex) {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .header(SERVER_EXCEPTION, "Cannot access db")
+                        .header(RestHeaders.NOT_FOUND_ID, idAspiranteStr)
                         .build();
             }
+
+            // Aseguramos que el ID de la URL sea el que se actualiza
+            aspirante.setId(idAspirante);
+            AspirantesDato actualizado = aspirantesDAO.actualizar(aspirante);
+
+            return Response.ok(actualizado).build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(e.getMessage())
+                    .header(RestHeaders.CONFLICT_REASON, e.getMessage())
+                    .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
+                    .build();
         }
-        return Response.status(422)
-                .header(MISSING_PARAMETER, "id and entity must not be null")
-                .build();
     }
 
+    /**
+     * DELETE /aspirantes/{idAspirante}
+     * Elimina un aspirante.
+     */
     @DELETE
-    @Path("{id}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response delete(@PathParam("id") UUID id) {
-        if (id != null) {
-            try {
-                AspirantesDato existing = aspirantesDatoDAO.leer(id);
-                if (existing != null) {
-                    aspirantesDatoDAO.eliminar(existing);
-                    return Response.noContent().build();
-                }
+    @Path("{idAspirante}")
+    public Response deleteAspirante(@PathParam("idAspirante") String idAspiranteStr) {
+        try {
+            UUID idAspirante = UUID.fromString(idAspiranteStr);
+            AspirantesDato existente = aspirantesDAO.leer(idAspirante);
+
+            if (existente == null) {
                 return Response.status(Response.Status.NOT_FOUND)
-                        .header(NOT_FOUND_ID, "Record with id " + id + " not found")
-                        .build();
-            } catch (Exception ex) {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .header(SERVER_EXCEPTION, "Cannot access db")
+                        .header(RestHeaders.NOT_FOUND_ID, idAspiranteStr)
                         .build();
             }
+
+            // TODO: Según el plan, se debe validar que no tenga inscripciones antes de borrar.
+            // Validación de integridad: No borrar si tiene inscripciones
+            List<InscripcionesPrueba> inscripciones = inscripcionesDAO.findByAspiranteId(idAspirante);
+            if (inscripciones != null && !inscripciones.isEmpty()) {
+                return Response.status(Response.Status.CONFLICT)
+                        .entity("No se puede eliminar: El aspirante tiene inscripciones registradas.")
+                        .header(RestHeaders.CONFLICT_REASON, "Tiene inscripciones")
+                        .build();
+            }
+
+            aspirantesDAO.eliminar(existente);
+            return Response.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("UUID inválido")
+                    .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
+                    .build();
         }
-        return Response.status(422)
-                .header(MISSING_PARAMETER, "id")
-                .build();
+    }
+
+    /**
+     * GET /aspirantes/{idAspirante}/inscripciones
+     * Lista las inscripciones de un aspirante específico.
+     */
+    @GET
+    @Path("{idAspirante}/inscripciones")
+    public Response getInscripcionesPorAspirante(@PathParam("idAspirante") String idAspiranteStr) {
+        try {
+            UUID idAspirante = UUID.fromString(idAspiranteStr);
+
+            // 1. Verificamos que el aspirante exista (regla de oro del anidamiento)
+            AspirantesDato aspirante = aspirantesDAO.leer(idAspirante);
+            if (aspirante == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Aspirante no encontrado")
+                        .build();
+            }
+
+            // 2. Buscamos sus inscripciones usando el DAO
+            List<InscripcionesPrueba> lista = inscripcionesDAO.findByAspiranteId(idAspirante);
+            return Response.ok(lista).build();
+
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("UUID inválido").build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        }
+    }
+
+    /**
+     * POST /aspirantes/{idAspirante}/inscripciones
+     * Inscribe a un aspirante en una prueba (FLUJO A: Inscripción Inmediata).
+     */
+    @POST
+    @Path("{idAspirante}/inscripciones")
+    public Response crearInscripcionAspirante(
+            @PathParam("idAspirante") String idAspiranteStr,
+            InscripcionesPrueba nuevaInscripcion,
+            @Context UriInfo uriInfo) {
+
+        try {
+            UUID idAspirante = UUID.fromString(idAspiranteStr);
+
+            // 1. Verificamos que el Aspirante exista
+            AspirantesDato aspirante = aspirantesDAO.leer(idAspirante);
+            if (aspirante == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("No se puede inscribir: Aspirante no encontrado.")
+                        .build();
+            }
+
+            // 2. Verificamos que manden el ID de la prueba en el JSON y que exista en BD
+            if (nuevaInscripcion.getPruebaAdmision() == null || nuevaInscripcion.getPruebaAdmision().getIdPruebaAdmision() == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("Debe especificar a qué prueba de admisión desea inscribirse.")
+                        .build();
+            }
+
+            PruebasAdmision prueba = pruebasDAO.leer(nuevaInscripcion.getPruebaAdmision().getIdPruebaAdmision());
+            if (prueba == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("La prueba de admisión especificada no existe en el sistema.")
+                        .build();
+            }
+
+            // 3. Ya seguro, forzamos los datos para evitar manipulación y mandamos a guardar
+            nuevaInscripcion.setAspiranteDato(aspirante);
+            nuevaInscripcion.setPruebaAdmision(prueba);
+            inscripcionesDAO.crear(nuevaInscripcion);
+
+            // 4. Retornamos 201 Created y la Location
+            URI location = uriInfo.getBaseUriBuilder()
+                    .path("inscripciones_prueba")
+                    .path(nuevaInscripcion.getIdInscripcionPrueba().toString())
+                    .build();
+
+            return Response.created(location).entity(nuevaInscripcion).build();
+
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(e.getMessage())
+                    .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(e.getMessage())
+                    .build();
+        }
     }
 }

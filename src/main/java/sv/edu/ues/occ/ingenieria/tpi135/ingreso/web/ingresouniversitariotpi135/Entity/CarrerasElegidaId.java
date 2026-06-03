@@ -1,25 +1,24 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
 @Embeddable
 public class CarrerasElegidaId implements Serializable {
-    private static final long serialVersionUID = -6297830737150961833L;
-    @NotNull
-    @Column(name = "id_inscripcion", nullable = false)
-    private UUID idInscripcion;
 
-    @Size(max = 10)
-    @NotNull
-    @Column(name = "id_carrera", nullable = false, length = 10)
+    private static final long serialVersionUID = 1L;
+
+    private UUID idInscripcion;
     private String idCarrera;
+
+    public CarrerasElegidaId() {}
+
+    public CarrerasElegidaId(UUID idInscripcion, String idCarrera) {
+        this.idInscripcion = idInscripcion;
+        this.idCarrera = idCarrera;
+    }
 
     public UUID getIdInscripcion() {
         return idInscripcion;
@@ -41,9 +40,9 @@ public class CarrerasElegidaId implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        CarrerasElegidaId entity = (CarrerasElegidaId) o;
-        return Objects.equals(this.idInscripcion, entity.idInscripcion) &&
-                Objects.equals(this.idCarrera, entity.idCarrera);
+        CarrerasElegidaId that = (CarrerasElegidaId) o;
+        return Objects.equals(idInscripcion, that.idInscripcion) &&
+               Objects.equals(idCarrera, that.idCarrera);
     }
 
     @Override

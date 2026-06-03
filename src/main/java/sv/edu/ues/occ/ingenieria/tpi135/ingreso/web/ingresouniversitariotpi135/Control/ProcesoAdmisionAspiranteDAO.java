@@ -2,12 +2,11 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
-import jakarta.persistence.NoResultException;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegida;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CuposCarrera;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ProcesoAdmisionAspirante;
 
 import java.io.Serializable;
@@ -18,8 +17,22 @@ import java.util.UUID;
 @LocalBean
 public class ProcesoAdmisionAspiranteDAO extends IngresoDefaultDataAccess<ProcesoAdmisionAspirante> implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
+
+    // MAGIA AQUÍ: Inyectamos el DAO que tiene el método de descuento seguro en SQL
+    @Inject
+    protected CuposCarreraDAO cuposCarreraDAO;
+
+    public CuposCarreraDAO getCuposCarreraDAO() {
+        return cuposCarreraDAO;
+    }
+
+    public void setCuposCarreraDAO(CuposCarreraDAO cuposCarreraDAO) {
+        this.cuposCarreraDAO = cuposCarreraDAO;
+    }
 
     public ProcesoAdmisionAspiranteDAO() {
         super(ProcesoAdmisionAspirante.class);
@@ -31,21 +44,11 @@ public class ProcesoAdmisionAspiranteDAO extends IngresoDefaultDataAccess<Proces
     }
 
     /**
-     * Asigna la carrera final a un aspirante según prioridad de carreras elegidas
-     * y cupos disponibles en la etapa actual del proceso.
-     *
-     * Reglas:
-     * - Se recorren las carreras elegidas ordenadas por prioridad ascendente.
-     * - Se asigna la primera carrera con cupos > 0 (para la prueba y etapa actual).
-     * - Se decrementa el cupo consumido.
-     * - Si ninguna tiene cupo, se marca como NO_ADMITIDO.
-     *
-     * @param idInscripcion id del proceso/inscripción
-     * @return Proceso actualizado, o null si no existe
+     * Asigna la carrera final a un aspirante garantizando que el cupo se reste a nivel SQL.
      */
     public ProcesoAdmisionAspirante asignarCarreraFinal(UUID idInscripcion) {
         if (idInscripcion == null) {
-            throw new IllegalArgumentException("idInscripcion");
+            throw new IllegalArgumentException("idInscripcion es requerido");
         }
 
         ProcesoAdmisionAspirante proceso = em.find(ProcesoAdmisionAspirante.class, idInscripcion);
@@ -53,49 +56,87 @@ public class ProcesoAdmisionAspiranteDAO extends IngresoDefaultDataAccess<Proces
             return null;
         }
 
-        UUID idPrueba = proceso.getInscripcionesPrueba().getIdPrueba().getId();
-        UUID idEtapa = proceso.getIdEtapaActual().getId();
+        UUID idPrueba = proceso.getInscripcionesPrueba().getPruebaAdmision().getIdPruebaAdmision();
+        UUID idEtapa = proceso.getEtapaAdmision().getIdEtapaAdmision();
 
-        List<CarrerasElegida> elegidas = em.createQuery(
-                        "SELECT ce FROM CarrerasElegida ce " +
-                                "WHERE ce.id.idInscripcion = :idInscripcion " +
-                                "ORDER BY ce.prioridad ASC",
-                        CarrerasElegida.class)
+        List<CarrerasElegida> elegidas = em.createNamedQuery("ProcesoAdmisionAspirante.findCarrerasElegidas", CarrerasElegida.class)
                 .setParameter("idInscripcion", idInscripcion)
                 .getResultList();
 
         for (CarrerasElegida elegida : elegidas) {
-            String idCarrera = elegida.getId().getIdCarrera();
-            CuposCarrera cupos = buscarCupos(idPrueba, idCarrera, idEtapa);
+            String idCarrera = elegida.getCatalogoCarrera().getIdCarrera();
 
-            if (cupos != null && cupos.getCupos() != null && cupos.getCupos() > 0) {
-                cupos.setCupos(cupos.getCupos() - 1);
+            // REGLA APLICADA: Usamos el método atómico del otro DAO CUPOS_Carrera.
+            // Si devuelve TRUE, significa que había cupo y la BD ya lo descontó.
+            boolean cupoConcedido = cuposCarreraDAO.decrementarCupo(idPrueba, idCarrera, idEtapa);
+
+            if (cupoConcedido) {
                 proceso.setCarreraAsignada(em.getReference(CatalogoCarrera.class, idCarrera));
                 proceso.setEstado("ADMITIDO");
                 return proceso;
             }
         }
 
+        // Si el bucle termina y ningún decrementarCupo devolvió true, se quedó sin cupos en todas sus opciones
         proceso.setCarreraAsignada(null);
         proceso.setEstado("NO_ADMITIDO");
         return proceso;
     }
-
-    private CuposCarrera buscarCupos(UUID idPrueba, String idCarrera, UUID idEtapa) {
-        try {
-            return em.createQuery(
-                            "SELECT cc FROM CuposCarrera cc " +
-                                    "WHERE cc.id.idPrueba = :idPrueba " +
-                                    "AND cc.id.idCarrera = :idCarrera " +
-                                    "AND cc.id.idEtapa = :idEtapa",
-                            CuposCarrera.class)
-                    .setParameter("idPrueba", idPrueba)
-                    .setParameter("idCarrera", idCarrera)
-                    .setParameter("idEtapa", idEtapa)
-                    .getSingleResult();
-        } catch (NoResultException ex) {
-            return null;
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    /**
+     * Si en las pruebas de estrés notas que tu endpoint POST /asignar-masivo se demora más de 30 segundos,
+     * considera volver el método de tu DAO asíncrono agregando la anotación @Asynchronous de EJB,
+     * y responde desde tu Resource con un código HTTP 202 ACCEPTED (que significa: "Recibí la orden,
+     * la estoy procesando en segundo plano, revisa más tarde").
+     */
+    /**
+     * Procesa en lote a todos los estudiantes garantizando Todo o Nada (Transaccionalidad)
+     */
+    public void procesarAsignacionMasiva(UUID idEtapa) {
+        if (idEtapa == null) {
+            throw new IllegalArgumentException("El id de la etapa es requerido.");
         }
+
+        List<ProcesoAdmisionAspirante> aspirantesOrdenados = em.createNamedQuery(
+                        "ProcesoAdmisionAspirante.findPendientesPorPuntaje", ProcesoAdmisionAspirante.class)
+                .setParameter("idEtapa", idEtapa)
+                .getResultList();
+
+        int batchSize = 50; // Tamaño prudente del lote
+        int count = 0;
+
+        for (ProcesoAdmisionAspirante aspirante : aspirantesOrdenados) {
+            this.asignarCarreraFinal(aspirante.getIdProcesoAdmisionAspirante());
+            count++;
+
+            // MAGIA DE RENDIMIENTO: Sincroniza y destruye la basura en la memoria de Java
+            if (count % batchSize == 0) {
+                em.flush();
+                em.clear();
+            }
+        }
+        // Empujar los remanentes
+        em.flush();
+        em.clear();
     }
 
+    /**
+     * Sobrescribimos el método leer del padre para evitar LazyInitializationException en REST.
+     * Carga de una vez la inscripción, la etapa y (si existe) la carrera asignada.
+     */
+    @Override
+    public ProcesoAdmisionAspirante leer(Object id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El id del proceso no puede ser nulo");
+        }
+        try {
+            return em.createNamedQuery("ProcesoAdmisionAspirante.findByIdConRelaciones", ProcesoAdmisionAspirante.class)
+                    .setParameter("idProceso", id)
+                    .getSingleResult();
+        } catch (jakarta.persistence.NoResultException e) {
+            return null; // Replicamos el comportamiento de em.find() devolviendo null si no existe
+        } catch (Exception ex) {
+            throw new IllegalStateException("Error al leer registro de ProcesoAdmisionAspirante con relaciones", ex);
+        }
+    }
 }

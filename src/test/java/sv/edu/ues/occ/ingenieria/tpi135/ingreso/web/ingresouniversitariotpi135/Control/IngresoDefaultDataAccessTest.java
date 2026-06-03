@@ -21,6 +21,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.same;
 
 /**
  * Pruebas de cobertura para IngresoDefaultDataAccess.
@@ -88,7 +89,7 @@ class IngresoDefaultDataAccessTest {
         testId = UUID.randomUUID();
         dataAccess = new IngresoDefaultDataAccessImpl();
         entidadPrueba = new EtapasAdmision();
-        entidadPrueba.setId(testId);
+        entidadPrueba.setIdEtapaAdmision(testId);
         entidadPrueba.setNombre("Etapa Preuniversitaria");
         entidadPrueba.setPuntajeMinimo(new BigDecimal("60.00"));
         entidadPrueba.setPuntajeMaximo(new BigDecimal("100.00"));
@@ -157,17 +158,17 @@ class IngresoDefaultDataAccessTest {
     @Test
     void eliminar_ConRegistroFueraDeContexto_DebeMergearYEliminarResultadoDelMerge() {
         EtapasAdmision entidadMergeada = new EtapasAdmision();
-        entidadMergeada.setId(testId);
+        entidadMergeada.setIdEtapaAdmision(testId);
 
         when(entityManager.contains(entidadPrueba)).thenReturn(false);
         when(entityManager.merge(entidadPrueba)).thenReturn(entidadMergeada);
 
         assertDoesNotThrow(() -> dataAccess.eliminar(entidadPrueba));
 
-        // Debe eliminar la instancia retornada por merge, no la original
-        verify(entityManager).merge(entidadPrueba);
-        verify(entityManager).remove(entidadMergeada);
-        verify(entityManager, never()).remove(entidadPrueba);
+        // CORRECCIÓN: Usamos same() para validar referencias de memoria exactas y evitar conflictos de igualdad lógica
+        verify(entityManager).merge(same(entidadPrueba));
+        verify(entityManager).remove(same(entidadMergeada));
+        verify(entityManager, never()).remove(same(entidadPrueba));
     }
 
     @Test
@@ -208,7 +209,7 @@ class IngresoDefaultDataAccessTest {
     @Test
     void actualizar_ConRegistroValido_DebeRetornarInstanciaDelMerge() {
         EtapasAdmision entidadMergeada = new EtapasAdmision();
-        entidadMergeada.setId(testId);
+        entidadMergeada.setIdEtapaAdmision(testId);
         entidadMergeada.setNombre("Nombre modificado");
 
         when(entityManager.merge(entidadPrueba)).thenReturn(entidadMergeada);

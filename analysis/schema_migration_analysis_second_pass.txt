@@ -1,0 +1,161 @@
+SEGUNDA PASADA - ANALISIS PROFUNDO DE MIGRACION DE ESQUEMA
+Proyecto: IngresoUniversitarioTPI135
+Fecha: 2026-05-15
+Estado: solo analisis, sin cambios de codigo
+
+ENTRADA Y SUPOSICIONES
+- Esquema viejo: src/test/resources/ingresoTPI135_init.sql
+- Esquema nuevo: provisto por el usuario (no esta en repo)
+- El backend actual esta acoplado al esquema viejo (tablas y nombres plurales)
+- Esta pasada asume que el esquema nuevo es el objetivo final y se migra todo el backend
+
+RESUMEN EJECUTIVO
+- El cambio no es solo renombre: elimina usuarios_sistema, normaliza preguntas/respuestas,
+  separa aulas y disponibilidad por turno, y cambia la identidad de examenes a inscripcion.
+- El impacto es transversal: entidades JPA, DAOs, JPQL, REST endpoints, tests BDD/IT/ST y seeds.
+- Hay fallos de compilacion asegurados si se eliminan las entidades obsoletas sin refactor global.
+- Aun manteniendo clases, se rompe runtime por FKs, NOT NULL y UNIQUE nuevos.
+- Requiere fase previa de datos/semillas para evitar falsos negativos en tests.
+
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/AreasConocimientoDAO.java | Problema: renombre de tabla y UNIQUE nombre_area | Severidad: Media | Accion: ajustar entity.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/InscripcionesPruebaDAO.java | Problema: UNIQUE aspirante+prueba; tabla renombrada | Severidad: Alta | Accion: mantener existsByAspiranteAndPrueba y ajustar entity.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/CarrerasElegidaDAO.java | Problema: UNIQUE por prioridad | Severidad: Alta | Accion: validar prioridad unica antes de crear.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/ProcesoAdmisionAspiranteDAO.java | Problema: entidad renombrada y FK renombrados | Severidad: Media | Accion: ajustar entity; validar constraints nuevas.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/TurnosExamanDAO.java | Problema: tabla renombrada + check hora_inicio<hora_fin | Severidad: Media | Accion: agregar validacion de horario.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/ClavesExamanDAO.java | Problema: tabla renombrada | Severidad: Media | Accion: ajustar entity.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/PruebasAdmisionDAO.java | Problema: tabla renombrada + UNIQUE nombre_prueba/anio | Severidad: Media | Accion: validar duplicados.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/CatalogoCarreraDAO.java | Problema: tabla renombrada | Severidad: Media | Accion: ajustar entity.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/CuposCarreraDAO.java | Problema: FK a entidades renombradas | Severidad: Media | Accion: ajustar entity.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/IngresoDefaultDataAccess.java | Problema: depende de entidades actualizadas | Severidad: Baja | Accion: sin cambios, validar con nuevas entidades.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/IngresoDAOInterface.java | Problema: none | Severidad: Baja | Accion: sin cambios.
+
+[REST]
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/UsuariosSistemaResource.java | Problema: entidad eliminada | Severidad: Critica | Accion: eliminar o mover a modulo auth.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/AspirantesDatoResource.java | Problema: requiere usuarios_sistema y campos nuevos de aspirante | Severidad: Critica | Accion: quitar validacion usuario y exigir correo/fecha_nacimiento.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/OpcionesRespuestaResource.java | Problema: entidad eliminada | Severidad: Critica | Accion: reemplazar por BancoRespuestaResource/PreguntaOpcionResource.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/RespuestasExamanResource.java | Problema: entidad eliminada | Severidad: Critica | Accion: reemplazar por RespuestaExamenResource con pregunta_opcion.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/AulasExamanResource.java | Problema: entidad eliminada | Severidad: Critica | Accion: crear AulaResource y DisponibilidadAulaTurnoResource.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/AsignacionesAulaPupitreResource.java | Problema: pupitre y cupos viejos | Severidad: Critica | Accion: crear AsignacionAulaAspiranteResource y ajustar logica.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/ExamenesRealizadoResource.java | Problema: calificar depende de modelo viejo | Severidad: Critica | Accion: reescribir calificar y filtros.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/BancoPreguntaResource.java | Problema: ahora requiere tema | Severidad: Alta | Accion: ajustar payload y validacion.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/TurnosExamanResource.java | Problema: tabla renombrada + check horario | Severidad: Media | Accion: validar hora_inicio < hora_fin.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/InscripcionesPruebaResource.java | Problema: UNIQUE aspirante+prueba | Severidad: Alta | Accion: mantener validacion de duplicados.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/CarrerasElegidaResource.java | Problema: UNIQUE por prioridad | Severidad: Alta | Accion: validar prioridad unica.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/ClavesExamanResource.java | Problema: tabla renombrada | Severidad: Media | Accion: ajustar entity.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/CuposCarreraResource.java | Problema: FK a entidades renombradas | Severidad: Media | Accion: ajustar entity.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/EtapasAdmisionResource.java | Problema: tabla renombrada | Severidad: Media | Accion: ajustar entity.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/PruebasAdmisionResource.java | Problema: UNIQUE nombre_prueba/anio | Severidad: Media | Accion: validar duplicados.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/CatalogoCarreraResource.java | Problema: tabla renombrada | Severidad: Media | Accion: ajustar entity.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/AreasConocimientoResource.java | Problema: tabla renombrada + UNIQUE nombre_area | Severidad: Media | Accion: ajustar entity.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/PreguntasPorClaveResource.java | Problema: referencias cambian a clave_examen/banco_pregunta | Severidad: Media | Accion: ajustar entity.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/ProcesoAdmisionAspiranteResource.java | Problema: cambios de entidades FK | Severidad: Media | Accion: ajustar entity y validaciones.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/AbstractResource.java | Problema: depende de entidades actualizadas | Severidad: Baja | Accion: sin cambios, validar.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/RestHeaders.java | Problema: none | Severidad: Baja | Accion: sin cambios.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/RestConfig.java | Problema: none | Severidad: Baja | Accion: sin cambios.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/CorseResponseFilter.java | Problema: none | Severidad: Baja | Accion: sin cambios.
+- src/main/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/ProcesarLentoResource.java | Problema: none | Severidad: Baja | Accion: sin cambios.
+
+[TESTS - BDD JAVA]
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/bdd/aspirante/creacion/CrearAspiranteBDD.java | Problema: usa usuarios_sistema + aspirantes_datos sin correo/fecha | Severidad: Alta | Accion: actualizar payload y eliminar usuario.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/bdd/aspirante/inscribir/InscribirAspirantePruebaBDD.java | Problema: usa endpoints viejos y usuarios_sistema | Severidad: Alta | Accion: migrar endpoints/payloads.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/bdd/aspirante/asignacion/AsignarAulaPupitreBDD.java | Problema: aulas_examen + pupitre | Severidad: Critica | Accion: migrar a aula/disponibilidad/asignacion sin pupitre.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/bdd/aspirante/asignacion/AsignarAulaPupitreCapacidadBDD.java | Problema: cupos en aulas_examen | Severidad: Critica | Accion: usar disponibilidad_aula_turno.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/bdd/aspirante/asignacion/AsignarCarreraFinalCuposBDD.java | Problema: referencias a carreras_elegidas/cupos_carrera con entidad vieja | Severidad: Alta | Accion: migrar endpoint y seeds.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/bdd/aspirante/admision/AsignarCarreraFinalBDD.java | Problema: depende de carreras_elegidas/cupos_carrera | Severidad: Alta | Accion: migrar endpoint y seeds.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/bdd/aspirante/admision/AsignarCarreraFinalSinCuposBDD.java | Problema: igual que anterior | Severidad: Alta | Accion: migrar endpoint y seeds.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/bdd/aspirante/examen/ConfigurarPruebaAdmisionBDD.java | Problema: usa banco_preguntas/opciones_respuesta | Severidad: Critica | Accion: migrar a tema/banco_respuesta/pregunta_opcion.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/bdd/aspirante/examen/ResolverExamenPuntajeBDD.java | Problema: examenes_realizados/respuestas_examen viejos | Severidad: Critica | Accion: migrar modelo y seeds.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/bdd/aspirante/consultaintegral/ConsultaDatosDeUnAspiranteBDD.java | Problema: usa usuarios_sistema, aulas_examen, pupitre | Severidad: Alta | Accion: actualizar payload y endpoints.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/bdd/aspirante/expediente/ExpedienteAspiranteBDD.java | Problema: usa usuarios_sistema y carreras_elegidas viejas | Severidad: Alta | Accion: migrar endpoints.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/bdd/LanzadorCucumberBDD.java | Problema: depende de features con endpoints viejos | Severidad: Media | Accion: actualizar features.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/bdd/ProveedorJacksonTiempo.java | Problema: none | Severidad: Baja | Accion: sin cambios.
+
+[TESTS - DAO/IT]
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/AspirantesDatoDAOIT.java | Problema: id_usuario obligatorio en schema viejo | Severidad: Alta | Accion: actualizar seeds/payload con correo/fecha.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/UsuariosSistemaDAOIT.java | Problema: entidad eliminada | Severidad: Critica | Accion: eliminar o mover.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/OpcionesRespuestaDAOIT.java | Problema: entidad eliminada | Severidad: Critica | Accion: reemplazar por BancoRespuesta/PreguntaOpcion.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/RespuestasExamanDAOIT.java | Problema: entidad eliminada | Severidad: Critica | Accion: reemplazar por RespuestaExamenDAOIT.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/ExamenesRealizadoDAOIT.java | Problema: modelo viejo de examen | Severidad: Critica | Accion: reescribir para nuevo modelo.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/AulasExamanDAOIT.java | Problema: entidad eliminada | Severidad: Critica | Accion: reemplazar por Aula/Disponibilidad DAOIT.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/AsignacionesAulaPupitreDAOIT.java | Problema: entidad eliminada | Severidad: Critica | Accion: reemplazar por AsignacionAulaAspiranteDAOIT.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/BancoPreguntaDAOIT.java | Problema: FK a area cambia a tema | Severidad: Alta | Accion: actualizar seeds.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/AreasConocimientoDAOIT.java | Problema: tabla renombrada | Severidad: Media | Accion: ajustar entity.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/InscripcionesPruebaDAOIT.java | Problema: UNIQUE aspirante+prueba | Severidad: Alta | Accion: actualizar seeds.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/CarrerasElegidaDAOIT.java | Problema: UNIQUE prioridad | Severidad: Alta | Accion: actualizar seeds.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/TurnosExamanDAOIT.java | Problema: tabla renombrada + check horario | Severidad: Media | Accion: ajustar entity.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/ClavesExamanDAOIT.java | Problema: tabla renombrada | Severidad: Media | Accion: ajustar entity.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/PruebasAdmisionDAOIT.java | Problema: UNIQUE nombre_prueba/anio | Severidad: Media | Accion: ajustar seeds.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/CuposCarreraDAOIT.java | Problema: FK a entidades renombradas | Severidad: Media | Accion: ajustar seeds.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/EtapasAdmisionDAOIT.java | Problema: tabla renombrada | Severidad: Media | Accion: ajustar entity.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/ProcesoAdmisionAspiranteDAOIT.java | Problema: FK renombradas | Severidad: Media | Accion: ajustar entity.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/PreguntasPorClaveDAOIT.java | Problema: FK a clave_examen/banco_pregunta | Severidad: Media | Accion: ajustar entity.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/IngresoDefaultDataAccessTest.java | Problema: depende de entidades actualizadas | Severidad: Baja | Accion: validar con nuevo modelo.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/OpcionesRespuestaDAOTest.java | Problema: entidad eliminada | Severidad: Critica | Accion: reemplazar por nuevos DAOs.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/SharedPostgresContainer.java | Problema: usa init.sql viejo | Severidad: Alta | Accion: apuntar a nuevo init.sql.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Control/AbstractBaseIT.java | Problema: depende de init.sql viejo | Severidad: Alta | Accion: actualizar seeds.
+
+[TESTS - REST UNIT]
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/UsuariosSistemaResourceTest.java | Problema: entidad eliminada | Severidad: Critica | Accion: eliminar o migrar.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/OpcionesRespuestaResourceTest.java | Problema: entidad eliminada | Severidad: Critica | Accion: reemplazar por nuevos recursos.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/RespuestasExamanResourceTest.java | Problema: entidad eliminada | Severidad: Critica | Accion: reemplazar.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/AulasExamanResourceTest.java | Problema: entidad eliminada | Severidad: Critica | Accion: reemplazar.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/AsignacionesAulaPupitreResourceTest.java | Problema: entidad eliminada | Severidad: Critica | Accion: reemplazar.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/ExamenesRealizadoResourceTest.java | Problema: modelo viejo de examen | Severidad: Critica | Accion: reescribir tests.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/BancoPreguntaResourceTest.java | Problema: FK a tema cambia payload | Severidad: Alta | Accion: actualizar tests.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/AspirantesDatoResourceTest.java | Problema: id_usuario eliminado + campos nuevos | Severidad: Critica | Accion: actualizar payload.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/InscripcionesPruebaResourceTest.java | Problema: UNIQUE aspirante+prueba | Severidad: Alta | Accion: actualizar tests.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/CarrerasElegidaResourceTest.java | Problema: UNIQUE prioridad | Severidad: Alta | Accion: actualizar tests.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/TurnosExamanResourceTest.java | Problema: tabla renombrada + check horario | Severidad: Media | Accion: actualizar tests.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/ClavesExamanResourceTest.java | Problema: tabla renombrada | Severidad: Media | Accion: actualizar tests.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/CuposCarreraResourceTest.java | Problema: FK renombradas | Severidad: Media | Accion: actualizar tests.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/EtapasAdmisionResourceTest.java | Problema: tabla renombrada | Severidad: Media | Accion: actualizar tests.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/PruebasAdmisionResourceTest.java | Problema: UNIQUE nombre_prueba/anio | Severidad: Media | Accion: actualizar tests.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/CatalogoCarreraResourceTest.java | Problema: tabla renombrada | Severidad: Media | Accion: actualizar tests.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/AreasConocimientoResourceTest.java | Problema: tabla renombrada | Severidad: Media | Accion: actualizar tests.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/PreguntasPorClaveResourceTest.java | Problema: FK renombradas | Severidad: Media | Accion: actualizar tests.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/ProcesoAdmisionAspiranteResourceTest.java | Problema: FK renombradas | Severidad: Media | Accion: actualizar tests.
+
+[TESTS - REST ST]
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/UsuariosSistemaResourceST.java | Problema: entidad eliminada | Severidad: Critica | Accion: eliminar o migrar.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/OpcionesRespuestaResourceST.java | Problema: entidad eliminada | Severidad: Critica | Accion: reemplazar.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/RespuestasExamanResourceST.java | Problema: entidad eliminada | Severidad: Critica | Accion: reemplazar.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/AulasExamanResourceST.java | Problema: entidad eliminada | Severidad: Critica | Accion: reemplazar.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/AsignacionesAulaPupitreResourceST.java | Problema: entidad eliminada | Severidad: Critica | Accion: reemplazar.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/ExamenesRealizadoResourceST.java | Problema: modelo viejo de examen | Severidad: Critica | Accion: reescribir ST.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/BancoPreguntaResourceST.java | Problema: FK a tema cambia payload | Severidad: Alta | Accion: actualizar ST.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/AspirantesDatoResourceST.java | Problema: id_usuario eliminado + campos nuevos | Severidad: Critica | Accion: actualizar ST.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/InscripcionesPruebaResourceST.java | Problema: UNIQUE aspirante+prueba | Severidad: Alta | Accion: actualizar ST.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/CarrerasElegidaResourceST.java | Problema: UNIQUE prioridad | Severidad: Alta | Accion: actualizar ST.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/TurnosExamanResourceST.java | Problema: tabla renombrada + check horario | Severidad: Media | Accion: actualizar ST.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/ClavesExamanResourceST.java | Problema: tabla renombrada | Severidad: Media | Accion: actualizar ST.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/CuposCarreraResourceST.java | Problema: FK renombradas | Severidad: Media | Accion: actualizar ST.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/EtapasAdmisionResourceST.java | Problema: tabla renombrada | Severidad: Media | Accion: actualizar ST.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/PruebasAdmisionResourceST.java | Problema: UNIQUE nombre_prueba/anio | Severidad: Media | Accion: actualizar ST.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/CatalogoCarreraResourceST.java | Problema: tabla renombrada | Severidad: Media | Accion: actualizar ST.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/AreasConocimientoResourceST.java | Problema: tabla renombrada | Severidad: Media | Accion: actualizar ST.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/PreguntasPorClaveResourceST.java | Problema: FK renombradas | Severidad: Media | Accion: actualizar ST.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/ProcesoAdmisionAspiranteResourceST.java | Problema: FK renombradas | Severidad: Media | Accion: actualizar ST.
+- src/test/java/sv/edu/ues/occ/ingenieria/tpi135/ingreso/web/ingresouniversitariotpi135/Boundary/rest/server/it/AbstractResourceST.java | Problema: depende de endpoints renombrados | Severidad: Media | Accion: actualizar rutas base.
+
+[TESTS - FEATURES]
+- src/test/resources/bdd/aspirante/crear/aspirante.crear.feature | Problema: pasos usan usuarios_sistema y endpoints viejos | Severidad: Alta | Accion: migrar pasos.
+- src/test/resources/bdd/aspirante/inscribir/aspirante.inscribir-prueba.feature | Problema: endpoints viejos y payloads viejos | Severidad: Alta | Accion: migrar escenarios.
+- src/test/resources/bdd/aspirante/asignacion/aspirante.asignar-aula-pupitre.feature | Problema: aulas_examen/pupitre | Severidad: Critica | Accion: migrar a nueva logistica.
+- src/test/resources/bdd/aspirante/asignacion/aspirante.asignar-aula-pupitre-capacidad.feature | Problema: cupos en aulas_examen | Severidad: Critica | Accion: migrar.
+- src/test/resources/bdd/aspirante/asignacion/aspirante.asignar-carrera-final-por-cupos.feature | Problema: carreras_elegidas/cupos_carrera | Severidad: Alta | Accion: migrar.
+- src/test/resources/bdd/aspirante/admision/aspirante.asignar-carrera-final.feature | Problema: carreras_elegidas/cupos_carrera | Severidad: Alta | Accion: migrar.
+- src/test/resources/bdd/aspirante/admision/aspirante.asignar-carrera-final-sin-cupos.feature | Problema: carreras_elegidas/cupos_carrera | Severidad: Alta | Accion: migrar.
+- src/test/resources/bdd/aspirante/examen/configurar-prueba-admision.feature | Problema: banco_preguntas/opciones_respuesta | Severidad: Critica | Accion: migrar a tema/banco_respuesta/pregunta_opcion.
+- src/test/resources/bdd/aspirante/examen/aspirante.resolver-examen-puntaje.feature | Problema: examen_realizado/respuestas_examen viejos | Severidad: Critica | Accion: migrar modelo.
+- src/test/resources/bdd/aspirante/consultaintegral/aspirante.consulta-ejecutiva-integral.feature | Problema: usuarios_sistema/aulas_examen/pupitre | Severidad: Alta | Accion: migrar endpoints.
+- src/test/resources/bdd/aspirante/expediente/aspirante.expediente-completo.feature | Problema: endpoints viejos | Severidad: Alta | Accion: migrar endpoints.
+
+NOTAS FINALES
+- Este analisis asume migracion completa a esquema nuevo.
+- Si se requiere compatibilidad con API vieja, se recomienda capa de adaptacion (DTO + mapper + resources legacy).
+
+CONSOLIDACION SEMANTICA (2026-05-18)
+- Eliminado: OpcionesRespuestaResourceST como huérfano REST sin recurso equivalente en src/main/java.
+- Se conservan como bridges útiles: OpcionesRespuestaDAOTest y RespuestasExamanDAOIT; validan PreguntaOpcion y RespuestaExamen del modelo nuevo.
+- Nombres legacy que permanecen por estabilidad histórica: OpcionesRespuestaDAOTest y RespuestasExamanDAOIT.
+- No se eliminaron bridges ni tests activos porque siguen aportando cobertura funcional al modelo académico consolidado.

@@ -1,0 +1,255 @@
+ANALISIS DE IMPACTO POR CAMBIO DE ESQUEMA (VIEJO -> NUEVO)
+Proyecto: IngresoUniversitarioTPI135
+Fecha: 2026-05-15
+
+Contexto
+- Esquema viejo: src/test/resources/ingresoTPI135_init.sql
+- Esquema nuevo: provisto en el requerimiento del usuario
+- El backend actual fue construido sobre el esquema viejo
+- No se realizara refactor aun; este documento es solo analisis
+
+FASE 1: Exploracion
+1) Stack detectado
+- Java 21, Jakarta EE 10 (JAX-RS, JPA, CDI, EJB) segun pom.xml y server.xml
+- JPA con JTA en runtime (persistence.xml) y EclipseLink en tests (persistence.xml test)
+- Base de datos PostgreSQL
+- Tests con JUnit 5, Mockito, Testcontainers, Cucumber BDD
+- JSON: JSON-B por defecto (y Jackson en clientes de test)
+
+2) Ubicacion de capas
+- Entidades JPA: src/main/java/.../Entity/*.java
+- DAO/Repositories: src/main/java/.../Control/*DAO.java
+- REST Controllers: src/main/java/.../Boundary/rest/server/*Resource.java
+- Servicios: no hay capa service dedicada (logica vive en DAO y Resource)
+- DTOs/Mappers: no se encontraron clases DTO en el repo
+- Tests: src/test/java (IT, ST, BDD) + src/test/resources/bdd/*.feature
+
+3) Clases con dependencia directa del esquema viejo (ejemplos)
+- Entidades: AreasConocimiento, UsuariosSistema, AspirantesDato, BancoPregunta,
+  OpcionesRespuesta, AulasExaman, AsignacionesAulaPupitre, ExamenesRealizado,
+  RespuestasExaman, TurnosExaman, ClavesExaman, InscripcionesPrueba, etc.
+- DAO: OpcionesRespuestaDAO, ExamenesRealizadoDAO, AsignacionesAulaPupitreDAO,
+  RespuestasExamanDAO, InscripcionesPruebaDAO, etc.
+- REST: OpcionesRespuestaResource, AulasExamanResource, AsignacionesAulaPupitreResource,
+  ExamenesRealizadoResource, RespuestasExamanResource, UsuariosSistemaResource, etc.
+- Tests: recursos BDD y pruebas unitarias/IT basadas en el script viejo
+
+FASE 2: Mapeo de impacto (viejo -> nuevo)
+A) Tablas viejas y su equivalente
+- areas_conocimiento -> area_conocimiento (rename + UNIQUE en nombre_area)
+- catalogo_carreras -> catalogo_carrera (rename + UNIQUE en nombre)
+- etapas_admision -> etapa_admision (rename)
+- pruebas_admision -> prueba_admision (rename + UNIQUE nombre_prueba+anio)
+- aspirantes_datos -> aspirante_datos (rename + campos nuevos; elimina id_usuario)
+- banco_preguntas -> banco_pregunta (rename; ahora apunta a tema)
+- opciones_respuesta -> (se reemplaza por banco_respuesta + pregunta_opcion)
+- turnos_examen -> turno_examen (rename + check horas)
+- aulas_examen -> (se reemplaza por aula + disponibilidad_aula_turno)
+- asignaciones_aula_pupitre -> asignacion_aula_aspirante (rename; sin pupitre)
+- inscripciones_prueba -> inscripcion_prueba (rename + UNIQUE aspirante+prueba)
+- carreras_elegidas -> carrera_elegida (rename + UNIQUE inscripcion+prioridad)
+- claves_examen -> clave_examen (rename)
+- preguntas_por_clave -> preguntas_por_clave (se mantiene nombre; referencias nuevas)
+- cupos_carrera -> cupos_carrera (se mantiene nombre; referencias nuevas)
+- proceso_admision_aspirante -> proceso_admision_aspirante (se mantiene; refs nuevas)
+- examenes_realizados -> examen_realizado (rename; ahora referencia inscripcion)
+- respuestas_examen -> respuesta_examen (rename; ahora referencia pregunta_opcion)
+- usuarios_sistema -> ELIMINADA (no aparece en nuevo esquema)
+
+B) Tablas nuevas (no existen en viejo)
+- tema (jerarquia y referencia a area)
+- banco_respuesta (respuestas globales por area)
+- pregunta_opcion (relacion pregunta-respuesta + es_correcta)
+- aula (catalogo de aulas sin turno)
+- disponibilidad_aula_turno (vincula aula con turno)
+- asignacion_aula_aspirante (sustituye asignaciones_aula_pupitre)
+
+C) Cambios de claves / constraints relevantes
+- aspirante_datos: agrega fecha_nacimiento, correo, fecha_creacion_perfil;
+  UNIQUE en dui y correo; elimina FK a usuarios_sistema
+- prueba_admision: UNIQUE (nombre_prueba, anio)
+- banco_pregunta: enunciado UNIQUE y FK a tema
+- banco_respuesta: texto_respuesta UNIQUE; FK a area
+- pregunta_opcion: UNIQUE (id_pregunta, id_respuesta_global)
+- turno_examen: CHECK hora_inicio < hora_fin
+- inscripcion_prueba: UNIQUE (id_aspirante, id_prueba)
+- carrera_elegida: UNIQUE (id_inscripcion, prioridad)
+- examen_realizado: UNIQUE (id_inscripcion, id_etapa)
+- asignacion_aula_aspirante: UNIQUE (id_inscripcion, id_turno)
+
+FASE 3: Analisis por capa
+1) Entidades JPA
+- Renombrar @Table y relaciones a nombres nuevos
+- Nuevas entidades requeridas: AreaConocimiento (singular), Tema, BancoRespuesta,
+  PreguntaOpcion, Aula, DisponibilidadAulaTurno, AsignacionAulaAspirante,
+  ExamenRealizado (nuevo modelo), RespuestaExamen (nuevo modelo)
+- Entidades actuales a eliminar o transformar:
+  UsuariosSistema (tabla eliminada)
+  AulasExaman (se divide en Aula + DisponibilidadAulaTurno)
+  AsignacionesAulaPupitre (se reemplaza por AsignacionAulaAspirante sin pupitre)
+  OpcionesRespuesta (se reemplaza por BancoRespuesta + PreguntaOpcion)
+  RespuestasExaman (debe apuntar a PreguntaOpcion, ya no a pregunta+opcion)
+  ExamenesRealizado (debe apuntar a InscripcionPrueba, no a Asignacion)
+  BancoPregunta (ahora referencia Tema)
+  AspirantesDato (elimina idUsuario; agrega fecha_nacimiento, correo, fecha_creacion_perfil)
+- Cambios en relaciones y cardinalidades:
+  - Pregunta -> Tema (antes Area)
+  - Respuesta global -> Area
+  - PreguntaOpcion es nueva tabla puente
+  - Asignacion ahora referencia (inscripcion, aula, turno) y depende de disponibilidad
+  - Examen ahora referencia inscripcion directamente
+
+2) DAO/Repositories
+- Metodos basados en campos viejos quedan obsoletos:
+  - OpcionesRespuestaDAO.findByPreguntaId (cambia a PreguntaOpcion o BancoRespuesta)
+  - RespuestasExamanDAO.findByExamenId (debe retornar RespuestaExamen ligada a PreguntaOpcion)
+  - AsignacionesAulaPupitreDAO.crearConCupo (ya no hay cupos_ocupados en aula)
+  - ExamenesRealizadoDAO.calificarExamen (debe cambiar joins a pregunta_opcion/banco_respuesta)
+- Nuevos DAOs requeridos:
+  - TemaDAO, BancoRespuestaDAO, PreguntaOpcionDAO,
+    AulaDAO, DisponibilidadAulaTurnoDAO, AsignacionAulaAspiranteDAO
+- Consultas JPQL/NamedQuery que deben cambiar:
+  - ExamenesRealizado.findByAspiranteId (ya no usa asignacion)
+  - RespuestasExaman.findByExamenId (tabla y entidad cambiada)
+  - OpcionesRespuesta.findByPreguntaId y countByPreguntaId (tabla eliminada)
+
+3) Servicios
+- No hay capa service explicita; la logica en DAO/Resource debe moverse o adaptarse:
+  - Logica de cupos de aula pasa a disponibilidad_aula_turno
+  - Logica de calificacion cambia por nueva relacion pregunta_opcion
+  - Logica de creacion de aspirante ya no valida UsuariosSistema
+  - Validacion de prioridad unica por inscripcion
+  - Validacion de unico examen por etapa
+
+4) REST Controllers
+- Endpoints actuales reflejan tablas viejas; deben renombrarse o mapearse:
+  - /areas_conocimiento -> /area_conocimiento (o mantener endpoint y mapear)
+  - /banco_preguntas -> /banco_pregunta
+  - /opciones_respuesta -> reemplazar por /banco_respuesta y /pregunta_opcion
+  - /aulas_examen -> reemplazar por /aula y /disponibilidad_aula_turno
+  - /asignaciones_aula_pupitre -> /asignacion_aula_aspirante (sin pupitre)
+  - /inscripciones_prueba -> /inscripcion_prueba
+  - /examenes_realizados -> /examen_realizado
+  - /respuestas_examen -> /respuesta_examen
+  - /usuarios_sistema -> probablemente eliminar
+- Validaciones deben alinearse con nuevos UNIQUE/NOT NULL
+- Serializacion JSON: al usar entidades directas, cambios en campos afectan request/response
+
+5) DTOs / Mappers
+- No existen en el repo. El cambio de esquema impacta directamente la API.
+  Si se agregan DTOs, sera necesario mapear campos nuevos y eliminar los viejos.
+
+6) Tests (unitarios, IT, BDD)
+- tests usan script viejo; casi todas las pruebas fallaran por:
+  - tablas renombradas
+  - columnas nuevas obligatorias (fecha_nacimiento, correo)
+  - eliminacion de usuarios_sistema
+  - nueva normalizacion de preguntas y respuestas
+  - nuevas constraints de unicidad
+- BDD features se apoyan en rutas y seeds antiguos
+- IT/ST que usan ids semilla (ej: pruebas de examen) deben migrar datos
+
+7) SQL / migraciones
+- src/test/resources/ingresoTPI135_init.sql ya no es valido
+- se requiere script nuevo con semillas coherentes al esquema refactorizado
+- migracion de datos necesaria si se preserva data existente
+
+FASE 4: Riesgos y prioridades
+Prioridad critica
+- UsuariosSistema eliminado: rompe compilacion en AspirantesDato, UsuariosSistemaDAO/Resource,
+  y todas las pruebas que lo usan
+- OpcionesRespuesta eliminado: rompe OpcionesRespuestaDAO/Resource, RespuestasExaman,
+  y la calificacion del examen
+- ExamenesRealizado -> ExamenRealizado con id_inscripcion: rompe DAO de calificacion
+- AulasExaman/AsignacionesAulaPupitre: rompe asignacion y control de cupo
+- RespuestasExaman debe apuntar a pregunta_opcion
+
+Prioridad alta
+- Nuevo Tema y BancoRespuesta: requiere nuevas entidades, recursos y seeds
+- Cambios en constraints de carrera_elegida y inscripcion_prueba
+- Campos nuevos obligatorios en aspirante_datos
+
+Prioridad media
+- Cambios de nombre de tablas/columnas con mismo significado
+- Check constraint en turno_examen (validaciones y tests)
+
+Prioridad baja
+- Ajustes de serializacion JSON (nombres de campos)
+- Ajustes menores de seeds y mocks
+
+Riesgos tecnicos
+- Fallos de compilacion por clases eliminadas o renombradas
+- Fallos de runtime por FK nuevas o NOT NULL no satisfecho
+- Inconsistencias al migrar respuestas/opciones a pregunta_opcion
+- Duplicados al migrar respuestas globales (texto_respuesta UNIQUE)
+- Cambios de cardinalidad pueden romper queries y performance
+
+ENTREGABLE FINAL
+1) Resumen ejecutivo del impacto
+- El esquema nuevo cambia nombres, relaciones y normaliza preguntas/respuestas y logistica
+  de aulas/turnos. Impacta casi todas las entidades, DAOs y REST controllers.
+  Eliminar UsuariosSistema y OpcionesRespuesta rompe gran parte del backend.
+  Se requiere migracion de datos y reescritura de consultas JPQL.
+
+2) Tabla comparativa viejo vs nuevo (resumen)
+- areas_conocimiento -> area_conocimiento (UNIQUE nombre)
+- banco_preguntas -> banco_pregunta (id_tema)
+- opciones_respuesta -> banco_respuesta + pregunta_opcion
+- aulas_examen -> aula + disponibilidad_aula_turno
+- asignaciones_aula_pupitre -> asignacion_aula_aspirante
+- examenes_realizados -> examen_realizado (id_inscripcion)
+- respuestas_examen -> respuesta_examen (id_pregunta_opcion)
+- usuarios_sistema -> eliminado
+- resto de tablas: rename singular y nuevas constraints
+
+3) Cambios obligatorios por capa
+- Entidades: renombrar tablas, agregar nuevas entidades, eliminar las obsoletas
+- DAO: actualizar JPQL, crear nuevos DAOs, eliminar logica de cupos en aula
+- REST: renombrar endpoints y validar nuevos campos/constraints
+- Tests: actualizar seeds, ids y escenarios BDD
+- SQL: reemplazar init.sql y crear migracion
+
+4) Lista de archivos/clases probablemente afectados
+- Entidades: todas bajo src/main/java/.../Entity (ver inventario)
+- DAOs: todas bajo src/main/java/.../Control
+- REST: todas bajo src/main/java/.../Boundary/rest/server
+- Tests: todo src/test/java (IT/ST/BDD)
+- Seeds: src/test/resources/ingresoTPI135_init.sql
+- persistence.xml test: lista de entidades desactualizada
+
+5) Riesgos tecnicos
+- Rotura total de endpoints por cambios de esquema
+- Integridad referencial al migrar (FK nuevas y UNIQUE)
+- Calificacion de examen fallara si no se reescribe el join de respuestas
+- Datos duplicados en banco_respuesta y pregunta_opcion
+
+6) Orden recomendado de implementacion
+1. Actualizar esquema (crear script nuevo y seeds)
+2. Crear nuevas entidades (tema, banco_respuesta, pregunta_opcion, aula, etc.)
+3. Refactor entidades existentes (aspirante, examen, asignacion, etc.)
+4. Refactor DAOs y JPQL
+5. Refactor REST endpoints
+6. Actualizar tests y BDD
+7. Migracion de datos (si aplica)
+
+7) Sugerencia de plan de migracion
+- Crear tablas nuevas en paralelo
+- Migrar catalogos (areas, carreras, etapas, pruebas)
+- Migrar aspirantes (crear correo/fecha_nacimiento; eliminar usuarios_sistema)
+- Migrar preguntas a tema + banco_pregunta
+- Migrar respuestas a banco_respuesta y pregunta_opcion
+- Migrar aulas -> aula + disponibilidad_aula_turno
+- Migrar asignaciones -> asignacion_aula_aspirante
+- Migrar examenes -> examen_realizado (usar id_inscripcion desde asignacion)
+- Migrar respuestas -> respuesta_examen (mapear a pregunta_opcion)
+- Validar constraints y limpiar duplicados
+
+8) Checklist final de validacion
+- Compilacion sin clases obsoletas
+- Todas las entidades mapean a tablas nuevas
+- Endpoints actualizados y pruebas verdes
+- Seeds nuevos cargan sin violar constraints
+- Calificacion de examen recalcula puntaje correcto
+- Inscripcion y carrera_elegida respetan UNIQUE
+- Asignaciones respetan disponibilidad y restriccion por turno
+- JSON payloads actualizados en Postman y BDD

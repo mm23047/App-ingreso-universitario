@@ -26,8 +26,8 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
 
             int Resultado = cut.count();
 
-            //Tenemos 3 registros en la base de datos
-            assertEquals(3, Resultado);
+            //Tenemos 5 registros en la base de datos (3 reales + 2 para tests IT)
+            assertEquals(5, Resultado);
 
             return null;
         });
@@ -70,12 +70,13 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
             nuevo.setPuntajeMaximo(new BigDecimal(100));
             nuevo.setPuntajeMinimo(new BigDecimal(50));
             nuevo.setDescripcion("Primer etapa del examen de ADMISION");
+            nuevo.setCantidadPreguntasRequeridas(1);
 
             cut.crear(nuevo);
 
-            assertNotNull(nuevo.getId());
+            assertNotNull(nuevo.getIdEtapaAdmision());
             //Para verificar en la consola
-            System.out.println(nuevo.getId());
+            System.out.println(nuevo.getIdEtapaAdmision());
 
             return null;
         });
@@ -85,8 +86,8 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
             EtapasAdmisionDAO cut = new EtapasAdmisionDAO();
             cut.em = em;
 
-            //Verificamos la cantidad tal cual el metodo de count
-            assertEquals(cut.count(),3);
+            //Verificamos la cantidad tal cual el metodo de count (5 iniciales, rollback vuelve a 5)
+            assertEquals(cut.count(),5);
 
             return null;
         });
@@ -108,11 +109,11 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
             //Utilizamos el primer registro para hacer el test
             EtapasAdmision resultadoDesdeLaBD = cut.findRange(0,3).get(0);
 
-            EtapasAdmision resultado = cut.leer(resultadoDesdeLaBD.getId());
+            EtapasAdmision resultado = cut.leer(resultadoDesdeLaBD.getIdEtapaAdmision());
 
             System.out.println("RESULTADO: " + resultado);
             assertNotNull(resultado, "El ID del catalogo no puede ser nulo porque ya debe de existir");
-            assertEquals(resultadoDesdeLaBD.getId(),resultado.getId());
+            assertEquals(resultadoDesdeLaBD.getIdEtapaAdmision(),resultado.getIdEtapaAdmision());
 
             return null;
         });
@@ -167,18 +168,19 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
             etapa.setPuntajeMaximo(new BigDecimal(100));
             etapa.setPuntajeMinimo(new BigDecimal(50));
             etapa.setDescripcion("Primer etapa del examen de ADMISION");
+            etapa.setCantidadPreguntasRequeridas(1);
             //GUARDAR la temporal
             cut.crear(etapa);
 
-            //VERIFICAR un dato NUEVO en la D
-            assertEquals(cut.count(),4);
+            //VERIFICAR un dato NUEVO (5 iniciales + 1 temporal = 6)
+            assertEquals(cut.count(),6);
 
 
             cut.eliminar(etapa);
 
-            assertEquals(cut.count(),3);
-            assertNull(cut.leer(etapa.getId()), "EL registro debbe de ser null");
-            System.out.println("Etapa eliminada: " + cut.leer(etapa.getId()));
+            assertEquals(cut.count(),5);
+            assertNull(cut.leer(etapa.getIdEtapaAdmision()), "EL registro debbe de ser null");
+            System.out.println("Etapa eliminada: " + cut.leer(etapa.getIdEtapaAdmision()));
 
             return null;
         });

@@ -10,7 +10,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Assertions;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.UsuariosSistema;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CarrerasElegida;
@@ -52,9 +51,7 @@ public class CrearAspiranteBDD {
         nuevo.setNombres("Jose");
         nuevo.setApellidos("Morales");
         nuevo.setDui("12345678-9");
-        UsuariosSistema usuario = new UsuariosSistema();
-        usuario.setId(ID_USUARIO);
-        nuevo.setIdUsuario(usuario);
+        nuevo.setCorreo("usuario.test@local");
         nuevo.setUsaSillaRuedas(false);
         int esperado = 201;
         Response respuesta = target
@@ -77,10 +74,10 @@ public class CrearAspiranteBDD {
             InscripcionesPrueba inscripcion = new InscripcionesPrueba();
             AspirantesDato aspiranteRef = new AspirantesDato();
             aspiranteRef.setId(idAspiranteCreado);
-            inscripcion.setIdAspirante(aspiranteRef);
+            inscripcion.setAspiranteDato(aspiranteRef);
             PruebasAdmision pruebaRef = new PruebasAdmision();
-            pruebaRef.setId(ID_PRUEBA_SEMILLA);
-            inscripcion.setIdPrueba(pruebaRef);
+            pruebaRef.setIdPruebaAdmision(ID_PRUEBA_SEMILLA);
+            inscripcion.setPruebaAdmision(pruebaRef);
             inscripcion.setEstado("INSCRITO");
 
             Response respuestaInscripcion = target
@@ -96,15 +93,15 @@ public class CrearAspiranteBDD {
             pk.setIdCarrera(ID_CARRERA_SEMILLA);
 
             CarrerasElegida carreraElegida = new CarrerasElegida();
-            carreraElegida.setId(pk);
+            carreraElegida.setIdCarreraElegida(pk);
 
             InscripcionesPrueba inscripcionRef = new InscripcionesPrueba();
-            inscripcionRef.setId(idInscripcionCreada);
-            carreraElegida.setIdInscripcion(inscripcionRef);
+            inscripcionRef.setIdInscripcionPrueba(idInscripcionCreada);
+            carreraElegida.setInscripcionesPrueba(inscripcionRef);
 
             CatalogoCarrera carreraRef = new CatalogoCarrera();
             carreraRef.setIdCarrera(ID_CARRERA_SEMILLA);
-            carreraElegida.setIdCarrera(carreraRef);
+            carreraElegida.setCatalogoCarrera(carreraRef);
             carreraElegida.setPrioridad((short) 1);
 
             Response respuestaCarrera = target
@@ -142,8 +139,8 @@ public class CrearAspiranteBDD {
 
         Assertions.assertEquals(200, respuesta.getStatus());
         CarrerasElegida encontrada = respuesta.readEntity(CarrerasElegida.class);
-        Assertions.assertEquals(idInscripcionCreada, encontrada.getId().getIdInscripcion());
-        Assertions.assertEquals(ID_CARRERA_SEMILLA, encontrada.getId().getIdCarrera());
+        Assertions.assertEquals(idInscripcionCreada, encontrada.getIdCarreraElegida().getIdInscripcion());
+        Assertions.assertEquals(ID_CARRERA_SEMILLA, encontrada.getIdCarreraElegida().getIdCarrera());
         Assertions.assertEquals(Short.valueOf((short) 1), encontrada.getPrioridad());
     }
 }

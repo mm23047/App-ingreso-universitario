@@ -1,0 +1,122 @@
+package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+
+import java.io.Serializable;
+import java.util.UUID;
+
+@Entity
+// 1. ELIMINADO: @UniqueConstraint global (ahora lo maneja la BD con índices parciales)
+@Table(name = "banco_respuesta", schema = "public")
+@NamedQueries({
+        // NUEVA CONSULTA: Para el método leer(), usamos LEFT JOIN FETCH por si es una respuesta global (área nula)
+        @NamedQuery(
+                name = "BancoRespuesta.findByIdConArea",
+                query = "SELECT b FROM BancoRespuesta b LEFT JOIN FETCH b.areaConocimiento WHERE b.idBancoRespuesta = :id"
+        ),
+        // 2. NUEVAS CONSULTAS: Para validar duplicados separando la lógica Global vs Local
+        @NamedQuery(
+                name = "BancoRespuesta.countGlobalByTexto",
+                query = "SELECT COUNT(b) FROM BancoRespuesta b WHERE UPPER(TRIM(b.textoRespuesta)) = UPPER(TRIM(:textoRespuesta)) AND b.areaConocimiento IS NULL"
+        ),
+        @NamedQuery(
+                name = "BancoRespuesta.countLocalByTexto",
+                query = "SELECT COUNT(b) FROM BancoRespuesta b WHERE UPPER(TRIM(b.textoRespuesta)) = UPPER(TRIM(:textoRespuesta)) AND b.areaConocimiento.idAreaConocimiento = :idArea"
+        ),
+        @NamedQuery(
+                name = "BancoRespuesta.countGlobalByTextoAndNotId",
+                query = "SELECT COUNT(b) FROM BancoRespuesta b WHERE UPPER(TRIM(b.textoRespuesta)) = UPPER(TRIM(:textoRespuesta)) AND b.areaConocimiento IS NULL AND b.idBancoRespuesta <> :idBancoRespuesta"
+        ),
+        @NamedQuery(
+                name = "BancoRespuesta.countLocalByTextoAndNotId",
+                query = "SELECT COUNT(b) FROM BancoRespuesta b WHERE UPPER(TRIM(b.textoRespuesta)) = UPPER(TRIM(:textoRespuesta)) AND b.areaConocimiento.idAreaConocimiento = :idArea AND b.idBancoRespuesta <> :idBancoRespuesta"
+        ),
+        @NamedQuery(
+                name = "BancoRespuesta.findSoloGlobales",
+                query = "SELECT b FROM BancoRespuesta b WHERE b.areaConocimiento IS NULL ORDER BY b.textoRespuesta ASC"
+        ),
+        // ACTUALIZADA: Agregamos LEFT JOIN FETCH
+        @NamedQuery(
+                name = "BancoRespuesta.findByAreaYGlobales",
+                query = "SELECT b FROM BancoRespuesta b LEFT JOIN FETCH b.areaConocimiento WHERE b.areaConocimiento.idAreaConocimiento = :idArea OR b.areaConocimiento IS NULL ORDER BY b.textoRespuesta ASC"
+        )
+})
+@NamedNativeQueries({
+        // 3. ACTUALIZACIÓN: Ahora los distractores jalan respuestas del área elegida OR respuestas globales (id_area IS NULL)
+        @NamedNativeQuery(
+                name = "BancoRespuesta.findRandomByArea",
+                query = "SELECT * FROM banco_respuesta WHERE id_area = ?1 OR id_area IS NULL ORDER BY RANDOM()",
+                resultClass = BancoRespuesta.class
+        ),
+        @NamedNativeQuery(
+                name = "BancoRespuesta.findRandomByAreaExcludingId",
+                query = "SELECT * FROM banco_respuesta WHERE (id_area = ?1 OR id_area IS NULL) AND id_respuesta_global != ?2 ORDER BY RANDOM()",
+                resultClass = BancoRespuesta.class
+        )
+})
+public class BancoRespuesta implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id_respuesta_global", nullable = false)
+    private UUID idBancoRespuesta;
+
+    @NotNull
+    // ELIMINADO: @Lob para evitar OIDs en Postgres. Usamos TEXT directamente.
+    @Column(name = "texto_respuesta", nullable = false, columnDefinition = "TEXT")
+    private String textoRespuesta;
+
+    // ELIMINADO: @NotNull.
+    // ACTUALIZADO: optional = true y nullable = true. ¡Esto hace la magia de las respuestas globales!
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "id_area", nullable = true)
+    private AreasConocimiento areaConocimiento;
+
+    public UUID getIdBancoRespuesta() {
+        return idBancoRespuesta;
+    }
+
+    public void setIdBancoRespuesta(UUID id) {
+        this.idBancoRespuesta = id;
+    }
+
+    public String getTextoRespuesta() {
+        return textoRespuesta;
+    }
+
+    public void setTextoRespuesta(String textoRespuesta) {
+        this.textoRespuesta = textoRespuesta;
+    }
+
+    public AreasConocimiento getAreaConocimiento() {
+        return areaConocimiento;
+    }
+
+    public void setAreaConocimiento(AreasConocimiento idArea) {
+        this.areaConocimiento = idArea;
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void normalizarDatos() {
+        if (this.textoRespuesta != null) {
+            this.textoRespuesta = this.textoRespuesta.trim();
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BancoRespuesta)) return false;
+        BancoRespuesta that = (BancoRespuesta) o;
+        return idBancoRespuesta != null && idBancoRespuesta.equals(that.getIdBancoRespuesta());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+}

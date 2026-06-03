@@ -8,7 +8,7 @@ import jakarta.ws.rs.core.MediaType;
 import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
 
-@Path("procesarlento")
+@Path("procesar_lento")
 public class ProcesarLentoResource implements Serializable {
     @GET
     @Produces(MediaType.APPLICATION_JSON)

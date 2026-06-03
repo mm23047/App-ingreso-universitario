@@ -2,297 +2,185 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExamen;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClave;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClaveId;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pruebas de integración REST para el recurso PreguntasPorClaveResource.
- * 
- * Valida el contrato HTTP de los endpoints de asignación de preguntas a claves,
- * incluyendo acceso por clave compuesta (idClave, idPregunta), filtros, y persistencia.
+ * ST para PreguntasPorClaveResource.
+ * URL real: /resources/v1/claves/{idClave}/preguntas
+ * Datos semilla:
+ *   Clave A (08000000...001): preguntas f1000000...001 y 55555555...5555 (etapa c1000000...001, 0 requeridas)
+ *   Clave B (aaaabbbb...): preguntas f1000000...003 y f1000000...004 (etapa c1000000...001, 0 requeridas)
+ *
+ * NOTA: Las claves semilla usan etapa "Etapa Inscripcion" con cantidadPreguntasRequeridas=0.
+ *       Para agregar preguntas se necesita crear una clave con etapa de alta capacidad.
  */
 public class PreguntasPorClaveResourceST extends AbstractResourceST {
 
-    // UUIDs de claves del init.sql
+    // Claves semilla
     private static final UUID ID_CLAVE_A = UUID.fromString("08000000-0000-0000-0000-000000000001");
-    private static final UUID ID_CLAVE_B = UUID.fromString("08000000-0000-0000-0000-000000000002");
+    private static final UUID ID_CLAVE_B = UUID.fromString("aaaabbbb-cccc-dddd-eeee-ffffffffffff");
 
-    // UUIDs de preguntas del init.sql
+    // Preguntas semilla
     private static final UUID ID_PREGUNTA_1 = UUID.fromString("f1000000-0000-0000-0000-000000000001");
-    private static final UUID ID_PREGUNTA_2 = UUID.fromString("f1000000-0000-0000-0000-000000000002");
-    private static final UUID ID_PREGUNTA_3 = UUID.fromString("f1000000-0000-0000-0000-000000000003");
+    private static final UUID ID_PREGUNTA_4 = UUID.fromString("f1000000-0000-0000-0000-000000000004");
 
-    /**
-     * GET /resources/v1/preguntas_por_clave debe retornar todas las asociaciones iniciales.
-     * Init.sql contiene 4 asociaciones.
-     */
+    // Para crear claves nuevas con alta capacidad
+    private static final UUID ID_PRUEBA_2        = UUID.fromString("d1000000-0000-0000-0000-000000000002");
+    private static final UUID ID_ETAPA_PRIMERA   = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"); // cantidadRequeridas=20
+
     @Test
-    void findRange_ConDatosIniciales_DebeRetornarLista() {
-        Response response = get("preguntas_por_clave");
+    void getPreguntasByClave_ClaveExistente_DebeRetornarLista() {
+        Response response = get("claves/" + ID_CLAVE_A + "/preguntas");
 
         assertEquals(200, response.getStatus());
 
         PreguntasPorClave[] arreglo = response.readEntity(PreguntasPorClave[].class);
         assertNotNull(arreglo);
-        assertTrue(arreglo.length >= 4, "Debe haber al menos 4 asociaciones iniciales");
+        assertTrue(arreglo.length >= 2, "Clave A debe tener al menos 2 preguntas asignadas");
 
-        String totalHeader = response.getHeaderString("Total-records");
-        assertNotNull(totalHeader);
-        int total = Integer.parseInt(totalHeader);
-        assertTrue(total >= 4);
-
-        // Verificar que está Clave A - Pregunta 1
-        boolean encontroAsociacion = false;
+        // Verificar que la pregunta 1 está asignada a Clave A
+        boolean encontradaPregunta1 = false;
         for (PreguntasPorClave pc : arreglo) {
-            if (ID_CLAVE_A.equals(pc.getId().getIdClave()) && ID_PREGUNTA_1.equals(pc.getId().getIdPregunta())) {
-                encontroAsociacion = true;
+            if (ID_PREGUNTA_1.equals(pc.getIdPreguntaPorClave().getIdPregunta())) {
+                encontradaPregunta1 = true;
                 break;
             }
         }
-        assertTrue(encontroAsociacion, "Debe encontrar asociación Clave A - Pregunta 1");
+        assertTrue(encontradaPregunta1, "Pregunta 1 debe estar asignada a Clave A");
     }
 
-    /**
-     * GET /resources/v1/preguntas_por_clave?first=0&max=2 debe retornar máximo 2 registros.
-     */
     @Test
-    void findRange_ConPaginacion_DebeRetornarDatosLimitados() {
-        Response response = get("preguntas_por_clave?first=0&max=2");
+    void getPreguntasByClave_ClaveInexistente_DebeRetornar404() {
+        UUID idInexistente = UUID.fromString("ffffffff-0000-0000-0000-000000000000");
+        Response response = get("claves/" + idInexistente + "/preguntas");
+
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    void getPreguntasByClave_ClaveB_DebeRetornarSusPreguntas() {
+        Response response = get("claves/" + ID_CLAVE_B + "/preguntas");
 
         assertEquals(200, response.getStatus());
 
         PreguntasPorClave[] arreglo = response.readEntity(PreguntasPorClave[].class);
         assertNotNull(arreglo);
-        assertEquals(2, arreglo.length, "Debe retornar exactamente 2 registros");
-
-        String totalHeader = response.getHeaderString("Total-records");
-        assertNotNull(totalHeader);
-        int total = Integer.parseInt(totalHeader);
-        assertTrue(total >= 4);
+        assertTrue(arreglo.length >= 2, "Clave B debe tener al menos 2 preguntas asignadas");
     }
 
-    /**
-     * GET /resources/v1/preguntas_por_clave/{idClave}/{idPregunta} con claves existentes debe retornar 200.
-     */
     @Test
-    void findById_ConIdCompuestoExistente_DebeRetornar200() {
-        Response response = get("preguntas_por_clave/" + ID_CLAVE_A + "/" + ID_PREGUNTA_1);
+    void asignarPregunta_AClaveConCapacidad_DebeRetornar201() {
+        // Crear una clave nueva con etapa de alta capacidad (20 preguntas requeridas)
+        UUID idNuevaClave = crearClaveConCapacidad("Clave ST PPC Test");
 
-        assertEquals(200, response.getStatus());
+        // Asignar pregunta 4 a esa clave (pregunta sin opciones, segura para asignar)
+        String pathPreguntas = "claves/" + idNuevaClave + "/preguntas";
+        AsignarPreguntaDTO dto = new AsignarPreguntaDTO(ID_PREGUNTA_4);
 
-        PreguntasPorClave entidad = response.readEntity(PreguntasPorClave.class);
-        assertNotNull(entidad);
-        assertEquals(ID_CLAVE_A, entidad.getId().getIdClave());
-        assertEquals(ID_PREGUNTA_1, entidad.getId().getIdPregunta());
+        Response response = post(pathPreguntas, dto);
+
+        // 201 si se creó, 409 si ya existe (segunda ejecución de la misma clave)
+        assertTrue(response.getStatus() == 201 || response.getStatus() == 409,
+                "HTTP " + response.getStatus() + " | " + response.getHeaderString("Server-exception"));
     }
 
-    /**
-     * GET /resources/v1/preguntas_por_clave/{idClave}/{idPregunta} con ids inexistentes debe retornar 404.
-     */
     @Test
-    void findById_ConIdCompuestoInexistente_DebeRetornar404() {
+    void asignarPregunta_SinIdPregunta_DebeRetornar400() {
+        // DTO sin idPregunta → 400 BAD_REQUEST
+        UUID idNuevaClave = crearClaveConCapacidad("Clave ST PPC Sin Pregunta");
+        AsignarPreguntaDTO dtoInvalido = new AsignarPreguntaDTO(null);
+
+        Response response = post("claves/" + idNuevaClave + "/preguntas", dtoInvalido);
+
+        assertEquals(400, response.getStatus());
+    }
+
+    @Test
+    void desasignarPregunta_AsignacionExistente_DebeRetornar204() {
+        // Crear clave con capacidad, asignar una pregunta, luego eliminarla
+        UUID idNuevaClave = crearClaveConCapacidad("Clave ST PPC Delete");
+        String pathPreguntas = "claves/" + idNuevaClave + "/preguntas";
+
+        AsignarPreguntaDTO dto = new AsignarPreguntaDTO(ID_PREGUNTA_4);
+        Response postResp = post(pathPreguntas, dto);
+
+        if (postResp.getStatus() == 201) {
+            Response deleteResp = delete(pathPreguntas + "/" + ID_PREGUNTA_4);
+            assertEquals(204, deleteResp.getStatus());
+        }
+    }
+
+    @Test
+    void desasignarPregunta_AsignacionInexistente_DebeRetornar404() {
         UUID idClaveInexistente = UUID.fromString("ffffffff-0000-0000-0000-000000000000");
         UUID idPreguntaInexistente = UUID.fromString("ffffffff-0000-0000-0000-000000000001");
 
-        Response response = get("preguntas_por_clave/" + idClaveInexistente + "/" + idPreguntaInexistente);
+        Response response = delete("claves/" + idClaveInexistente + "/preguntas/" + idPreguntaInexistente);
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
     }
 
     /**
-     * GET /resources/v1/preguntas_por_clave?idClave={clave} debe retornar preguntas de esa clave.
+     * Crea una clave con etapa de alta capacidad (Primera Etapa, 20 preguntas requeridas).
+     * Idempotente: si la clave ya existe (409), la busca en GET /claves?idPrueba=... y la retorna.
      */
-    @Test
-    void findRange_ConFiltroClave_DebeRetornarDelaClave() {
-        Response response = get("preguntas_por_clave?idClave=" + ID_CLAVE_A);
+    private UUID crearClaveConCapacidad(String nombreClave) {
+        ClavesExamen clave = new ClavesExamen();
+        PruebasAdmision prueba = new PruebasAdmision();
+        prueba.setIdPruebaAdmision(ID_PRUEBA_2);
+        clave.setPruebaAdmision(prueba);
+        EtapasAdmision etapa = new EtapasAdmision();
+        etapa.setIdEtapaAdmision(ID_ETAPA_PRIMERA);
+        clave.setEtapaAdmision(etapa);
+        clave.setNombreClave(nombreClave);
 
-        assertEquals(200, response.getStatus());
-
-        PreguntasPorClave[] arreglo = response.readEntity(PreguntasPorClave[].class);
-        assertNotNull(arreglo);
-        assertTrue(arreglo.length >= 1, "Debe retornar al menos 1 resultado");
-
-        // Verificar que al menos uno pertenece a Clave A
-        boolean encontrado = false;
-        for (PreguntasPorClave pc : arreglo) {
-            if (ID_CLAVE_A.equals(pc.getId().getIdClave())) {
-                encontrado = true;
-                break;
-            }
-        }
-        assertTrue(encontrado, "Debe encontrar al menos una asociación con Clave A");
-    }
-
-    /**
-     * GET /resources/v1/preguntas_por_clave?idPregunta={pregunta} debe retornar claves de esa pregunta.
-     */
-    @Test
-    void findRange_ConFiltroPregunta_DebeRetornarDeLaPregunta() {
-        Response response = get("preguntas_por_clave?idPregunta=" + ID_PREGUNTA_1);
-
-        assertEquals(200, response.getStatus());
-
-        PreguntasPorClave[] arreglo = response.readEntity(PreguntasPorClave[].class);
-        assertNotNull(arreglo);
-        assertTrue(arreglo.length >= 1, "Debe retornar al menos 1 resultado");
-
-        // Verificar que al menos uno pertenece a Pregunta 1
-        boolean encontrado = false;
-        for (PreguntasPorClave pc : arreglo) {
-            if (ID_PREGUNTA_1.equals(pc.getId().getIdPregunta())) {
-                encontrado = true;
-                break;
-            }
-        }
-        assertTrue(encontrado, "Debe encontrar al menos una asociación con Pregunta 1");
-    }
-
-    /**
-     * POST /resources/v1/preguntas_por_clave con una asociación válida debe retornar 201.
-     */
-    @Test
-    void create_ConAsociacionValida_DebeRetornar201_YPermitirConsultar() {
-        // Usar Clave B y Pregunta 3 (asegurarse de que no exista previamente)
-        PreguntasPorClave nueva = crearAsociacion(ID_CLAVE_B, ID_PREGUNTA_3);
-
-        Response responseCreacion = post("preguntas_por_clave", nueva);
-
-        // POST puede retornar 201 si fue creado, o 422 si ya existe o hay validación
+        Response responseCreacion = post("claves", clave);
         if (responseCreacion.getStatus() == 201) {
             String location = responseCreacion.getHeaderString("Location");
-            assertNotNull(location);
-
-            // Extraer datos de la asociación y consultar
-            Response responseConsulta = get("preguntas_por_clave/" + ID_CLAVE_B + "/" + ID_PREGUNTA_3);
-            assertEquals(200, responseConsulta.getStatus());
-            
-            PreguntasPorClave creado = responseConsulta.readEntity(PreguntasPorClave.class);
-            assertNotNull(creado);
-            assertEquals(ID_CLAVE_B, creado.getId().getIdClave());
-            assertEquals(ID_PREGUNTA_3, creado.getId().getIdPregunta());
+            return UUID.fromString(location.substring(location.lastIndexOf('/') + 1));
         }
-    }
 
-    /**
-     * POST /resources/v1/preguntas_por_clave con una asociación inválida (sin clave) debe retornar 422.
-     */
-    @Test
-    void create_ConAsociacionInvalida_SinClave_DebeRetornar422() {
-        PreguntasPorClave nueva = new PreguntasPorClave();
-        BancoPregunta pregunta = new BancoPregunta();
-        pregunta.setId(ID_PREGUNTA_1);
-        nueva.setIdPregunta(pregunta);
-        // Falta: idClave
-
-        Response response = post("preguntas_por_clave", nueva);
-
-        assertEquals(422, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
-    }
-
-    /**
-     * POST /resources/v1/preguntas_por_clave con una asociación inválida (sin pregunta) debe retornar 422.
-     */
-    @Test
-    void create_ConAsociacionInvalida_SinPregunta_DebeRetornar422() {
-        PreguntasPorClave nueva = new PreguntasPorClave();
-        ClavesExaman clave = new ClavesExaman();
-        clave.setId(ID_CLAVE_A);
-        nueva.setIdClave(clave);
-        // Falta: idPregunta
-
-        Response response = post("preguntas_por_clave", nueva);
-
-        assertEquals(422, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
-    }
-
-    /**
-     * PUT /resources/v1/preguntas_por_clave/{idClave}/{idPregunta} con datos válidos debe retornar 200.
-     */
-    @Test
-    void update_ConAsociacionValida_DebeRetornar200() {
-        // Crear una asociación antes de actualizar
-        PreguntasPorClave nueva = crearAsociacion(ID_CLAVE_B, ID_PREGUNTA_1);
-
-        Response responseCreacion = post("preguntas_por_clave", nueva);
-
-        if (responseCreacion.getStatus() == 201) {
-            // Si fue creada exitosamente, intentar actualizar
-            PreguntasPorClave actualizada = crearAsociacion(ID_CLAVE_B, ID_PREGUNTA_1);
-
-            Response responsePut = put("preguntas_por_clave/" + ID_CLAVE_B + "/" + ID_PREGUNTA_1, actualizada);
-            
-            // PUT puede retornar 200 si actualiza, o 404 si la entidad no existe
-            assertTrue(responsePut.getStatus() == 200 || responsePut.getStatus() == 404);
+        if (responseCreacion.getStatus() == 409 || responseCreacion.getStatus() == 500) {
+            // 409 = conflicto detectado por el DAO; 500 = constraint DB violado sin detección previa.
+            // En ambos casos la clave ya existe: buscarla por idPrueba y filtrar por nombre.
+            Response busqueda = get("claves?idPrueba=" + ID_PRUEBA_2);
+            if (busqueda.getStatus() == 200) {
+                ClavesExamen[] existentes = busqueda.readEntity(ClavesExamen[].class);
+                if (existentes != null) {
+                    for (ClavesExamen c : existentes) {
+                        if (nombreClave.equals(c.getNombreClave())) {
+                            return c.getIdClaveExaman();
+                        }
+                    }
+                }
+            }
+            throw new RuntimeException(
+                    "HTTP " + responseCreacion.getStatus() + " al crear clave '" + nombreClave +
+                    "' pero no se encontró en GET /claves?idPrueba=" + ID_PRUEBA_2 +
+                    " (GET respondió HTTP " + busqueda.getStatus() + ")");
         }
+
+        throw new RuntimeException(
+                "Error inesperado al crear clave '" + nombreClave + "': HTTP " + responseCreacion.getStatus());
     }
 
     /**
-     * DELETE /resources/v1/preguntas_por_clave/{idClave}/{idPregunta} debe retornar 204.
+     * DTO para asignar una pregunta a una clave.
+     * Coincide con PreguntasPorClaveResource.AsignarPreguntaDTO.
      */
-    @Test
-    void delete_ConAsociacionExistente_DebeRetornar204_YNoEncontrarDespues() {
-        // Crear una asociación temporal
-        PreguntasPorClave nueva = crearAsociacion(ID_CLAVE_B, ID_PREGUNTA_3);
+    private static class AsignarPreguntaDTO {
+        private UUID idPregunta;
 
-        Response responseCreacion = post("preguntas_por_clave", nueva);
-
-        if (responseCreacion.getStatus() == 201) {
-            // Si fue creada exitosamente, intentar eliminarla
-            Response responseDelete = delete("preguntas_por_clave/" + ID_CLAVE_B + "/" + ID_PREGUNTA_3);
-            assertEquals(204, responseDelete.getStatus());
-
-            // Intentar consultar después de eliminado
-            Response responseDespuesEliminar = get("preguntas_por_clave/" + ID_CLAVE_B + "/" + ID_PREGUNTA_3);
-            assertEquals(404, responseDespuesEliminar.getStatus());
-        }
-    }
-
-    /**
-     * DELETE /resources/v1/preguntas_por_clave/{idClave}/{idPregunta} con ids inexistentes debe retornar 404.
-     */
-    @Test
-    void delete_ConAsociacionInexistente_DebeRetornar404() {
-        UUID idClaveInexistente = UUID.fromString("ffffffff-0000-0000-0000-000000000000");
-        UUID idPreguntaInexistente = UUID.fromString("ffffffff-0000-0000-0000-000000000001");
-
-        Response response = delete("preguntas_por_clave/" + idClaveInexistente + "/" + idPreguntaInexistente);
-
-        assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
-    }
-
-    // ========== HELPERS ==========
-
-    /**
-     * Construye una entidad PreguntasPorClave válida con los parámetros dados.
-     * No ejecuta el POST, solo prepara el payload.
-     */
-    private PreguntasPorClave crearAsociacion(UUID idClave, UUID idPregunta) {
-        PreguntasPorClave pc = new PreguntasPorClave();
-        
-        // Crear e inicializar el EmbeddedId
-        PreguntasPorClaveId id = new PreguntasPorClaveId();
-        id.setIdClave(idClave);
-        id.setIdPregunta(idPregunta);
-        pc.setId(id);
-        
-        // Asignar los objetos de referencia
-        ClavesExaman clave = new ClavesExaman();
-        clave.setId(idClave);
-        BancoPregunta pregunta = new BancoPregunta();
-        pregunta.setId(idPregunta);
-        pc.setIdClave(clave);
-        pc.setIdPregunta(pregunta);
-        
-        return pc;
+        public AsignarPreguntaDTO() {}
+        public AsignarPreguntaDTO(UUID idPregunta) { this.idPregunta = idPregunta; }
+        public UUID getIdPregunta() { return idPregunta; }
+        public void setIdPregunta(UUID idPregunta) { this.idPregunta = idPregunta; }
     }
 }

@@ -38,9 +38,9 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
 
             int resultado = cut.count();
 
-            // BD recién iniciada con init.sql  2 inscripciones
+            // BD recién iniciada con init.sql  4 inscripciones (2 para tests base + 2 para ExamenRealizado/Asignacion)
             assertTrue(resultado > 0);
-            assertEquals(2, resultado);
+            assertEquals(4, resultado);
 
             return null;
         });
@@ -57,10 +57,10 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
 
             List<InscripcionesPrueba> resultado = cut.findRange(0, 10);
 
-            // Aún no se ha insertado nada  sigue habiendo 2
+            // Aún no se ha insertado nada  sigue habiendo 4
             assertNotNull(resultado);
             assertFalse(resultado.isEmpty());
-            assertEquals(2, resultado.size());
+            assertEquals(4, resultado.size());
 
             return null;
         });
@@ -83,24 +83,24 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
                 UUID.fromString("d1000000-0000-0000-0000-000000000002"));
 
             InscripcionesPrueba nueva = new InscripcionesPrueba();
-            nueva.setIdAspirante(aspirante);
-            nueva.setIdPrueba(prueba);
+            nueva.setAspiranteDato(aspirante);
+            nueva.setPruebaAdmision(prueba);
             nueva.setEstado("PENDIENTE");
 
             cut.crear(nueva);
 
-            assertNotNull(nueva.getId());
-            assertEquals(3, cut.count());
+            assertNotNull(nueva.getIdInscripcionPrueba());
+            assertEquals(5, cut.count());
 
             return null;
         });
 
-        // Verificar que después del rollback implícito la BD queda con 2 inscripciones
+        // Verificar que después del rollback implícito la BD queda con 4 inscripciones
         ejecutarEnTransaccion(em -> {
             InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
             cut.em = em;
 
-            assertEquals(2, cut.count());
+            assertEquals(4, cut.count());
             return null;
         });
     }
@@ -118,7 +118,7 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
             InscripcionesPrueba resultado = cut.leer(idExistente);
 
             assertNotNull(resultado);
-            assertEquals(idExistente, resultado.getId());
+            assertEquals(idExistente, resultado.getIdInscripcionPrueba());
             assertEquals("INSCRITO", resultado.getEstado());
 
             return null;
@@ -167,15 +167,15 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
                     UUID.fromString("d1000000-0000-0000-0000-000000000002"));
 
             InscripcionesPrueba nueva = new InscripcionesPrueba();
-            nueva.setIdAspirante(aspirante);
-            nueva.setIdPrueba(prueba);
+            nueva.setAspiranteDato(aspirante);
+            nueva.setPruebaAdmision(prueba);
             nueva.setEstado("PENDIENTE");
 
             cut.crear(nueva);
-            assertEquals(3, cut.count());
+            assertEquals(5, cut.count());
 
             cut.eliminar(nueva);
-            assertEquals(2, cut.count());
+            assertEquals(4, cut.count());
 
             return null;
         });
@@ -202,14 +202,14 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
             IllegalArgumentException argumentException = assertThrows(IllegalArgumentException.class, () ->{
                 cut.findByAspiranteId(null);
             });
-            assertEquals(argumentException.getMessage(), "aspiranteId NO debe ser null");
+            assertEquals(argumentException.getMessage(), "El identificador del aspirante es obligatorio.");
 
             //Probando el CATCH
             cut.em=null;
             IllegalStateException illegalStateException = assertThrows(IllegalStateException.class, () ->{
                 cut.findByAspiranteId(idAspirante);
             });
-            assertEquals(illegalStateException.getMessage(), "sin acceso a la BD");
+            assertEquals(illegalStateException.getMessage(), "Error de infraestructura al obtener inscripciones por aspirante.");
 
             return null;
         });
@@ -236,14 +236,14 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
             IllegalArgumentException argumentException = assertThrows(IllegalArgumentException.class, () ->{
                 cut.findByPruebaId(null);
             });
-            assertEquals(argumentException.getMessage(), "pruebaId NO debe ser null");
+            assertEquals(argumentException.getMessage(), "El identificador de la prueba es obligatorio.");
 
             //Probando el CATCH
             cut.em=null;
             IllegalStateException illegalStateException = assertThrows(IllegalStateException.class, () ->{
                 cut.findByPruebaId(idPrueba);
             });
-            assertEquals(illegalStateException.getMessage(), "sin acceso a la BD");
+            assertEquals(illegalStateException.getMessage(), "Error de infraestructura al obtener inscripciones por prueba.");
 
 
             return null;
@@ -288,20 +288,20 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
             IllegalArgumentException argEx1 = assertThrows(IllegalArgumentException.class, () -> {
                 cut.existsByAspiranteAndPrueba(null, idPruebaInscrita);
             });
-            assertEquals("aspiranteId y pruebaId NO deben ser null", argEx1.getMessage());
+            assertEquals("Los identificadores de aspirante y prueba son estrictamente mandatorios.", argEx1.getMessage());
 
             // Probar ID de prueba NULL
             IllegalArgumentException argEx2 = assertThrows(IllegalArgumentException.class, () -> {
                 cut.existsByAspiranteAndPrueba(idAspirante, null);
             });
-            assertEquals("aspiranteId y pruebaId NO deben ser null", argEx2.getMessage());
+            assertEquals("Los identificadores de aspirante y prueba son estrictamente mandatorios.", argEx2.getMessage());
 
             // Probanmos el CATCH sin conexión a la BD
             cut.em = null;
             IllegalStateException illegalStateException = assertThrows(IllegalStateException.class, () -> {
                 cut.existsByAspiranteAndPrueba(idAspirante, idPruebaInscrita);
             });
-            assertEquals("sin acceso a la BD", illegalStateException.getMessage());
+            assertEquals("Error al verificar la existencia previa de la inscripción.", illegalStateException.getMessage());
 
             return null;
         });

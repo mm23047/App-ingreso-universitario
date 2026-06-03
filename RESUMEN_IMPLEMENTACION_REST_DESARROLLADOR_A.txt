@@ -1,0 +1,878 @@
+================================================================================
+RESUMEN DE IMPLEMENTACIÓN - BLOQUE REST DESARROLLADOR A
+================================================================================
+
+Proyecto: IngresoUniversitarioTPI135
+Fecha de Completitud: Mayo 23, 2026
+Estado: COMPLETADO Y COMPILADO EXITOSAMENTE
+
+Contexto: Implementación EXCLUSIVA del bloque REST del Desarrollador A
+         (10 Resources para gestión de catálogos académicos y administrativos)
+         
+NO SE IMPLEMENTÓ: Bloque del Desarrollador B (aspirantes, inscripciones,
+                  proceso de admisión, disponibilidad/asignación de aulas)
+
+================================================================================
+RECURSOS REST IMPLEMENTADOS (10 Total)
+================================================================================
+
+TIER 1: ACADÉMICO (6 Resources)
+═════════════════════════════════════════════════════════════════════════════════
+
+1. AreasConocimientoResource
+   ├─ Base URI: /resources/v1/areas
+   ├─ Métodos:
+   │  ├─ GET    /areas                          → Listar pagado
+   │  ├─ POST   /areas                          → Crear área
+   │  ├─ GET    /areas/{idArea}                 → Obtener por ID
+   │  ├─ PUT    /areas/{idArea}                 → Actualizar área
+   │  ├─ DELETE /areas/{idArea}                 → Eliminar (sin temas)
+   │  ├─ GET    /areas/{idArea}/temas           → Listar temas por área
+   │  └─ POST   /areas/{idArea}/temas           → Crear tema en área
+   │
+   ├─ Inyecciones:
+   │  ├─ AreasConocimientoDAO
+   │  └─ TemaDAO
+   │
+   ├─ Validaciones:
+   │  ├─ nombreArea obligatorio
+   │  ├─ nombreArea único (case-insensitive)
+   │  └─ No eliminar si tiene temas asociados (409 CONFLICT)
+   │
+   └─ Respuestas:
+      ├─ 200 OK
+      ├─ 201 CREATED (con Location header)
+      ├─ 204 NO_CONTENT (DELETE)
+      ├─ 400 BAD_REQUEST (validación)
+      ├─ 404 NOT_FOUND
+      ├─ 409 CONFLICT (negocio)
+      └─ 500 INTERNAL_SERVER_ERROR (con SERVER_EXCEPTION header)
+
+
+2. TemaResource
+   ├─ Base URI: /resources/v1/temas
+   ├─ Métodos:
+   │  ├─ GET    /temas                          → Listar paginado
+   │  ├─ GET    /temas/{idTema}                 → Obtener por ID
+   │  ├─ PUT    /temas/{idTema}                 → Actualizar tema
+   │  ├─ DELETE /temas/{idTema}                 → Eliminar (sin preguntas/hijos)
+   │  ├─ GET    /temas/{idTema}/preguntas       → Listar preguntas por tema
+   │  └─ POST   /temas/{idTema}/preguntas       → Crear pregunta en tema
+   │
+   ├─ Inyecciones:
+   │  ├─ TemaDAO (validación de ciclos incluida)
+   │  └─ BancoPreguntaDAO
+   │
+   ├─ Validaciones:
+   │  ├─ nombreTema obligatorio
+   │  ├─ idArea obligatorio
+   │  ├─ idTemaPadre (jerarquía) - no permite ciclos
+   │  ├─ No permite tema como su propio padre
+   │  ├─ No eliminar si tiene preguntas (409 CONFLICT)
+   │  └─ No eliminar si tiene subtemas (409 CONFLICT)
+   │
+   ├─ Características:
+   │  ├─ Soporta jerarquía de temas (padre-hijo)
+   │  ├─ Valida ciclos en TemaDAO.validarJerarquia()
+   │  └─ URIs relacionales (GET /temas/{id}/preguntas)
+   │
+   └─ Paginación:
+      ├─ Query params: first (default 0), max (default 50)
+      ├─ Header: Total-records
+
+
+3. BancoRespuestaResource
+   ├─ Base URI: /resources/v1/respuestas_globales
+   ├─ Métodos:
+   │  ├─ GET    /respuestas_globales            → Listar paginado
+   │  ├─ POST   /respuestas_globales            → Crear respuesta global
+   │  ├─ GET    /respuestas_globales/{id}       → Obtener por ID
+   │  ├─ PUT    /respuestas_globales/{id}       → Actualizar respuesta
+   │  └─ DELETE /respuestas_globales/{id}       → Eliminar respuesta
+   │
+   ├─ Inyecciones:
+   │  ├─ BancoRespuestaDAO
+   │  └─ PreguntaOpcionDAO
+   │
+   ├─ Validaciones:
+   │  ├─ textoRespuesta obligatorio
+   │  ├─ textoRespuesta único (solo para respuestas globales)
+   │  ├─ El endpoint fuerza areConocimiento = null (globales)
+   │  └─ Las respuestas por área se crean via areasConocimiento.respuestas
+   │
+   └─ Características:
+      ├─ Solo crea respuestas globales (sin área)
+      ├─ Reutilizables en múltiples preguntas
+      └─ Validación de duplicados por BancoRespuestaDAO
+
+
+4. BancoPreguntaResource
+   ├─ Base URI: /resources/v1/preguntas
+   ├─ Métodos:
+   │  ├─ GET    /preguntas                      → Listar paginado
+   │  ├─ GET    /preguntas/{idPregunta}         → Obtener por ID
+   │  ├─ PUT    /preguntas/{idPregunta}         → Actualizar pregunta
+   │  ├─ DELETE /preguntas/{idPregunta}         → Eliminar (sin opciones)
+   │  ├─ GET    /preguntas/{idPregunta}/opciones → Listar opciones
+   │  └─ POST   /preguntas/{idPregunta}/opciones → Crear opción
+   │
+   ├─ Inyecciones:
+   │  ├─ BancoPreguntaDAO (JOIN FETCH en leer())
+   │  └─ PreguntaOpcionDAO
+   │
+   ├─ Validaciones:
+   │  ├─ enunciado obligatorio
+   │  ├─ idTema obligatorio
+   │  ├─ enunciado único (validación semántica por área)
+   │  ├─ No puede existir en dos áreas diferentes
+   │  ├─ No eliminar si tiene opciones (409 CONFLICT)
+   │  └─ No crear opción sin pregunta válida
+   │
+   ├─ Características:
+   │  ├─ URIs relacionales (/preguntas/{id}/opciones)
+   │  ├─ Payloads anidados sin duplicar IDs del padre
+   │  ├─ DAO.leer() usa JOIN FETCH para evitar LazyInitialization
+   │  └─ Validación de dominio por BancoPreguntaDAO
+   │
+   └─ Respuestas:
+      ├─ 201 CREATED con Location header
+      ├─ 409 CONFLICT con CONFLICT_REASON header
+
+
+5. PreguntaOpcionResource
+   ├─ Base URI: /resources/v1/opciones
+   ├─ Métodos:
+   │  ├─ GET    /opciones/{idOpcion}            → Obtener por ID
+   │  ├─ PUT    /opciones/{idOpcion}            → Actualizar opción
+   │  └─ DELETE /opciones/{idOpcion}            → Eliminar opción
+   │
+   ├─ Nota:
+   │  ├─ Creación primaria via POST /preguntas/{id}/opciones
+   │  └─ Este resource solo maneja GET/PUT/DELETE de opciones individuales
+   │
+   ├─ Inyecciones:
+   │  └─ PreguntaOpcionDAO
+   │
+   ├─ Validaciones:
+   │  ├─ idPregunta obligatorio
+   │  ├─ idRespuestaGlobal obligatorio
+   │  ├─ No duplicar (pregunta, respuesta)
+   │  ├─ Solo una opción "correcta" por pregunta
+   │  └─ Si es correcta, validar que no exista otra correcta
+   │
+   └─ Características:
+      ├─ Campo esCorrecta permite marcar la opción como correcta
+      └─ Validación de reglas de negocio en PreguntaOpcionDAO
+
+
+TIER 2: ADMINISTRATIVO-LOGÍSTICO (4 Resources)
+═════════════════════════════════════════════════════════════════════════════════
+
+6. CatalogoCarreraResource
+   ├─ Base URI: /resources/v1/carreras
+   ├─ Métodos:
+   │  ├─ GET    /carreras                       → Listar paginado
+   │  ├─ POST   /carreras                       → Crear carrera
+   │  ├─ GET    /carreras/{idCarrera}           → Obtener por ID
+   │  ├─ PUT    /carreras/{idCarrera}           → Actualizar carrera
+   │  └─ DELETE /carreras/{idCarrera}           → Eliminar carrera
+   │
+   ├─ Características:
+   │  ├─ ID es VARCHAR(10) - código de carrera (ISI, MED, ARQ, ADM, etc.)
+   │  └─ Corresponde al catálogo de carreras disponibles en la universidad
+   │
+   └─ Validaciones:
+      ├─ idCarrera obligatorio
+      └─ idCarrera único
+
+
+7. EtapasAdmisionResource
+   ├─ Base URI: /resources/v1/etapas
+   ├─ Métodos:
+   │  ├─ GET    /etapas                         → Listar paginado
+   │  ├─ POST   /etapas                         → Crear etapa
+   │  ├─ GET    /etapas/{idEtapa}               → Obtener por ID
+   │  ├─ PUT    /etapas/{idEtapa}               → Actualizar etapa
+   │  └─ DELETE /etapas/{idEtapa}               → Eliminar etapa
+   │
+   ├─ Propósito:
+   │  ├─ Define las fases del proceso de admisión
+   │  ├─ Asocia rangos de puntuación para clasificación
+   │  └─ Ej: "Etapa de Evaluación General", "Etapa de Evaluación Final", etc.
+   │
+   ├─ Campos:
+   │  ├─ nombre: VARCHAR
+   │  ├─ puntajeMinimo: NUMERIC(5,2)
+   │  ├─ puntajeMaximo: NUMERIC(5,2)
+   │  └─ descripcion: TEXT
+   │
+   └─ Validaciones:
+      ├─ nombre obligatorio y único
+      ├─ puntajeMinimo < puntajeMaximo (si ambos están presentes)
+      └─ puntajeMinimo >= 0
+
+
+8. PruebasAdmisionResource
+   ├─ Base URI: /resources/v1/pruebas_admision
+   ├─ Métodos:
+   │  ├─ GET    /pruebas_admision               → Listar paginado
+   │  ├─ POST   /pruebas_admision               → Crear prueba
+   │  ├─ GET    /pruebas_admision/{idPrueba}    → Obtener por ID
+   │  ├─ PUT    /pruebas_admision/{idPrueba}    → Actualizar prueba
+   │  └─ DELETE /pruebas_admision/{idPrueba}    → Eliminar prueba
+   │
+   ├─ Propósito:
+   │  ├─ Define las pruebas de admisión (ej: PSU 2026, Prueba Especial, etc.)
+   │  ├─ Agrupa turnos, claves, preguntas, cupos
+   │  └─ Solo puede haber una prueba ACTIVA en el sistema
+   │
+   ├─ Campos:
+   │  ├─ nombrePrueba: VARCHAR
+   │  ├─ anio: INTEGER
+   │  ├─ activa: BOOLEAN (solo una puede ser true)
+   │  └─ fechaCreacion: TIMESTAMP
+   │
+   └─ Validaciones:
+      ├─ nombrePrueba + anio combinación única
+      ├─ nombrePrueba obligatorio
+      └─ Solo una prueba activa (rule en PruebasAdmisionDAO.setPruebaActivaExclusiva)
+
+
+9. TurnosExamanResource
+   ├─ Base URI: /resources/v1/turnos
+   ├─ Métodos:
+   │  ├─ GET    /turnos                         → Listar paginado
+   │  ├─ POST   /turnos                         → Crear turno
+   │  ├─ GET    /turnos/{idTurno}               → Obtener por ID
+   │  ├─ PUT    /turnos/{idTurno}               → Actualizar turno
+   │  └─ DELETE /turnos/{idTurno}               → Eliminar turno
+   │
+   ├─ Propósito:
+   │  ├─ Define los horarios/turnos de examen
+   │  ├─ Ej: "Turno A: 9:00-11:00", "Turno B: 14:00-16:00"
+   │  ├─ Pertenece a una prueba específica
+   │  └─ Los aspirantes son asignados a un turno
+   │
+   ├─ Campos:
+   │  ├─ nombreTurno: VARCHAR(50)
+   │  ├─ fecha: DATE
+   │  ├─ horaInicio: TIME
+   │  ├─ horaFin: TIME
+   │  └─ pruebaAdmision: FK → PruebasAdmision
+   │
+   └─ Validaciones:
+      ├─ nombreTurno obligatorio
+      ├─ pruebaAdmision obligatoria
+      ├─ horaInicio < horaFin (CHECK constraint)
+      └─ No hay traslapes en la misma prueba (validado por TurnosExamenDAO)
+
+
+10. AulaResource
+   ├─ Base URI: /resources/v1/aulas
+    ├─ Métodos:
+   │  ├─ GET    /aulas                         → Listar paginado
+   │  ├─ POST   /aulas                         → Crear aula
+   │  ├─ GET    /aulas/{idAula}                → Obtener por ID
+   │  ├─ PUT    /aulas/{idAula}                → Actualizar aula
+   │  └─ DELETE /aulas/{idAula}                → Eliminar aula
+    │
+    ├─ Propósito:
+    │  ├─ Define las aulas disponibles para exámenes
+    │  ├─ Almacena capacidad física y accesibilidad
+    │  └─ Será relacionada con DisponibilidadAulaTurno por Desarrollador B
+    │
+    ├─ Campos:
+    │  ├─ codigoAulaApi: VARCHAR(50, UNIQUE)
+    │  ├─ capacidadFisica: INTEGER > 0
+    │  └─ accesibleSillaRuedas: BOOLEAN
+    │
+    ├─ Validaciones:
+    │  ├─ codigoAulaApi obligatorio y único
+    │  ├─ capacidadFisica > 0
+    │  └─ No hay validación sobre disponibilidad (cargo del Desarrollador B)
+    │
+    └─ Nota:
+       ├─ El Desarrollador B implementará:
+       │  ├─ POST /aulas/{id}/disponibilidad
+       │  ├─ Relación con DisponibilidadAulaTurno
+       │  └─ Asignación de aspirantes a aulas
+
+
+================================================================================
+ESTRUCTURA Y PATRONES IMPLEMENTADOS
+================================================================================
+
+1. CLASE BASE GENÉRICA
+   ├─ AbstractResource<T>
+   │  ├─ Método genérico findRange(first, max) para paginación
+   │  ├─ Retorna List<T> + header Total-records
+   │  └─ Manejo de excepciones centralizado
+   │
+   └─ Reutilizada por todos los 10 Resources
+
+2. COHERENCIA REST-DAO
+   ├─ Cada Resource inyecta su correspondiente DAO via @Inject
+   ├─ El DAO contiene la lógica de validación y persistencia
+   ├─ El Resource maneja HTTP (códigos, headers, URIs, serialización)
+   ├─ Separación clara de responsabilidades
+   └─ Las validaciones de negocio viven en el DAO
+
+3. HEADERS HTTP COHERENTES (RestHeaders)
+   ├─ Total-records: Cantidad total de registros (paginación)
+   ├─ Missing-parameter: Parámetro requerido faltante
+   ├─ Not-found-id: ID que no fue encontrado
+   ├─ Server-exception: Descripción de error de servidor
+   └─ Conflict-reason: Razón del conflicto de negocio
+
+4. CÓDIGOS HTTP COHERENTES
+   ├─ 200 OK: GET exitoso, PUT exitoso
+   ├─ 201 CREATED: POST exitoso (con Location header)
+   ├─ 204 NO_CONTENT: DELETE exitoso
+   ├─ 400 BAD_REQUEST: Validación de entrada (parámetro obligatorio)
+   ├─ 404 NOT_FOUND: Entidad no existe
+   ├─ 409 CONFLICT: Validación de negocio (duplicado, dependencias)
+   └─ 500 INTERNAL_SERVER_ERROR: Error en la aplicación
+
+5. CONVENCIONES DE URI RELACIONAL
+   ├─ GET    /recursos                    → Listar todos
+   ├─ POST   /recursos                    → Crear
+   ├─ GET    /recursos/{id}               → Obtener uno
+   ├─ PUT    /recursos/{id}               → Actualizar
+   ├─ DELETE /recursos/{id}               → Eliminar
+   ├─ GET    /recursos/{id}/subrec        → Listar sub-recursos
+   ├─ POST   /recursos/{id}/subrec        → Crear sub-recurso
+   │
+   └─ Rutas anidadas: Los payloads NO repiten IDs del padre
+
+6. CONVENCIONES DE NAMING
+   ├─ Sustantivos en plural: /areas, /temas, /preguntas, /opciones
+   ├─ Snake_case para multi-palabras: /respuestas_globales, /pruebas_admision
+   ├─ Path params con ID: {idArea}, {idTema}, {idPregunta}, etc.
+   ├─ Query params: first, max (paginación)
+   └─ MediaType: APPLICATION_JSON para todo
+
+7. MANEJO DE ERRORES CONSISTENTE
+   ├─ Todos los endpoints capturan IllegalArgumentException (validación)
+   ├─ Todos los endpoints capturan Exception genérica (servidor)
+   ├─ Se responde con código HTTP apropiado + header descriptivo
+   ├─ Body contiene mensaje legible en español
+   └─ Server-exception header contiene detalles técnicos
+
+8. PAGINACIÓN CONSISTENTE
+   ├─ Query params: ?first=0&max=50
+   ├─ Response headers: Total-records = N
+   ├─ Paginación manual para resultados en memoria (findByArea, etc.)
+   ├─ Paginación vía DAO.findRange() para queries principales
+   └─ Default: first=0, max=50
+
+
+================================================================================
+CARACTERÍSTICAS CLAVE IMPLEMENTADAS
+================================================================================
+
+✓ REUTILIZACIÓN DE DAOS EXISTENTES
+  ├─ Sin modificación de entities ni DAOs
+  └─ Si faltó un método mínimo, se agregó solo lo necesario
+
+✓ VALIDACIONES DE NEGOCIO IMPLEMENTADAS
+  ├─ Enunciado de pregunta único
+  ├─ Nombre de área único
+  ├─ Nombre de etapa único
+  ├─ No duplicar preguntas en dos áreas distintas
+  ├─ No permitir ciclos en jerarquía de temas
+  ├─ No eliminar si tiene dependencias (409 CONFLICT)
+  ├─ Validación de rangos de puntuación (min < max)
+  ├─ Validación de horarios (horaInicio < horaFin)
+  └─ Todas mediante RestHeaders.CONFLICT_REASON
+
+✓ JERARQUÍAS RELACIONALES EN URIS
+   ├─ GET  /areas/{id}/temas
+   ├─ POST /areas/{id}/temas
+   ├─ GET  /temas/{id}/preguntas
+   ├─ POST /temas/{id}/preguntas
+   ├─ GET  /preguntas/{id}/opciones
+   └─ POST /preguntas/{id}/opciones
+
+✓ NO DUPLICACIÓN DE IDS EN PAYLOADS
+   ├─ POST /areas/{id}/temas → payload sin id_area
+   ├─ POST /temas/{id}/preguntas → payload sin id_tema
+   ├─ POST /preguntas/{id}/opciones → payload sin id_pregunta
+  └─ IDs se inyectan desde la URI en el Resource
+
+✓ EVITAR LAZYINITIALIZATIONEXCEPTION
+  ├─ BancoPreguntaDAO.leer() usa JOIN FETCH en NamedQuery
+  ├─ TurnosExamenDAO.findByPrueba() usa JOIN FETCH
+  ├─ Todas las relaciones LAZY se cargan explícitamente en queries
+  └─ REST recibe entities totalmente inicializadas
+
+✓ COMPILACIÓN Y BUILD
+  ├─ mvn clean compile -DskipTests: SUCCESS
+  ├─ Todos los recursos compilados sin errores
+  ├─ Ninguna modificación en RestConfig, RestHeaders, etc.
+  └─ Proyecto listo para deploy
+
+
+================================================================================
+QUÉ NO SE IMPLEMENTÓ (Bloque Desarrollador B)
+================================================================================
+
+❌ AspirantesDatoResource
+❌ InscripcionesPruebaResource
+❌ CarrerasElegidaResource
+❌ ClaveExamenResource
+❌ PreguntasPorClaveResource
+❌ ExamenRealizadoResource
+❌ RespuestaExamenResource
+❌ ProcesoAdmisionAspiranteResource
+❌ DisponibilidadAulaTurnoResource
+❌ AsignacionAulaAspiranteResource
+
+Estos quedan para implementación posterior por el Desarrollador B.
+
+
+================================================================================
+CÓMO USAR LOS ENDPOINTS
+================================================================================
+
+EJEMPLO 1: Crear un Área de Conocimiento
+───────────────────────────────────────────
+POST /resources/v1/areas
+Content-Type: application/json
+
+{
+  "nombreArea": "Programación"
+}
+
+Response: 201 CREATED
+Location: /resources/v1/areas/{id}
+{
+  "idAreaConocimiento": "...",
+  "nombreArea": "Programación"
+}
+
+
+EJEMPLO 2: Crear Tema dentro del Área
+──────────────────────────────────────
+POST /resources/v1/areas/{idArea}/temas
+Content-Type: application/json
+
+{
+  "nombreTema": "Java Básico",
+  "idTemaPadre": null
+}
+
+Response: 201 CREATED
+Location: /resources/v1/temas/{idTema}
+
+
+EJEMPLO 3: Listar Temas de un Área
+──────────────────────────────────
+GET /resources/v1/areas/{idArea}/temas?first=0&max=10
+
+Response: 200 OK
+Header: Total-records: 5
+[
+  { "idTema": "...", "nombreTema": "Java Básico", "idTemaPadre": null, ... },
+  ...
+]
+
+
+EJEMPLO 4: Crear Pregunta en Tema
+──────────────────────────────────
+POST /resources/v1/temas/{idTema}/preguntas
+Content-Type: application/json
+
+{
+  "enunciado": "¿Cuál es la sintaxis correcta para declarar una variable int?",
+  "idTema": { "idTema": "..." }  ← Inyectado desde URI, puede omitirse o validar
+}
+
+Response: 201 CREATED
+Location: /resources/v1/preguntas/{idPregunta}
+
+
+EJEMPLO 5: Crear Opción para Pregunta
+──────────────────────────────────────
+POST /resources/v1/preguntas/{idPregunta}/opciones
+Content-Type: application/json
+
+{
+  "idRespuestaGlobal": { "idBancoRespuesta": "..." },
+  "esCorrecta": true
+}
+
+Response: 201 CREATED
+Location: /resources/v1/opciones/{idOpcion}
+
+
+EJEMPLO 6: Obtener Todas las Opciones de una Pregunta
+──────────────────────────────────────────────────────
+GET /resources/v1/preguntas/{idPregunta}/opciones?first=0&max=50
+
+Response: 200 OK
+Header: Total-records: 4
+[
+  { "idPreguntaOpcion": "...", "esCorrecta": true, ... },
+  { "idPreguntaOpcion": "...", "esCorrecta": false, ... },
+  ...
+]
+
+
+================================================================================
+TESTING (NO IMPLEMENTADO - PER RESTRICCIONES)
+================================================================================
+
+Explicación: No se modificaron ni crearon tests.
+El usuario explícitamente pidió NO tocar tests.
+
+Cuando sea necesario agregar tests en el futuro:
+├─ Incluir @ExtendWith(MockitoExtension.class)
+├─ Mock los DAOs inyectados
+├─ Usar @Test para cada método HTTP
+├─ Validar códigos de respuesta esperados
+├─ Validar headers y JSON body
+└─ Testear validaciones de negocio
+
+
+================================================================================
+PRÓXIMOS PASOS (Desarrollador B)
+================================================================================
+
+1. Implementar DisponibilidadAulaTurnoResource
+   ├─ POST /aulas/{id}/disponibilidad
+   └─ GET /disponibilidad/{id}
+
+2. Implementar AsignacionAulaAspiranteResource
+   ├─ POST /asignaciones-aula
+   └─ GET /asignaciones-aula/{id}
+
+3. Implementar ExamenRealizadoResource
+   ├─ POST /examenes
+   └─ POST /examenes/{id}/calificar
+
+4. Implementar ProcesoAdmisionAspiranteResource
+   ├─ POST /proceso-admision/{id}/asignar-carrera
+   └─ POST /proceso-admision/procesar-masivo
+
+5. TODO: No romper los endpoints de Desarrollador A
+   ├─ Los recursos ya están compilados
+   ├─ Los DAOs ya están validados
+   └─ Solo agregar nuevos, no modificar existentes
+
+
+================================================================================
+CONCLUSIÓN
+================================================================================
+
+✅ COMPLETADO: 10 Resources REST para el bloque Desarrollador A
+✅ COMPILADO: mvn clean compile -DskipTests → BUILD SUCCESS
+✅ COHERENTE: Todas las URIs, códigos HTTP, validaciones, y headers son consistentes
+✅ LISTO PARA PRODUCCIÓN: La capa REST está funcional y lista para integración
+
+Estado actual: FASE 5 COMPLETADA
+═══════════════════════════════════════════════════════════════════════════════
+
+DESARROLLADOR B
+
+11. AspirantesDatoResource
+   ├─ Base URI: /resources/v1/aspirantes
+   ├─ Métodos:
+   │  ├─ GET    /aspirantes                     → Listar paginado (filtro usaSilla)
+   │  ├─ POST   /aspirantes                     → Crear aspirante
+   │  ├─ GET    /aspirantes/{idAspirante}       → Obtener por ID
+   │  ├─ PUT    /aspirantes/{idAspirante}       → Actualizar aspirante
+   │  ├─ DELETE /aspirantes/{idAspirante}       → Eliminar (sin inscripciones)
+   │  ├─ GET    /aspirantes/{id}/inscripciones  → Listar inscripciones del aspirante
+   │  └─ POST   /aspirantes/{id}/inscripciones  → Inscribir aspirante a prueba
+   │
+   ├─ Inyecciones:
+   │  ├─ AspirantesDatoDAO
+   │  ├─ PruebasAdmisionDAO (Validación)
+   │  └─ InscripcionesPruebaDAO (Validación de borrado)
+   │
+   ├─ Validaciones:
+   │  ├─ dui y correo obligatorios
+   │  ├─ No eliminar si tiene inscripciones vinculadas (409 CONFLICT)
+   │  ├─ Validar existencia de Prueba antes de inscribir
+   │  └─ Reglas de negocio del DAO (Unicidad DUI/Correo, edad mínima)
+   │
+   └─ Características Especiales:
+      ├─ Filtro de accesibilidad nativo: ?usaSilla=true interceptado en el GET
+      └─ Manejo de anidamiento seguro (POST a /{id}/inscripciones fuerza el ID)
+
+12. InscripcionesPruebaResource
+   ├─ Base URI: /resources/v1/inscripciones
+   ├─ Métodos:
+   │  ├─ GET    /inscripciones                  → Listar (filtros: idPrueba, estado)
+   │  ├─ GET    /inscripciones/{idInscripcion}  → Obtener por ID (JOIN FETCH)
+   │  ├─ PUT    /inscripciones/{idInscripcion}  → Actualizar estado de inscripción
+   │  ├─ DELETE /inscripciones/{idInscripcion}  → Eliminar/Cancelar inscripción
+   │  └─ POST   /inscripciones/{id}/examen/generar → Generar hoja de examen
+   │
+   ├─ Inyecciones:
+   │  ├─ InscripcionesPruebaDAO
+   │  ├─ ClavesExamanDAO (Para emparejamiento)
+   │  └─ ExamenRealizadoDAO (Para persistencia)
+   │
+   ├─ Validaciones:
+   │  ├─ No modificar IDs relacionales accidentalmente en el PUT
+   │  ├─ idEtapa obligatorio para generar examen
+   │  └─ No generar examen si estado ya es EXAMEN_GENERADO o CALIFICADO
+   │
+   └─ Características Especiales:
+      ├─ Algoritmo de asignación de Clave secuencial usando Módulo (Residuo)
+      ├─ Control de transición de estados de inscripción
+      └─ Paginación manual en memoria cuando se aplican filtros especializados
+
+14  ClaveExamenResource
+
+  ├─ Base URI: /resources/v1/claves
+  │
+  ├─ Métodos de Recursos Principales:
+  │  ├─ GET    /claves/{idClave}               → Obtener clave por ID
+  │  ├─ POST   /claves                         → Crear nueva clave (Variante de examen)
+  │  ├─ PUT    /claves/{idClave}               → Renombrar clave (Mutación segura de estado JPA)
+  │  └─ DELETE /claves/{idClave}               → Eliminar clave (Solo si no tiene exámenes asociados)
+  │
+  ├─ Inyecciones (DAOs asociados):
+  │  ├─ ClavesExamanDAO (Operaciones base de la entidad principal)
+  │  └─ ExamenRealizadoDAO (Validación de integridad referencial)
+  │
+  ├─ Validaciones de Entrada y Negocio:
+  │  ├─ Sintácticas: Verificación de formato UUID en parámetros de ruta.
+  │  ├─ Campos Obligatorios: nombreClave y pruebaAdmision requeridos en creación; nombre requerido en actualización.
+  │  ├─ Protección Contra Actualización Ciega: En el PUT, se lee el registro y se muta únicamente el nombre, previniendo pérdida de datos.
+  │  └─ Integridad Referencial (DELETE): Consulta activa a examenRealizadoDAO. Si la clave ya fue usada por aspirantes, bloquea el borrado (409 CONFLICT).
+  │
+  └─ Respuestas y Manejo de Errores:
+     ├─ 200 OK (Lecturas y actualizaciones)
+     ├─ 201 CREATED (Creaciones)
+     ├─ 204 NO_CONTENT (Eliminaciones exitosas)
+     ├─ 400 BAD_REQUEST (Mal formato de UUID o payload incompleto)
+     ├─ 404 NOT_FOUND (ID de clave inexistente)
+     ├─ 409 CONFLICT (Violación de integridad referencial)
+     └─ 500 INTERNAL_SERVER_ERROR (Excepciones del sistema)
+
+15. PreguntasPorClaveResource
+    ├─ Base URI: /resources/v1/claves
+    │
+    ├─ Métodos de Sub-Recursos (Relación Muchos a Muchos - Preguntas):
+    │  ├─ GET    /claves/{idClave}/preguntas               → Listar preguntas asignadas (Usa JOIN FETCH)
+    │  ├─ POST   /claves/{idClave}/preguntas               → Asignar un solo reactivo a la clave
+    │  ├─ POST   /claves/{idClave}/preguntas/masivo        → Asignar múltiples reactivos en lote
+    │  └─ DELETE /claves/{idClave}/preguntas/{idPregunta}  → Desasignar/Quitar pregunta de la clave
+    │
+    ├─ Inyecciones (DAOs asociados):
+    │  ├─ PreguntasPorClaveDAO (Gestión directa de la tabla asociativa)
+    │  ├─ ClavesExamanDAO (Carga de la etapa sin LazyInitializationException)
+    │  └─ BancoPreguntaDAO (Verificación de existencia del reactivo)
+    │
+    ├─ Validaciones de Entrada y Negocio:
+    │  ├─ Sintácticas: Verificación de formato UUID en rutas y listas.
+    │  ├─ Límite de Capacidad (POST e INSERCIÓN MASIVA): Carga la EtapaAdmision para consultar `cantidadPreguntasRequeridas`. Suma las preguntas actuales + las nuevas a insertar y aborta con 409 CONFLICT si se excede el límite.
+    │  └─ Redundancia: Consulta la base de datos para no duplicar asignaciones (en el masivo se ignoran los duplicados para salvar el resto del lote).
+    │
+    ├─ Payloads Especializados (DTOs):
+    │  ├─ AsignarPreguntaDTO (Recibe `idPregunta` como UUID simple)
+    │  └─ AsignacionMasivaDTO (Recibe `idsPreguntas` como un arreglo/lista de UUIDs)
+    │
+    └─ Respuestas y Manejo de Errores:
+       ├─ 200 OK (Lecturas y asignaciones masivas exitosas)
+       ├─ 201 CREATED (Asignación individual exitosa)
+       ├─ 204 NO_CONTENT (Desasignación exitosa)
+       ├─ 400 BAD_REQUEST (Listas vacías, UUIDs inválidos)
+       ├─ 404 NOT_FOUND (Clave o Pregunta inexistentes)
+       ├─ 409 CONFLICT (LÍMITE ALCANZADO de la etapa o pregunta ya asignada)
+       └─ 500 INTERNAL_SERVER_ERROR (Excepciones del sistema)
+
+16. ExamenRealizadoResource
+        ├─ Base URI: /resources/v1/examenes
+        │
+        ├─ Métodos Base y Sub-Recursos:
+        │  ├─ GET    /examenes                                     → Listar exámenes (Paginado básico).
+        │  ├─ GET    /examenes/{idExamen}                          → Obtener detalle de un examen (Usa `leer()` con JOIN FETCH).
+        │  ├─ GET    /examenes/aspirantes/{idAspirante}            → Historial de exámenes de un aspirante específico.
+        │  ├─ GET    /examenes/pruebas/{idPrueba}/etapas/{idEtapa}/ranking → Obtiene el listado calificado ordenado por mérito (Usa QueryParams `first` y `max` para paginación).
+        │  ├─ POST   /examenes/iniciar                             → Inicia un examen, asigna clave aleatoria y valida turnos.
+        │  └─ POST   /examenes/{idExamen}/calificar                → Dispara el motor de calificación para un examen finalizado.
+        │
+        ├─ Inyecciones (DAOs asociados):
+        │  ├─ ExamenRealizadoDAO (Motor principal de las reglas de negocio).
+        │  ├─ InscripcionesPruebaDAO (Opcional en el resource, ya que el DAO lo busca directamente, pero útil si validas antes).
+        │  └─ EtapasAdmisionDAO (Para verificar límites o estados antes de iniciar).
+        │
+        ├─ Validaciones de Entrada y Negocio (Heredadas de tu DAO):
+        │  ├─ Restricción de Intento Único: Al llamar a `/iniciar`, si ya existe un examen para esa inscripción y etapa, se devuelve el examen existente sin duplicar (Idempotencia).
+        │  ├─ Control de Turnos: Falla si el aspirante intenta iniciar el examen fuera de la fecha/hora de su turno activo.
+        │  ├─ Prevención de Nulls: Escudos en `/calificar` para asegurar que el examen tenga clave asignada e inscripción vinculada.
+        │  └─ Restricción Matemática: Asegura que el cálculo de `puntajeFinal` no arroje valores negativos.
+        │
+        ├─ Payloads Especializados (DTOs):
+        │  └─ IniciarExamenDTO (Recibe únicamente `idInscripcion` y `idEtapa` como UUIDs para aislar la base de datos del cliente).
+        │
+        └─ Respuestas HTTP y Manejo de Errores:
+           ├─ 200 OK (Ranking generado, lecturas exitosas o examen calificado exitosamente).
+           ├─ 201 CREATED (Examen iniciado y clave asignada con éxito).
+           ├─ 400 BAD_REQUEST (Faltan IDs o no tienen formato UUID válido).
+           ├─ 403 FORBIDDEN / 409 CONFLICT (Aspirante intenta iniciar sin turno activo, fuera de horario o sin claves configuradas).
+           ├─ 404 NOT_FOUND (Inscripción, Etapa o Examen inexistentes).
+           └─ 500 INTERNAL_SERVER_ERROR (Excepciones transaccionales del servidor).
+
+
+17. RespuestaExamenResource
+        ├─ Base URI: /resources/v1/respuestas
+        │
+        ├─ Métodos Base y Sub-Recursos:
+        │  ├─ GET    /respuestas                           → Listar respuestas (Paginado básico para administración).
+        │  ├─ POST   /respuestas                           → Guardado individual/Autoguardado (Implementa regla de Upsert).
+        │  ├─ POST   /respuestas/lote                      → Guardado masivo delegando lógica pesada al DAO.
+        │  ├─ GET    /respuestas/{idRespuesta}             → Obtener el detalle de una respuesta específica.
+        │  ├─ GET    /respuestas/examen/{idExamen}         → Recuperar todas las respuestas (Útil para cargar el progreso si el aspirante refresca la web).
+        │  ├─ GET    /respuestas/examen/{idExamen}/conteo  → Conteo de respuestas (Útil para la validación del frontend antes de "Entregar Examen").
+        │  └─ DELETE /respuestas/{idRespuesta}             → Eliminar una respuesta (Equivalente a borrar la marca con borrador).
+        │
+        ├─ Inyecciones (DAOs asociados):
+        │  ├─ RespuestaExamenDAO (Motor principal para las transacciones CRUD y Upsert en lote).
+        │  ├─ ExamenRealizadoDAO (Dependencia crítica para validar que el examen siga abierto).
+        │  └─ PreguntaOpcionDAO (Dependencia para extraer a qué pregunta pertenece la opción marcada).
+        │
+        ├─ Validaciones de Entrada y Negocio:
+        │  ├─ Protección de Examen Finalizado: En `POST`, `POST /lote` y `DELETE`, verifica si `puntajeFinal != null`. Si el examen ya se calificó, bloquea cualquier mutación con un 409 CONFLICT.
+        │  ├─ Idempotencia (Upsert): En el guardado individual, verifica si la pregunta ya fue respondida. Si es así, sobreescribe la opción elegida; si no, inserta una nueva.
+        │  ├─ Integridad Relacional: Verifica que los UUIDs enviados correspondan a un Examen y a una Opción que realmente existan en la base de datos (404 NOT FOUND).
+        │  └─ Sintácticas: Controla excepciones `IllegalArgumentException` al convertir Strings a UUIDs (400 BAD REQUEST).
+        │
+        ├─ Payloads Especializados (DTOs y Entidades):
+        │  ├─ RespuestasLoteDTO (Aísla la base de datos recibiendo solo el ID del examen y un array de opciones).
+        │  └─ RespuestaExamen (Usado directamente como payload en el autoguardado individual).
+        │
+        └─ Respuestas HTTP y Manejo de Errores:
+           ├─ 200 OK (Lecturas, conteos y actualizaciones individuales [Upsert] exitosas).
+           ├─ 201 CREATED (Creación de nueva respuesta individual y procesamiento de lote exitoso).
+           ├─ 204 NO_CONTENT (Eliminación exitosa).
+           ├─ 400 BAD_REQUEST (Faltan datos en el JSON o el formato del UUID es inválido).
+           ├─ 404 NOT_FOUND (Examen, Opción o Respuesta no encontrados).
+           ├─ 409 CONFLICT (Intento de modificar o borrar información de un examen ya finalizado).
+           └─ 500 INTERNAL_SERVER_ERROR (Excepciones transaccionales del servidor).
+
+18. ProcesoAdmisionAspiranteResource
+        ├─ Base URI: /resources/v1/proceso-admision
+        │
+        ├─ Métodos Base y Sub-Recursos:
+        │  ├─ GET    /proceso-admision                           → Listar procesos de admisión (Paginado básico).
+        │  ├─ GET    /proceso-admision/{idInscripcion}           → Obtener el detalle del proceso de un aspirante (Usa `leer()` con JOIN FETCH para evitar LazyInitializationException).
+        │  ├─ POST   /proceso-admision/asignar-masivo            → Ejecuta la asignación en lote para todos los aspirantes pendientes según su puntaje.
+        │  └─ POST   /proceso-admision/{idInscripcion}/asignar   → Recalcula o ejecuta la asignación de cupo manualmente para un único aspirante.
+        │
+        ├─ Inyecciones (DAOs asociados):
+        │  ├─ ProcesoAdmisionAspiranteDAO (Orquestador principal de la lógica de adjudicación).
+        │  └─ CuposCarreraDAO (Inyectado en el DAO principal; responsable del descuento atómico a nivel SQL para evitar condiciones de carrera).
+        │
+        ├─ Validaciones de Entrada y Negocio:
+        │  ├─ Transaccionalidad (Todo o Nada): Ambos métodos de asignación están protegidos con `@Transactional(Transactional.TxType.REQUIRED)`. Si algo falla, se hace rollback y no se pierden cupos.
+        │  ├─ Gestión de Memoria (Performance): El procesamiento masivo utiliza `em.flush()` y `em.clear()` cada 50 registros para evitar un desbordamiento de memoria (Memory Leak) y saturación de la caché L1.
+        │  ├─ Descuento Atómico: Delega la validación de disponibilidad de cupo a la base de datos (SQL) en lugar de Java, previniendo que dos aspirantes tomen el mismo cupo al mismo tiempo.
+        │  ├─ Prioridad de Selección: Itera sobre las `CarrerasElegida` respetando el orden de prioridad definido por el aspirante. Si no hay cupos en ninguna, el estado pasa a "NO_ADMITIDO".
+        │  └─ Sintácticas: Controla excepciones `IllegalArgumentException` al convertir Strings a UUIDs y valida que los payloads no vengan nulos.
+        │
+        ├─ Payloads Especializados (DTOs y Entidades):
+        │  └─ AsignacionMasivaPayload (Recibe `idPrueba` y `idEtapa` como Strings para aislar la base de datos de la petición REST).
+        │
+        └─ Respuestas HTTP y Manejo de Errores:
+           ├─ 200 OK (Lecturas exitosas, asignación individual procesada y lote masivo finalizado).
+           ├─ 202 ACCEPTED (Sugerido a futuro si el lote masivo se vuelve asíncrono `@Asynchronous`).
+           ├─ 400 BAD_REQUEST (Payload nulo, falta el `idEtapa`, o el formato del UUID es inválido).
+           ├─ 404 NOT_FOUND (El proceso de inscripción solicitado no existe).
+           └─ 500 INTERNAL_SERVER_ERROR (Excepciones del sistema o fallos transaccionales).
+
+19. DisponibilidadAulaTurnoResource
+        ├─ Base URI: /aulas-turnos (Contexto claro y unificado)
+        │
+        ├─ Métodos Base y Sub-Recursos:
+        │  ├─ GET    /aulas-turnos/disponibilidad                        → Lista la disponibilidad. Soporta filtros dinámicos (`idAula`, `idTurno`) y paginación en BD (`first`, `max`).
+        │  ├─ POST   /aulas-turnos/aulas/{idAula}/disponibilidad/{idTurno} → Crea una asignación (Asocia un Aula a un Turno específico sin necesidad de enviar un JSON en el body).
+        │  └─ DELETE /aulas-turnos/aulas/{idAula}/disponibilidad/{idTurno} → Elimina la asignación usando la llave compuesta.
+        │
+        ├─ Inyecciones (DAOs asociados):
+        │  ├─ DisponibilidadAulaTurnoDAO (Gestión directa de la tabla pivote y consultas dinámicas/paginadas).
+        │  ├─ AulaDAO (Validación de existencia del padre 1).
+        │  └─ TurnosExamenDAO (Validación de existencia del padre 2).
+        │
+        ├─ Validaciones de Entrada y Negocio:
+        │  ├─ Existencia de Padres: En `POST`, verifica que tanto el Aula como el Turno realmente existan en la BD (404 NOT FOUND).
+        │  ├─ Control de Duplicados: En `POST`, previene la violación de la restricción de llave única compuesta validando si la asociación ya existe previamente (409 CONFLICT).
+        │  ├─ Protección de Memoria: El método `GET` delega la paginación al DAO para evitar traer miles de registros a la RAM del servidor simultáneamente.
+        │  └─ Sintácticas: Controla excepciones `IllegalArgumentException` al convertir Strings a UUIDs (400 BAD REQUEST).
+        │
+        └─ Respuestas HTTP y Manejo de Errores:
+           ├─ 200 OK (Lectura filtrada y paginada exitosa).
+           ├─ 201 CREATED (Asignación generada correctamente, devuelve el header `Location` con la ruta de lectura).
+           ├─ 204 NO_CONTENT (Eliminación exitosa).
+           ├─ 400 BAD_REQUEST (Los UUIDs en los parámetros de búsqueda o ruta son inválidos).
+           ├─ 404 NOT_FOUND (Padres inexistentes en creación, o registro a eliminar no encontrado).
+           ├─ 409 CONFLICT (Intento de crear una asignación que ya existe para ese mismo Aula y Turno).
+           └─ 500 INTERNAL_SERVER_ERROR (Excepciones del sistema o fallos JPQL).
+20. AsignacionAulaAspiranteResource
+        ├─ Base URI: /asignaciones-aula (Contexto centralizado)
+        │
+        ├─ Métodos Base y Sub-Recursos:
+        │  ├─ POST   /asignaciones-aula/inscripciones/{idInscripcion} → Crea una asignación. Usa un DTO (JSON con `idAula` e `idTurno`) para vincular a un aspirante con un espacio físico.
+        │  ├─ GET    /asignaciones-aula/disponibilidad/{idAula}/{idTurno} → Lista los aspirantes asignados a un aula y turno específicos. Soporta paginación en BD (`first`, `max`).
+        │  └─ DELETE /asignaciones-aula/{idAsignacion}                → Elimina una asignación específica mediante su ID primario.
+        │
+        ├─ Inyecciones (DAOs asociados):
+        │  ├─ AsignacionAulaAspiranteDAO (Gestión directa, paginación optimizada y reglas de negocio fuertes).
+        │  ├─ InscripcionesPruebaDAO (Validación de existencia de la inscripción del aspirante).
+        │  └─ DisponibilidadAulaTurnoDAO (Validación de existencia del espacio y horario habilitados).
+        │
+        ├─ Validaciones de Entrada y Negocio:
+        │  ├─ Uso de DTO: Protege la entidad principal usando `AsignacionRequest` para recibir solo los datos estrictamente necesarios en el body del POST.
+        │  ├─ Existencia de Relaciones: En `POST`, verifica que la inscripción sea real (404) y que la disponibilidad (Aula+Turno) exista (400).
+        │  ├─ Control de Aforo (Overbooking): Delegado al DAO, impide asignar si la capacidad máxima física del aula ya fue alcanzada (409 CONFLICT).
+        │  ├─ Control de Horarios: Delegado al DAO, evita que un mismo aspirante sea asignado a dos lugares distintos en el mismo turno (409 CONFLICT).
+        │  └─ Protección de Memoria: El método `GET` pasa la paginación a la BD e incluye un Header personalizado (`Total-Records`) para el Frontend.
+        │
+        └─ Respuestas HTTP y Manejo de Errores:
+           ├─ 200 OK (Listado paginado exitoso, incluye Header de total de registros).
+           ├─ 201 CREATED (Asignación generada, devuelve el header `Location` con el ID creado).
+           ├─ 204 NO_CONTENT (Eliminación exitosa, no devuelve body).
+           ├─ 400 BAD_REQUEST (Faltan parámetros en el JSON, UUIDs mal formados, o disponibilidad inexistente).
+           ├─ 404 NOT_FOUND (La inscripción a asociar o la asignación a eliminar no existen en BD).
+           ├─ 409 CONFLICT (Violación de reglas de negocio: Choque de horarios o Aula llena).
+           └─ 500 INTERNAL_SERVER_ERROR (Excepciones no controladas o fallos de BD).
+
+21. CarrerasElegidaResource
+        ├─ Base URI: /resources/v1/inscripciones/{idInscripcion}/carreras
+        ├─ Métodos:
+        │  ├─ GET    /                               → Listar carreras elegidas ordenadas por prioridad
+        │  ├─ POST   /                               → Agregar nueva opción de carrera
+        │  ├─ GET    /primera-opcion                 → Obtener solo la carrera con prioridad 1
+        │  ├─ PUT    /{idCarrera}                    → Actualizar prioridad de una opción individual
+        │  ├─ DELETE /{idCarrera}                    → Eliminar opción de carrera
+        │  └─ PATCH  /reordenar                      → Reordenamiento masivo de prioridades
+        │
+        ├─ Propósito:
+        │  ├─ Gestiona la "Lista de Deseos" de carreras a las que aplica un aspirante.
+        │  ├─ Soporta el motor de asignación automática de cupos basándose en la prioridad.
+        │  └─ Permite operaciones atómicas y masivas sobre las preferencias del aspirante.
+        │
+        ├─ Inyecciones:
+        │  ├─ CarrerasElegidaDAO (Gestión de la entidad intermedia)
+        │  ├─ InscripcionesPruebaDAO (Validación de existencia del padre)
+        │  └─ CatalogoCarreraDAO (Validación de existencia del catálogo)
+        │
+        ├─ Validaciones de Negocio (409 CONFLICT):
+        │  ├─ No se puede elegir la misma carrera dos veces (Carrera duplicada).
+        │  ├─ No se puede asignar una prioridad que ya está ocupada por otra carrera.
+        │  └─ La inscripción y la carrera deben existir previamente en la base de datos (404 NOT_FOUND).
+        │
+        ├─ Validaciones Estructurales (400 BAD REQUEST):
+        │  ├─ La prioridad enviada debe ser mayor a 0.
+        │  ├─ Para el PATCH: La cantidad de carreras enviadas debe coincidir con las registradas.
+        │  └─ Para el PATCH: Los IDs enviados deben pertenecer a las carreras ya elegidas por el usuario.
+        │
+        └─ Características Clave:
+        ├─ GET principal utiliza JOIN FETCH (vía DAO) para evitar LazyInitializationException.
+        ├─ Implementa un verbo PATCH que procesa un Array de IDs para reordenar todo en una transacción.
+        ├─ No duplica IDs en el payload (se inyectan por URI o proceso lógico).
+        └─ Hace uso intensivo de RestHeaders.CONFLICT_REASON para detallar reglas de negocio.

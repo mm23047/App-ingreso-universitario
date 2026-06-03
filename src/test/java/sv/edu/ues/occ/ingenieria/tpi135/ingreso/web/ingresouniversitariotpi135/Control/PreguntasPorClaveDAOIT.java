@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExamen;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClave;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClaveId;
 
@@ -22,7 +22,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     private static final UUID ID_CLAVE_A    = UUID.fromString("08000000-0000-0000-0000-000000000001");
-    private static final UUID ID_CLAVE_B    = UUID.fromString("08000000-0000-0000-0000-000000000002");
+    private static final UUID ID_CLAVE_B    = UUID.fromString("aaaabbbb-cccc-dddd-eeee-ffffffffffff");
     private static final UUID ID_PREGUNTA_1 = UUID.fromString("f1000000-0000-0000-0000-000000000001");
     private static final UUID ID_PREGUNTA_3 = UUID.fromString("f1000000-0000-0000-0000-000000000003");
 
@@ -85,7 +85,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
             // Clave A solo tiene pregunta1 y pregunta2 en el init.sql
             //  (Clave_A, pregunta3) es una combinación nueva sin conflicto de clave primaria
-            ClavesExaman clave    = em.find(ClavesExaman.class, ID_CLAVE_A);
+            ClavesExamen clave    = em.find(ClavesExamen.class, ID_CLAVE_A);
             BancoPregunta pregunta = em.find(BancoPregunta.class, ID_PREGUNTA_3);
 
             PreguntasPorClaveId id = new PreguntasPorClaveId();
@@ -93,9 +93,9 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
             id.setIdPregunta(ID_PREGUNTA_3);
 
             PreguntasPorClave nuevo = new PreguntasPorClave();
-            nuevo.setId(id);
-            nuevo.setIdClave(clave);
-            nuevo.setIdPregunta(pregunta);
+            nuevo.setIdPreguntaPorClave(id);
+            nuevo.setClaveExamen(clave);
+            nuevo.setBancoPregunta(pregunta);
 
             cut.crear(nuevo);
 
@@ -131,8 +131,8 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
             PreguntasPorClave resultado = cut.leer(id);
 
             assertNotNull(resultado);
-            assertEquals(ID_CLAVE_A,    resultado.getId().getIdClave());
-            assertEquals(ID_PREGUNTA_1, resultado.getId().getIdPregunta());
+            assertEquals(ID_CLAVE_A,    resultado.getIdPreguntaPorClave().getIdClave());
+            assertEquals(ID_PREGUNTA_1, resultado.getIdPreguntaPorClave().getIdPregunta());
 
             return null;
         });
@@ -161,8 +161,8 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
             // No hay campos que cambien; se verifica que la operación es idempotente
             assertNotNull(resultado);
-            assertEquals(ID_CLAVE_B,    resultado.getId().getIdClave());
-            assertEquals(ID_PREGUNTA_3, resultado.getId().getIdPregunta());
+            assertEquals(ID_CLAVE_B,    resultado.getIdPreguntaPorClave().getIdClave());
+            assertEquals(ID_PREGUNTA_3, resultado.getIdPreguntaPorClave().getIdPregunta());
 
             // El conteo se mantiene en 4 dentro de la transacción
             assertEquals(4, cut.count());
@@ -181,7 +181,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
             PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
             cut.em = em;
 
-            ClavesExaman clave    = em.find(ClavesExaman.class, ID_CLAVE_A);
+            ClavesExamen clave    = em.find(ClavesExamen.class, ID_CLAVE_A);
             BancoPregunta pregunta = em.find(BancoPregunta.class, ID_PREGUNTA_3);
 
             PreguntasPorClaveId id = new PreguntasPorClaveId();
@@ -189,9 +189,9 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
             id.setIdPregunta(ID_PREGUNTA_3);
 
             PreguntasPorClave nuevo = new PreguntasPorClave();
-            nuevo.setId(id);
-            nuevo.setIdClave(clave);
-            nuevo.setIdPregunta(pregunta);
+            nuevo.setIdPreguntaPorClave(id);
+            nuevo.setClaveExamen(clave);
+            nuevo.setBancoPregunta(pregunta);
 
             cut.crear(nuevo);
             assertEquals(5, cut.count());

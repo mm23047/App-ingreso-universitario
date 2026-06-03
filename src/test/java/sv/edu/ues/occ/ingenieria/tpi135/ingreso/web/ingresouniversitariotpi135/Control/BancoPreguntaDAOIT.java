@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AreasConocimiento;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.Tema;
 
 import java.util.List;
 
@@ -70,19 +71,26 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
             assertNotNull(area);
             System.out.println(" Área de conocimiento asignada: " + area.getNombreArea());
 
+            // Obtenemos un tema gestionado (managed) para evitar cascade PERSIST
+            Tema tema = em.createQuery("SELECT t FROM Tema t WHERE t.areaConocimiento = :area", Tema.class)
+                    .setParameter("area", area)
+                    .setMaxResults(1)
+                    .getSingleResult();
+            assertNotNull(tema);
+
             //Creamos la pregunta
             BancoPregunta nuevoBancoPregunta = new BancoPregunta();
             nuevoBancoPregunta.setEnunciado("¿Cuál es la capital de Francia?");
-            nuevoBancoPregunta.setIdArea(area);
+            nuevoBancoPregunta.setTema(tema);
 
             cut.crear(nuevoBancoPregunta);
 
             //Verificamos que se creó en esta transacción
-            System.out.println("Pregunta creada con ID: " + nuevoBancoPregunta.getId());
+            System.out.println("Pregunta creada con ID: " + nuevoBancoPregunta.getIdBancoPregunta());
             int conteoActual = cut.count();
             System.out.println("Conteo actual en transacción (Debe subir a 5): " + conteoActual);
 
-            assertNotNull(nuevoBancoPregunta.getId());
+            assertNotNull(nuevoBancoPregunta.getIdBancoPregunta());
             assertEquals(5, conteoActual);
 
             return null;
@@ -111,13 +119,13 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
 
             // Tomamos una pregunta de la BD
             BancoPregunta preguntaExistente = cut.findRange(0, 1).get(0);
-            System.out.println("Leer pregunta con ID existente: " + preguntaExistente.getId());
+            System.out.println("Leer pregunta con ID existente: " + preguntaExistente.getIdBancoPregunta());
 
-            BancoPregunta resultado = cut.leer(preguntaExistente.getId());
+            BancoPregunta resultado = cut.leer(preguntaExistente.getIdBancoPregunta());
 
             assertNotNull(resultado);
             System.out.println("RESULTADO LEER ENUNCIADO: " + resultado.getEnunciado());
-            assertEquals(preguntaExistente.getId(), resultado.getId());
+            assertEquals(preguntaExistente.getIdBancoPregunta(), resultado.getIdBancoPregunta());
 
             return null;
         });
@@ -164,13 +172,19 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
                     .setMaxResults(1)
                     .getSingleResult();
 
+            // Obtenemos un tema gestionado (managed)
+            Tema tema = em.createQuery("SELECT t FROM Tema t WHERE t.areaConocimiento = :area", Tema.class)
+                    .setParameter("area", area)
+                    .setMaxResults(1)
+                    .getSingleResult();
+
             // Creamos dato temporal
             BancoPregunta preguntaTemporal = new BancoPregunta();
             preguntaTemporal.setEnunciado("Pregunta temporal a eliminar");
-            preguntaTemporal.setIdArea(area);
+            preguntaTemporal.setTema(tema);
 
             cut.crear(preguntaTemporal);
-            System.out.println("Pregunta temporal creada con ID: " + preguntaTemporal.getId());
+            System.out.println("Pregunta temporal creada con ID: " + preguntaTemporal.getIdBancoPregunta());
             System.out.println("Conteo antes de eliminar: " + cut.count());
             // Sube a 5
             assertEquals(5, cut.count());
@@ -183,7 +197,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
             System.out.println("Conteo después de eliminar (Debe ser 4): " + conteoFinal);
             assertEquals(4, conteoFinal);
 
-            BancoPregunta resultadoLectura = cut.leer(preguntaTemporal.getId());
+            BancoPregunta resultadoLectura = cut.leer(preguntaTemporal.getIdBancoPregunta());
             System.out.println("Intentando leer el ID borrado. Resultado obtenido: " + resultadoLectura);
             assertNull(resultadoLectura, "La pregunta debería retornar null tras ser eliminada");
 

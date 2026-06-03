@@ -4,66 +4,92 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 @Entity
-@Table(name = "inscripciones_prueba", schema = "public")
+@Table(name = "inscripcion_prueba", schema = "public",  uniqueConstraints = {
+        @UniqueConstraint(name = "uk_aspirante_prueba", columnNames = {"id_aspirante", "id_prueba"})
+})
 @NamedQueries({
-    @NamedQuery(
-        name = "InscripcionesPrueba.findByAspiranteId",
-        query = "SELECT i FROM InscripcionesPrueba i WHERE i.idAspirante.id = :idAspirante"
-    ),
-    @NamedQuery(
-        name = "InscripcionesPrueba.findByPruebaId",
-        query = "SELECT i FROM InscripcionesPrueba i WHERE i.idPrueba.id = :idPrueba"
-    ),
+        // NUEVA CONSULTA: Para el método leer() del DAO
+        @NamedQuery(
+                name = "InscripcionesPrueba.findByIdConRelaciones",
+                query = "SELECT i FROM InscripcionesPrueba i JOIN FETCH i.aspiranteDato JOIN FETCH i.pruebaAdmision WHERE i.idInscripcionPrueba = :id"
+        ),
+        // ACTUALIZADA: Se agregan los JOIN FETCH
+        @NamedQuery(
+                name = "InscripcionesPrueba.findByAspiranteId",
+                query = "SELECT i FROM InscripcionesPrueba i JOIN FETCH i.aspiranteDato JOIN FETCH i.pruebaAdmision WHERE i.aspiranteDato.id = :idAspirante"
+        ),
+        // ACTUALIZADA: Se agregan los JOIN FETCH
+        @NamedQuery(
+                name = "InscripcionesPrueba.findByPruebaId",
+                query = "SELECT i FROM InscripcionesPrueba i JOIN FETCH i.aspiranteDato JOIN FETCH i.pruebaAdmision WHERE i.pruebaAdmision.idPruebaAdmision = :idPrueba"
+        ),
+        // Las consultas COUNT se quedan igual
         @NamedQuery(
                 name = "InscripcionesPrueba.countByAspiranteAndPrueba",
-                query = "SELECT COUNT(i) FROM InscripcionesPrueba i WHERE i.idAspirante.id = :idAspirante AND i.idPrueba.id = :idPrueba"
+                query = "SELECT COUNT(i) FROM InscripcionesPrueba i WHERE i.aspiranteDato.id = :idAspirante AND i.pruebaAdmision.idPruebaAdmision = :idPrueba"
+        ),
+        @NamedQuery(
+                name = "InscripcionesPrueba.countByAspiranteAndPruebaExcludingId",
+                query = "SELECT COUNT(i) FROM InscripcionesPrueba i WHERE i.aspiranteDato.id = :idAspirante AND i.pruebaAdmision.idPruebaAdmision = :idPrueba AND i.idInscripcionPrueba <> :excludeId"
+        ),
+        // ACTUALIZADA: Se agregan los JOIN FETCH
+        @NamedQuery(
+                name = "InscripcionesPrueba.findByPruebaAndEstado",
+                query = "SELECT i FROM InscripcionesPrueba i JOIN FETCH i.aspiranteDato JOIN FETCH i.pruebaAdmision WHERE i.pruebaAdmision.idPruebaAdmision = :idPrueba AND UPPER(TRIM(i.estado)) = UPPER(TRIM(:estado))"
+        ),
+        @NamedQuery(
+                name = "InscripcionesPrueba.findAllConRelaciones",
+                query = "SELECT i FROM InscripcionesPrueba i JOIN FETCH i.aspiranteDato JOIN FETCH i.pruebaAdmision"
         )
 })
-public class InscripcionesPrueba {
+public class InscripcionesPrueba implements Serializable {
+
+    private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id_inscripcion", nullable = false)
-    private UUID id;
+    private UUID idInscripcionPrueba;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_aspirante", nullable = false)
-    private AspirantesDato idAspirante;
+    private AspirantesDato aspiranteDato;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_prueba", nullable = false)
-    private PruebasAdmision idPrueba;
+    private PruebasAdmision pruebaAdmision;
 
     @Size(max = 20)
     @Column(name = "estado", length = 20)
     private String estado;
 
-    public UUID getId() {
-        return id;
+    public UUID getIdInscripcionPrueba() {
+        return idInscripcionPrueba;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public void setIdInscripcionPrueba(UUID id) {
+        this.idInscripcionPrueba = id;
     }
 
-    public AspirantesDato getIdAspirante() {
-        return idAspirante;
+    public AspirantesDato getAspiranteDato() {
+        return aspiranteDato;
     }
 
-    public void setIdAspirante(AspirantesDato idAspirante) {
-        this.idAspirante = idAspirante;
+    public void setAspiranteDato(AspirantesDato idAspirante) {
+        this.aspiranteDato = idAspirante;
     }
 
-    public PruebasAdmision getIdPrueba() {
-        return idPrueba;
+    public PruebasAdmision getPruebaAdmision() {
+        return pruebaAdmision;
     }
 
-    public void setIdPrueba(PruebasAdmision idPrueba) {
-        this.idPrueba = idPrueba;
+    public void setPruebaAdmision(PruebasAdmision idPrueba) {
+        this.pruebaAdmision = idPrueba;
     }
 
     public String getEstado() {
@@ -74,4 +100,32 @@ public class InscripcionesPrueba {
         this.estado = estado;
     }
 
+    @PrePersist
+    private void inicializarYNormalizar() {
+        if (this.estado == null || this.estado.isBlank()) {
+            this.estado = "INSCRITO";
+        } else {
+            this.estado = this.estado.trim().toUpperCase();
+        }
+    }
+
+    @PreUpdate
+    private void normalizarEstado() {
+        if (this.estado != null) {
+            this.estado = this.estado.trim().toUpperCase();
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        InscripcionesPrueba that = (InscripcionesPrueba) o;
+        return idInscripcionPrueba != null && idInscripcionPrueba.equals(that.idInscripcionPrueba);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

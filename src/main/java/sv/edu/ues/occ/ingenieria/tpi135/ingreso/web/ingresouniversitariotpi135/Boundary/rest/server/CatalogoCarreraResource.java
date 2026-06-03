@@ -1,132 +1,146 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.rest.server;
 
-import static sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.rest.server.RestHeaders.*;
-
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.Context;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.CatalogoCarreraDAO;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.IngresoDefaultDataAccess;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.CatalogoCarrera;
 
+import java.net.URI;
+
 /**
- * Recurso REST para la gestión del Catálogo de Carreras.
- * Hereda el endpoint GET paginado de AbstractResource.
- * Expone operaciones CRUD completas bajo /resources/v1/catalogo_carreras
- * <p>
- * NOTA: La PK {@code idCarrera} es un String provisto por el cliente (no auto-generado),
- * por lo que el POST requiere que {@code idCarrera} sea no nulo y no vacío.
- * </p>
+ * Recurso REST para gestionar Carreras (Catálogo).
+ * 
+ * Base: /resources/v1/carreras
  */
-@Path("catalogo_carreras")
+@Path("carreras")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 public class CatalogoCarreraResource extends AbstractResource<CatalogoCarrera> {
 
     @Inject
-    CatalogoCarreraDAO catalogoCarreraDAO;
+    private CatalogoCarreraDAO catalogoCarreraDAO;
 
     @Override
-    protected IngresoDefaultDataAccess<CatalogoCarrera> getDAO() {
+    protected CatalogoCarreraDAO getDAO() {
         return catalogoCarreraDAO;
     }
 
+    /**
+     * GET /carreras
+     * Retorna lista paginada de carreras.
+     */
     @GET
-    @Path("{id}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response findById(@PathParam("id") String id) {
-        if (id != null) {
-            try {
-                CatalogoCarrera resp = catalogoCarreraDAO.leer(id);
-                if (resp != null) {
-                    return Response.ok(resp).build();
-                }
-                return Response.status(Response.Status.NOT_FOUND)
-                        .header(NOT_FOUND_ID, "Record with id " + id + " not found")
-                        .build();
-            } catch (Exception ex) {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .header(SERVER_EXCEPTION, "Cannot access db")
-                        .build();
-            }
-        }
-        return Response.status(422)
-                .header(MISSING_PARAMETER, "id")
-                .build();
+    public Response listCarreras(
+            @DefaultValue("0") @QueryParam("first") int first,
+            @DefaultValue("50") @QueryParam("max") int max) {
+        return findRange(first, max);
     }
 
+    /**
+     * POST /carreras
+     * Crea una nueva carrera.
+     */
     @POST
-    @Produces({MediaType.APPLICATION_JSON})
-    @Consumes({MediaType.APPLICATION_JSON})
-    public Response create(CatalogoCarrera entity, @Context UriInfo uriInfo) {
-        if (entity != null && entity.getIdCarrera() != null && !entity.getIdCarrera().isBlank()) {
-            try {
-                catalogoCarreraDAO.crear(entity);
-                return Response.created(
-                        uriInfo.getAbsolutePathBuilder()
-                                .path(entity.getIdCarrera())
-                                .build())
-                        .build();
-            } catch (Exception ex) {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .header(SERVER_EXCEPTION, "Cannot access db")
-                        .build();
-            }
+    public Response createCarrera(CatalogoCarrera carrera, @Context UriInfo uriInfo) {
+        if (carrera == null || carrera.getIdCarrera() == null || carrera.getIdCarrera().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("El ID de la carrera es obligatorio")
+                    .header(RestHeaders.MISSING_PARAMETER, "idCarrera")
+                    .build();
         }
-        return Response.status(422)
-                .header(MISSING_PARAMETER, "entity must not be null and entity.idCarrera must not be null or blank")
-                .build();
+
+        try {
+            catalogoCarreraDAO.crear(carrera);
+            URI location = uriInfo.getAbsolutePathBuilder()
+                    .path(carrera.getIdCarrera())
+                    .build();
+            return Response.created(location)
+                    .entity(carrera)
+                    .build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(e.getMessage())
+                    .header(RestHeaders.CONFLICT_REASON, e.getMessage())
+                    .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
+                    .build();
+        }
     }
 
+    /**
+     * GET /carreras/{idCarrera}
+     * Obtiene una carrera específica.
+     */
+    @GET
+    @Path("{idCarrera}")
+    public Response getCarrera(@PathParam("idCarrera") String idCarrera) {
+        try {
+            CatalogoCarrera carrera = catalogoCarreraDAO.leer(idCarrera);
+            if (carrera == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .header(RestHeaders.NOT_FOUND_ID, idCarrera)
+                        .build();
+            }
+            return Response.ok(carrera).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * PUT /carreras/{idCarrera}
+     * Actualiza una carrera.
+     */
     @PUT
-    @Path("{id}")
-    @Produces({MediaType.APPLICATION_JSON})
-    @Consumes({MediaType.APPLICATION_JSON})
-    public Response update(@PathParam("id") String id, CatalogoCarrera entity) {
-        if (id != null && entity != null) {
-            try {
-                CatalogoCarrera existing = catalogoCarreraDAO.leer(id);
-                if (existing != null) {
-                    entity.setIdCarrera(id);
-                    catalogoCarreraDAO.actualizar(entity);
-                    return Response.ok(entity).build();
-                }
+    @Path("{idCarrera}")
+    public Response updateCarrera(@PathParam("idCarrera") String idCarrera, CatalogoCarrera carrera) {
+        try {
+            CatalogoCarrera existente = catalogoCarreraDAO.leer(idCarrera);
+            if (existente == null) {
                 return Response.status(Response.Status.NOT_FOUND)
-                        .header(NOT_FOUND_ID, "Record with id " + id + " not found")
-                        .build();
-            } catch (Exception ex) {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .header(SERVER_EXCEPTION, "Cannot access db")
+                        .header(RestHeaders.NOT_FOUND_ID, idCarrera)
                         .build();
             }
+
+            carrera.setIdCarrera(idCarrera);
+            CatalogoCarrera actualizada = catalogoCarreraDAO.actualizar(carrera);
+            return Response.ok(actualizada).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
+                    .build();
         }
-        return Response.status(422)
-                .header(MISSING_PARAMETER, "id and entity must not be null")
-                .build();
     }
 
+    /**
+     * DELETE /carreras/{idCarrera}
+     * Elimina una carrera.
+     */
     @DELETE
-    @Path("{id}")
-    public Response delete(@PathParam("id") String id) {
-        if (id != null) {
-            try {
-                CatalogoCarrera resp = catalogoCarreraDAO.leer(id);
-                if (resp != null) {
-                    catalogoCarreraDAO.eliminar(resp);
-                    return Response.noContent().build();
-                }
+    @Path("{idCarrera}")
+    public Response deleteCarrera(@PathParam("idCarrera") String idCarrera) {
+        try {
+            CatalogoCarrera existente = catalogoCarreraDAO.leer(idCarrera);
+            if (existente == null) {
                 return Response.status(Response.Status.NOT_FOUND)
-                        .header(NOT_FOUND_ID, "Record with id " + id + " not found")
-                        .build();
-            } catch (Exception ex) {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .header(SERVER_EXCEPTION, "Cannot access db")
+                        .header(RestHeaders.NOT_FOUND_ID, idCarrera)
                         .build();
             }
+
+            catalogoCarreraDAO.eliminar(existente);
+            return Response.noContent().build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
+                    .build();
         }
-        return Response.status(422)
-                .header(MISSING_PARAMETER, "id")
-                .build();
     }
 }

@@ -94,10 +94,10 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
             clave.setIdEtapa(ID_ETAPA_1);
 
             CuposCarrera nuevo = new CuposCarrera();
-            nuevo.setId(clave);
-            nuevo.setIdPrueba(prueba);
-            nuevo.setIdCarrera(carrera);
-            nuevo.setIdEtapa(etapa);
+            nuevo.setIdCupoCarrera(clave);
+            nuevo.setPruebaAdmision(prueba);
+            nuevo.setCatalogoCarrera(carrera);
+            nuevo.setEtapaAdmision(etapa);
             nuevo.setCupos(30);
 
             cut.crear(nuevo);
@@ -136,9 +136,9 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
             CuposCarrera resultado = cut.leer(clave);
 
             assertNotNull(resultado);
-            assertEquals("ICS", resultado.getId().getIdCarrera());
-            assertEquals(ID_PRUEBA_2026, resultado.getId().getIdPrueba());
-            assertEquals(ID_ETAPA_FINAL, resultado.getId().getIdEtapa());
+            assertEquals("ICS", resultado.getIdCupoCarrera().getIdCarrera());
+            assertEquals(ID_PRUEBA_2026, resultado.getIdCupoCarrera().getIdPrueba());
+            assertEquals(ID_ETAPA_FINAL, resultado.getIdCupoCarrera().getIdEtapa());
             assertEquals(50, resultado.getCupos());
 
             return null;
@@ -196,10 +196,10 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
             clave.setIdEtapa(ID_ETAPA_1);
 
             CuposCarrera cupo = new CuposCarrera();
-            cupo.setId(clave);
-            cupo.setIdPrueba(prueba);
-            cupo.setIdCarrera(carrera);
-            cupo.setIdEtapa(etapa);
+            cupo.setIdCupoCarrera(clave);
+            cupo.setPruebaAdmision(prueba);
+            cupo.setCatalogoCarrera(carrera);
+            cupo.setEtapaAdmision(etapa);
             cupo.setCupos(30);
 
             // Crear

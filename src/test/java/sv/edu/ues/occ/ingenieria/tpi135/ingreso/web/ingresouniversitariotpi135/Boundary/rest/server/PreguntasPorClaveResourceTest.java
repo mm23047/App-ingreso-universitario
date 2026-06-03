@@ -4,13 +4,18 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.BancoPreguntaDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.ClavesExamanDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.PreguntasPorClaveDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoPregunta;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExaman;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ClavesExamen;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.EtapasAdmision;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClave;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntasPorClaveId;
 
@@ -23,17 +28,38 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Pruebas unitarias para PreguntasPorClaveResource.
+ * Endpoints reales:
+ *   GET    /claves/{idClave}/preguntas
+ *   POST   /claves/{idClave}/preguntas        (AsignarPreguntaDTO)
+ *   POST   /claves/{idClave}/preguntas/masivo (AsignacionMasivaDTO)
+ *   DELETE /claves/{idClave}/preguntas/{idPregunta}
+ */
 @ExtendWith(MockitoExtension.class)
 class PreguntasPorClaveResourceTest {
 
-    @Mock private PreguntasPorClaveDAO preguntasPorClaveDAO;
-    @Mock private UriInfo uriInfo;
-    @Mock private UriBuilder uriBuilder;
+    @Mock
+    private PreguntasPorClaveDAO preguntasPorClaveDAO;
 
+    @Mock
+    private ClavesExamanDAO clavesDAO;
+
+    @Mock
+    private BancoPreguntaDAO preguntasDAO;
+
+    @Mock
+    private UriInfo uriInfo;
+
+    @Mock
+    private UriBuilder uriBuilder;
+
+    @InjectMocks
     private PreguntasPorClaveResource resource;
+
+    private ClavesExamen clave;
+    private BancoPregunta pregunta;
     private PreguntasPorClave entidad;
-    private ClavesExaman claveEntidad;
-    private BancoPregunta preguntaEntidad;
     private UUID idClave;
     private UUID idPregunta;
 
@@ -42,322 +68,195 @@ class PreguntasPorClaveResourceTest {
         idClave = UUID.randomUUID();
         idPregunta = UUID.randomUUID();
 
-        resource = new PreguntasPorClaveResource();
-        resource.preguntasPorClaveDAO = preguntasPorClaveDAO;
+        EtapasAdmision etapa = new EtapasAdmision();
+        etapa.setCantidadPreguntasRequeridas(10);
+
+        clave = new ClavesExamen();
+        clave.setIdClaveExaman(idClave);
+        clave.setEtapaAdmision(etapa);
+
+        pregunta = new BancoPregunta();
+        pregunta.setIdBancoPregunta(idPregunta);
 
         PreguntasPorClaveId pk = new PreguntasPorClaveId();
         pk.setIdClave(idClave);
         pk.setIdPregunta(idPregunta);
 
-        claveEntidad = new ClavesExaman();
-        preguntaEntidad = new BancoPregunta();
-
         entidad = new PreguntasPorClave();
-        entidad.setId(pk);
-        entidad.setIdClave(claveEntidad);
-        entidad.setIdPregunta(preguntaEntidad);
+        entidad.setIdPreguntaPorClave(pk);
     }
 
-    // ==================== findRange (GET /) ====================
+    // ==================== getPreguntasByClave (GET /{idClave}/preguntas) ====================
 
     @Test
-    void findRange_ConParametrosValidos_DebeRetornar200() {
-        when(preguntasPorClaveDAO.count()).thenReturn(1);
-        when(preguntasPorClaveDAO.findRange(0, 10)).thenReturn(List.of(entidad));
+    void getPreguntasByClave_ConClaveExistente_DebeRetornar200ConLista() {
+        when(clavesDAO.leer(idClave)).thenReturn(clave);
+        when(preguntasPorClaveDAO.findPreguntasByClave(idClave)).thenReturn(List.of(entidad));
 
-        Response response = resource.findRange(0, 10);
+        Response response = resource.getPreguntasByClave(idClave.toString());
 
         assertEquals(200, response.getStatus());
-        assertEquals("1", response.getHeaderString("Total-records"));
+        assertNotNull(response.getEntity());
+        verify(preguntasPorClaveDAO).findPreguntasByClave(idClave);
     }
 
     @Test
-    void findRange_ConListaVacia_DebeRetornar200() {
-        when(preguntasPorClaveDAO.count()).thenReturn(0);
-        when(preguntasPorClaveDAO.findRange(0, 10)).thenReturn(Collections.emptyList());
+    void getPreguntasByClave_ConClaveInexistente_DebeRetornar404() {
+        when(clavesDAO.leer(idClave)).thenReturn(null);
 
-        Response response = resource.findRange(0, 10);
-
-        assertEquals(200, response.getStatus());
-        assertEquals("0", response.getHeaderString("Total-records"));
-    }
-
-    @Test
-    void findRange_ConFirstNegativo_DebeRetornar422() {
-        Response response = resource.findRange(-1, 10);
-        assertEquals(422, response.getStatus());
-        verifyNoInteractions(preguntasPorClaveDAO);
-    }
-
-    @Test
-    void findRange_ConMaxCero_DebeRetornar422() {
-        Response response = resource.findRange(0, 0);
-        assertEquals(422, response.getStatus());
-        verifyNoInteractions(preguntasPorClaveDAO);
-    }
-
-    @Test
-    void findRange_ConMaxMayorA100_DebeRetornar422() {
-        Response response = resource.findRange(0, 101);
-        assertEquals(422, response.getStatus());
-        verifyNoInteractions(preguntasPorClaveDAO);
-    }
-
-    @Test
-    void findRange_ConExcepcionEnDAO_DebeRetornar500() {
-        when(preguntasPorClaveDAO.count()).thenThrow(new RuntimeException("BD error"));
-        Response response = resource.findRange(0, 10);
-        assertEquals(500, response.getStatus());
-    }
-
-    // ==================== findById (GET /{idClave}/{idPregunta}) ====================
-
-    @Test
-    void findById_ConPKExistente_DebeRetornar200() {
-        when(preguntasPorClaveDAO.leer(any(PreguntasPorClaveId.class))).thenReturn(entidad);
-
-        Response response = resource.findById(idClave, idPregunta);
-
-        assertEquals(200, response.getStatus());
-        assertSame(entidad, response.getEntity());
-    }
-
-    @Test
-    void findById_ConPKInexistente_DebeRetornar404() {
-        when(preguntasPorClaveDAO.leer(any(PreguntasPorClaveId.class))).thenReturn(null);
-
-        Response response = resource.findById(idClave, idPregunta);
+        Response response = resource.getPreguntasByClave(idClave.toString());
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
-    }
-
-    @Test
-    void findById_ConParametroNulo_DebeRetornar422() {
-        Response response = resource.findById(null, idPregunta);
-        assertEquals(422, response.getStatus());
         verifyNoInteractions(preguntasPorClaveDAO);
     }
 
     @Test
-    void findById_ConPreguntaNula_DebeRetornar422() {
-        Response response = resource.findById(idClave, null);
-        assertEquals(422, response.getStatus());
-        verifyNoInteractions(preguntasPorClaveDAO);
+    void getPreguntasByClave_ConIdFormatoInvalido_DebeRetornar400() {
+        Response response = resource.getPreguntasByClave("no-es-uuid");
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(clavesDAO, preguntasPorClaveDAO);
     }
 
     @Test
-    void findById_ConExcepcionEnDAO_DebeRetornar500() {
-        when(preguntasPorClaveDAO.leer(any(PreguntasPorClaveId.class))).thenThrow(new RuntimeException("BD error"));
+    void getPreguntasByClave_ConExcepcionEnDAO_DebeRetornar500() {
+        when(clavesDAO.leer(any())).thenThrow(new RuntimeException("BD error"));
 
-        Response response = resource.findById(idClave, idPregunta);
+        Response response = resource.getPreguntasByClave(idClave.toString());
 
         assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString("Server-exception"));
     }
 
-    // ==================== create (POST /) ====================
+    // ==================== asignarPreguntaAClave (POST /{idClave}/preguntas) ====================
 
     @Test
-    void create_ConEntidadValida_DebeRetornar201() {
-        PreguntasPorClave nueva = new PreguntasPorClave();
-        nueva.setId(entidad.getId());
-        nueva.setIdClave(claveEntidad);
-        nueva.setIdPregunta(preguntaEntidad);
-
+    void asignar_ConDatosValidos_DebeRetornar201() {
+        when(clavesDAO.findByIdWithEtapa(idClave)).thenReturn(clave);
+        when(preguntasPorClaveDAO.countPreguntasByClave(idClave)).thenReturn(0L);
+        when(preguntasDAO.leer(idPregunta)).thenReturn(pregunta);
+        when(preguntasPorClaveDAO.existsByClaveAndPregunta(idClave, idPregunta)).thenReturn(false);
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
-        when(uriBuilder.build()).thenReturn(URI.create("http://localhost/preguntas_por_clave/" + idClave + "/" + idPregunta));
+        when(uriBuilder.build()).thenReturn(URI.create("http://localhost/claves/1/preguntas/1"));
 
-        Response response = resource.create(nueva, uriInfo);
+        PreguntasPorClaveResource.AsignarPreguntaDTO payload =
+            new PreguntasPorClaveResource.AsignarPreguntaDTO();
+        payload.setIdPregunta(idPregunta);
+
+        Response response = resource.asignarPreguntaAClave(idClave.toString(), payload, uriInfo);
 
         assertEquals(201, response.getStatus());
-        verify(preguntasPorClaveDAO).crear(nueva);
+        verify(preguntasPorClaveDAO).crear(any(PreguntasPorClave.class));
     }
 
     @Test
-    void create_ConEntidadNula_DebeRetornar422() {
-        Response response = resource.create(null, uriInfo);
-        assertEquals(422, response.getStatus());
-        verifyNoInteractions(preguntasPorClaveDAO);
+    void asignar_ConPayloadNulo_DebeRetornar400() {
+        Response response = resource.asignarPreguntaAClave(idClave.toString(), null, uriInfo);
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(clavesDAO, preguntasPorClaveDAO);
     }
 
     @Test
-    void create_ConIdNulo_DebeRetornar422() {
-        PreguntasPorClave nueva = new PreguntasPorClave();
+    void asignar_ConIdPreguntaNulo_DebeRetornar400() {
+        PreguntasPorClaveResource.AsignarPreguntaDTO payload =
+            new PreguntasPorClaveResource.AsignarPreguntaDTO();
+        // idPregunta null
 
-        Response response = resource.create(nueva, uriInfo);
+        Response response = resource.asignarPreguntaAClave(idClave.toString(), payload, uriInfo);
 
-        assertEquals(422, response.getStatus());
-        verifyNoInteractions(preguntasPorClaveDAO);
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(clavesDAO, preguntasPorClaveDAO);
     }
 
     @Test
-    void create_SinIdClaveEnPk_DebeRetornar422() {
-        PreguntasPorClaveId pkInvalido = new PreguntasPorClaveId();
-        pkInvalido.setIdClave(null);
-        pkInvalido.setIdPregunta(idPregunta);
+    void asignar_ConClaveInexistente_DebeRetornar404() {
+        when(clavesDAO.findByIdWithEtapa(idClave)).thenReturn(null);
 
-        PreguntasPorClave nueva = new PreguntasPorClave();
-        nueva.setId(pkInvalido);
-        nueva.setIdClave(claveEntidad);
-        nueva.setIdPregunta(preguntaEntidad);
+        PreguntasPorClaveResource.AsignarPreguntaDTO payload =
+            new PreguntasPorClaveResource.AsignarPreguntaDTO();
+        payload.setIdPregunta(idPregunta);
 
-        Response response = resource.create(nueva, uriInfo);
-
-        assertEquals(422, response.getStatus());
-        verifyNoInteractions(preguntasPorClaveDAO);
-    }
-
-    @Test
-    void create_SinIdPreguntaEnPk_DebeRetornar422() {
-        PreguntasPorClaveId pkInvalido = new PreguntasPorClaveId();
-        pkInvalido.setIdClave(idClave);
-        pkInvalido.setIdPregunta(null);
-
-        PreguntasPorClave nueva = new PreguntasPorClave();
-        nueva.setId(pkInvalido);
-        nueva.setIdClave(claveEntidad);
-        nueva.setIdPregunta(preguntaEntidad);
-
-        Response response = resource.create(nueva, uriInfo);
-
-        assertEquals(422, response.getStatus());
-        verifyNoInteractions(preguntasPorClaveDAO);
-    }
-
-    @Test
-    void create_SinEntidadClave_DebeRetornar422() {
-        PreguntasPorClave nueva = new PreguntasPorClave();
-        nueva.setId(entidad.getId());
-        nueva.setIdClave(null);
-        nueva.setIdPregunta(preguntaEntidad);
-
-        Response response = resource.create(nueva, uriInfo);
-
-        assertEquals(422, response.getStatus());
-        verifyNoInteractions(preguntasPorClaveDAO);
-    }
-
-    @Test
-    void create_SinEntidadPregunta_DebeRetornar422() {
-        PreguntasPorClave nueva = new PreguntasPorClave();
-        nueva.setId(entidad.getId());
-        nueva.setIdClave(claveEntidad);
-        nueva.setIdPregunta(null);
-
-        Response response = resource.create(nueva, uriInfo);
-
-        assertEquals(422, response.getStatus());
-        verifyNoInteractions(preguntasPorClaveDAO);
-    }
-
-    @Test
-    void create_ConExcepcionEnDAO_DebeRetornar500() {
-        PreguntasPorClave nueva = new PreguntasPorClave();
-        nueva.setId(entidad.getId());
-        nueva.setIdClave(claveEntidad);
-        nueva.setIdPregunta(preguntaEntidad);
-
-        doThrow(new RuntimeException("BD error")).when(preguntasPorClaveDAO).crear(any());
-
-        Response response = resource.create(nueva, uriInfo);
-
-        assertEquals(500, response.getStatus());
-    }
-
-    // ==================== update (PUT /{idClave}/{idPregunta}) ====================
-
-    @Test
-    void update_ConPKYEntidadValidos_DebeRetornar200() {
-        when(preguntasPorClaveDAO.leer(any(PreguntasPorClaveId.class))).thenReturn(entidad);
-        PreguntasPorClave actualizada = new PreguntasPorClave();
-
-        Response response = resource.update(idClave, idPregunta, actualizada);
-
-        assertEquals(200, response.getStatus());
-        verify(preguntasPorClaveDAO).actualizar(actualizada);
-    }
-
-    @Test
-    void update_ConParametroNulo_DebeRetornar422() {
-        Response response = resource.update(null, idPregunta, entidad);
-        assertEquals(422, response.getStatus());
-        verifyNoInteractions(preguntasPorClaveDAO);
-    }
-
-    @Test
-    void update_ConPreguntaNula_DebeRetornar422() {
-        Response response = resource.update(idClave, null, entidad);
-        assertEquals(422, response.getStatus());
-        verifyNoInteractions(preguntasPorClaveDAO);
-    }
-
-    @Test
-    void update_ConEntidadNula_DebeRetornar422() {
-        Response response = resource.update(idClave, idPregunta, null);
-        assertEquals(422, response.getStatus());
-        verifyNoInteractions(preguntasPorClaveDAO);
-    }
-
-    @Test
-    void update_ConPKInexistente_DebeRetornar404() {
-        when(preguntasPorClaveDAO.leer(any(PreguntasPorClaveId.class))).thenReturn(null);
-
-        Response response = resource.update(idClave, idPregunta, entidad);
+        Response response = resource.asignarPreguntaAClave(idClave.toString(), payload, uriInfo);
 
         assertEquals(404, response.getStatus());
+        verifyNoInteractions(preguntasPorClaveDAO);
     }
 
     @Test
-    void update_ConExcepcionEnDAO_DebeRetornar500() {
-        when(preguntasPorClaveDAO.leer(any(PreguntasPorClaveId.class))).thenThrow(new RuntimeException("BD error"));
+    void asignar_ConLimiteAlcanzado_DebeRetornar409() {
+        when(clavesDAO.findByIdWithEtapa(idClave)).thenReturn(clave);
+        when(preguntasPorClaveDAO.countPreguntasByClave(idClave)).thenReturn(10L); // igual al limite
 
-        Response response = resource.update(idClave, idPregunta, entidad);
+        PreguntasPorClaveResource.AsignarPreguntaDTO payload =
+            new PreguntasPorClaveResource.AsignarPreguntaDTO();
+        payload.setIdPregunta(idPregunta);
 
-        assertEquals(500, response.getStatus());
+        Response response = resource.asignarPreguntaAClave(idClave.toString(), payload, uriInfo);
+
+        assertEquals(409, response.getStatus());
+        verify(preguntasPorClaveDAO, never()).crear(any());
     }
 
-    // ==================== delete (DELETE /{idClave}/{idPregunta}) ====================
+    @Test
+    void asignar_ConPreguntaYaAsignada_DebeRetornar409() {
+        when(clavesDAO.findByIdWithEtapa(idClave)).thenReturn(clave);
+        when(preguntasPorClaveDAO.countPreguntasByClave(idClave)).thenReturn(0L);
+        when(preguntasDAO.leer(idPregunta)).thenReturn(pregunta);
+        when(preguntasPorClaveDAO.existsByClaveAndPregunta(idClave, idPregunta)).thenReturn(true);
+
+        PreguntasPorClaveResource.AsignarPreguntaDTO payload =
+            new PreguntasPorClaveResource.AsignarPreguntaDTO();
+        payload.setIdPregunta(idPregunta);
+
+        Response response = resource.asignarPreguntaAClave(idClave.toString(), payload, uriInfo);
+
+        assertEquals(409, response.getStatus());
+        verify(preguntasPorClaveDAO, never()).crear(any());
+    }
+
+    // ==================== desasignarPregunta (DELETE /{idClave}/preguntas/{idPregunta}) ====================
 
     @Test
-    void delete_ConPKExistente_DebeRetornar204() {
+    void desasignar_ConAsignacionExistente_DebeRetornar204() {
         when(preguntasPorClaveDAO.leer(any(PreguntasPorClaveId.class))).thenReturn(entidad);
 
-        Response response = resource.delete(idClave, idPregunta);
+        Response response = resource.desasignarPregunta(
+            idClave.toString(), idPregunta.toString());
 
         assertEquals(204, response.getStatus());
         verify(preguntasPorClaveDAO).eliminar(entidad);
     }
 
     @Test
-    void delete_ConParametroNulo_DebeRetornar422() {
-        Response response = resource.delete(null, idPregunta);
-        assertEquals(422, response.getStatus());
-        verifyNoInteractions(preguntasPorClaveDAO);
-    }
-
-    @Test
-    void delete_ConPreguntaNula_DebeRetornar422() {
-        Response response = resource.delete(idClave, null);
-        assertEquals(422, response.getStatus());
-        verifyNoInteractions(preguntasPorClaveDAO);
-    }
-
-    @Test
-    void delete_ConPKInexistente_DebeRetornar404() {
+    void desasignar_ConAsignacionInexistente_DebeRetornar404() {
         when(preguntasPorClaveDAO.leer(any(PreguntasPorClaveId.class))).thenReturn(null);
 
-        Response response = resource.delete(idClave, idPregunta);
+        Response response = resource.desasignarPregunta(
+            idClave.toString(), idPregunta.toString());
 
         assertEquals(404, response.getStatus());
+        verify(preguntasPorClaveDAO, never()).eliminar(any());
     }
 
     @Test
-    void delete_ConExcepcionEnDAO_DebeRetornar500() {
-        when(preguntasPorClaveDAO.leer(any(PreguntasPorClaveId.class))).thenThrow(new RuntimeException("BD error"));
+    void desasignar_ConIdFormatoInvalido_DebeRetornar400() {
+        Response response = resource.desasignarPregunta("no-uuid", idPregunta.toString());
 
-        Response response = resource.delete(idClave, idPregunta);
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(preguntasPorClaveDAO);
+    }
+
+    @Test
+    void desasignar_ConExcepcionEnDAO_DebeRetornar500() {
+        when(preguntasPorClaveDAO.leer(any(PreguntasPorClaveId.class)))
+            .thenThrow(new RuntimeException("BD error"));
+
+        Response response = resource.desasignarPregunta(
+            idClave.toString(), idPregunta.toString());
 
         assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString("Server-exception"));
     }
 }

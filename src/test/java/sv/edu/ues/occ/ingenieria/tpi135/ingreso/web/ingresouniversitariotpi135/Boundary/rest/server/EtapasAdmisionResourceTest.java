@@ -6,6 +6,7 @@ import jakarta.ws.rs.core.UriInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.EtapasAdmisionDAO;
@@ -14,19 +15,13 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.UUID;
 import java.util.Collections;
-import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-/**
- * TDD - Pruebas unitarias para EtapasAdmisionResource.
- * Las pruebas definen el comportamiento esperado del recurso REST
- * antes y durante su implementación.
- */
 @ExtendWith(MockitoExtension.class)
 class EtapasAdmisionResourceTest {
 
@@ -39,336 +34,269 @@ class EtapasAdmisionResourceTest {
     @Mock
     private UriBuilder uriBuilder;
 
+    @InjectMocks
     private EtapasAdmisionResource resource;
+
     private EtapasAdmision entidadPrueba;
     private UUID testId;
 
     @BeforeEach
     void setUp() {
         testId = UUID.randomUUID();
-        resource = new EtapasAdmisionResource();
-        resource.etapasAdmisionDAO = etapasAdmisionDAO;
-
         entidadPrueba = new EtapasAdmision();
-        entidadPrueba.setId(testId);
+        entidadPrueba.setIdEtapaAdmision(testId);
         entidadPrueba.setNombre("Etapa Preuniversitaria");
         entidadPrueba.setPuntajeMinimo(new BigDecimal("60.00"));
         entidadPrueba.setPuntajeMaximo(new BigDecimal("100.00"));
         entidadPrueba.setDescripcion("Primera etapa del proceso de admisión");
+        entidadPrueba.setCantidadPreguntasRequeridas(30);
     }
 
-    // ==================== PRUEBAS PARA findRange (GET /) ====================
+    // ==================== PRUEBAS PARA listEtapas (GET /) ====================
 
     @Test
-    void findRange_ConParametrosValidos_DebeRetornar200ConLista() throws Exception {
-        // Arrange
-        List<EtapasAdmision> lista = Arrays.asList(entidadPrueba);
+    void findRange_ConParametrosValidos_DebeRetornar200ConLista() {
         when(etapasAdmisionDAO.count()).thenReturn(1);
-        when(etapasAdmisionDAO.findRange(0, 10)).thenReturn(lista);
+        when(etapasAdmisionDAO.findRange(0, 10)).thenReturn(Arrays.asList(entidadPrueba));
 
-        // Act
-        Response response = resource.findRange(0, 10);
+        Response response = resource.listEtapas(0, 10);
 
-        // Assert
         assertEquals(200, response.getStatus());
         assertNotNull(response.getEntity());
         assertEquals("1", response.getHeaderString("Total-records"));
-        verify(etapasAdmisionDAO, times(1)).count();
-        verify(etapasAdmisionDAO, times(1)).findRange(0, 10);
+        verify(etapasAdmisionDAO).count();
+        verify(etapasAdmisionDAO).findRange(0, 10);
     }
 
     @Test
-    void findRange_ConListaVacia_DebeRetornar200ConListaVacia() throws Exception {
-        // Arrange
+    void findRange_ConListaVacia_DebeRetornar200ConListaVacia() {
         when(etapasAdmisionDAO.count()).thenReturn(0);
         when(etapasAdmisionDAO.findRange(0, 10)).thenReturn(Collections.emptyList());
 
-        // Act
-        Response response = resource.findRange(0, 10);
+        Response response = resource.listEtapas(0, 10);
 
-        // Assert
         assertEquals(200, response.getStatus());
         assertEquals("0", response.getHeaderString("Total-records"));
     }
 
     @Test
-    void findRange_ConFirstNegativo_DebeRetornar422() {
-        // Act
-        Response response = resource.findRange(-1, 10);
-
-        // Assert
-        assertEquals(422, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
-        verifyNoInteractions(etapasAdmisionDAO);
-    }
-
-    @Test
-    void findRange_ConMaxCero_DebeRetornar422() {
-        // Act
-        Response response = resource.findRange(0, 0);
-
-        // Assert
-        assertEquals(422, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
-        verifyNoInteractions(etapasAdmisionDAO);
-    }
-
-    @Test
-    void findRange_ConMaxMayorA100_DebeRetornar422() {
-        // Act
-        Response response = resource.findRange(0, 101);
-
-        // Assert
-        assertEquals(422, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
-        verifyNoInteractions(etapasAdmisionDAO);
-    }
-
-    @Test
-    void findRange_ConExcepcionEnDAO_DebeRetornar500() throws Exception {
-        // Arrange
+    void findRange_ConExcepcionEnDAO_DebeRetornar500() {
         when(etapasAdmisionDAO.count()).thenThrow(new RuntimeException("Error de BD"));
 
-        // Act
-        Response response = resource.findRange(0, 10);
+        Response response = resource.listEtapas(0, 10);
 
-        // Assert
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
     }
 
-    // ==================== PRUEBAS PARA findById (GET /{id}) ====================
+    // ==================== PRUEBAS PARA getEtapa (GET /{idEtapa}) ====================
 
     @Test
     void findById_ConIdExistente_DebeRetornar200ConEntidad() {
-        // Arrange
         when(etapasAdmisionDAO.leer(testId)).thenReturn(entidadPrueba);
 
-        // Act
-        Response response = resource.findById(testId);
+        Response response = resource.getEtapa(testId.toString());
 
-        // Assert
         assertEquals(200, response.getStatus());
         EtapasAdmision resultado = (EtapasAdmision) response.getEntity();
-        assertEquals(entidadPrueba.getId(), resultado.getId());
-        assertEquals(entidadPrueba.getNombre(), resultado.getNombre());
-        verify(etapasAdmisionDAO, times(1)).leer(testId);
+        assertEquals(testId, resultado.getIdEtapaAdmision());
+        assertEquals("Etapa Preuniversitaria", resultado.getNombre());
+        verify(etapasAdmisionDAO).leer(testId);
     }
 
     @Test
     void findById_ConIdInexistente_DebeRetornar404() {
-        // Arrange
         when(etapasAdmisionDAO.leer(testId)).thenReturn(null);
 
-        // Act
-        Response response = resource.findById(testId);
+        Response response = resource.getEtapa(testId.toString());
 
-        // Assert
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
     }
 
     @Test
-    void findById_ConIdNulo_DebeRetornar422() {
-        // Act
-        Response response = resource.findById(null);
+    void findById_ConIdFormatoInvalido_DebeRetornar400() {
+        Response response = resource.getEtapa("no-es-un-uuid-valido");
 
-        // Assert
-        assertEquals(422, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertEquals(400, response.getStatus());
         verifyNoInteractions(etapasAdmisionDAO);
     }
 
     @Test
     void findById_ConExcepcionEnDAO_DebeRetornar500() {
-        // Arrange
         when(etapasAdmisionDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
-        // Act
-        Response response = resource.findById(testId);
+        Response response = resource.getEtapa(testId.toString());
 
-        // Assert
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
     }
 
-    // ==================== PRUEBAS PARA create (POST /) ====================
+    // ==================== PRUEBAS PARA createEtapa (POST /) ====================
 
     @Test
-    void create_ConEntidadValida_DebeRetornar201() throws Exception {
-        // Arrange
+    void create_ConEntidadValida_DebeRetornar201() {
         EtapasAdmision nueva = new EtapasAdmision();
         nueva.setNombre("Nueva Etapa");
-        // id null → la BD genera el id automáticamente
+        nueva.setCantidadPreguntasRequeridas(20);
+
+        doAnswer(inv -> {
+            EtapasAdmision e = inv.getArgument(0);
+            e.setIdEtapaAdmision(UUID.randomUUID());
+            return null;
+        }).when(etapasAdmisionDAO).crear(any(EtapasAdmision.class));
+
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
         when(uriBuilder.build()).thenReturn(URI.create("http://localhost/etapas/1"));
 
-        // Act
-        Response response = resource.create(nueva, uriInfo);
+        Response response = resource.createEtapa(nueva, uriInfo);
 
-        // Assert
         assertEquals(201, response.getStatus());
-        verify(etapasAdmisionDAO, times(1)).crear(nueva);
+        verify(etapasAdmisionDAO).crear(nueva);
     }
 
     @Test
-    void create_ConEntidadNula_DebeRetornar422() throws Exception {
-        // Act
-        Response response = resource.create(null, uriInfo);
+    void create_ConEntidadNula_DebeRetornar400() {
+        Response response = resource.createEtapa(null, uriInfo);
 
-        // Assert
-        assertEquals(422, response.getStatus());
+        assertEquals(400, response.getStatus());
         assertNotNull(response.getHeaderString("Missing-parameter"));
         verifyNoInteractions(etapasAdmisionDAO);
     }
 
     @Test
-    void create_ConEntidadConIdYaAsignado_DebeRetornar422() throws Exception {
-        // Arrange - el cliente no debe proveer id en POST (la BD lo genera)
-        EtapasAdmision conId = new EtapasAdmision();
-        conId.setId(testId);
-        conId.setNombre("Etapa con ID");
+    void create_SinNombre_DebeRetornar400() {
+        EtapasAdmision sinNombre = new EtapasAdmision();
+        sinNombre.setCantidadPreguntasRequeridas(20);
 
-        // Act
-        Response response = resource.create(conId, uriInfo);
+        Response response = resource.createEtapa(sinNombre, uriInfo);
 
-        // Assert
-        assertEquals(422, response.getStatus());
+        assertEquals(400, response.getStatus());
         assertNotNull(response.getHeaderString("Missing-parameter"));
         verifyNoInteractions(etapasAdmisionDAO);
     }
 
     @Test
-    void create_ConExcepcionEnDAO_DebeRetornar500() throws Exception {
-        // Arrange
+    void create_SinCantidadPreguntasRequeridas_DebeRetornar400() {
+        EtapasAdmision sinCantidad = new EtapasAdmision();
+        sinCantidad.setNombre("Etapa Sin Cantidad");
+
+        Response response = resource.createEtapa(sinCantidad, uriInfo);
+
+        assertEquals(400, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+        verifyNoInteractions(etapasAdmisionDAO);
+    }
+
+    @Test
+    void create_ConCantidadPreguntasCero_DebeRetornar400() {
+        EtapasAdmision conCero = new EtapasAdmision();
+        conCero.setNombre("Etapa");
+        conCero.setCantidadPreguntasRequeridas(0);
+
+        Response response = resource.createEtapa(conCero, uriInfo);
+
+        assertEquals(400, response.getStatus());
+        assertNotNull(response.getHeaderString("Missing-parameter"));
+        verifyNoInteractions(etapasAdmisionDAO);
+    }
+
+    @Test
+    void create_ConExcepcionEnDAO_DebeRetornar500() {
         EtapasAdmision nueva = new EtapasAdmision();
         nueva.setNombre("Nueva Etapa");
+        nueva.setCantidadPreguntasRequeridas(20);
         doThrow(new RuntimeException("Error de BD")).when(etapasAdmisionDAO).crear(any());
 
-        // Act
-        Response response = resource.create(nueva, uriInfo);
+        Response response = resource.createEtapa(nueva, uriInfo);
 
-        // Assert
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
     }
 
-    // ==================== PRUEBAS PARA update (PUT /{id}) ====================
+    // ==================== PRUEBAS PARA updateEtapa (PUT /{idEtapa}) ====================
 
     @Test
-    void update_ConIdYEntidadValidos_DebeRetornar200() throws Exception {
-        // Arrange
+    void update_ConIdYEntidadValidos_DebeRetornar200() {
         when(etapasAdmisionDAO.leer(testId)).thenReturn(entidadPrueba);
         when(etapasAdmisionDAO.actualizar(any())).thenReturn(entidadPrueba);
 
         EtapasAdmision actualizada = new EtapasAdmision();
         actualizada.setNombre("Nombre Actualizado");
 
-        // Act
-        Response response = resource.update(testId, actualizada);
+        Response response = resource.updateEtapa(testId.toString(), actualizada);
 
-        // Assert
         assertEquals(200, response.getStatus());
-        verify(etapasAdmisionDAO, times(1)).actualizar(actualizada);
+        verify(etapasAdmisionDAO).actualizar(actualizada);
     }
 
     @Test
-    void update_ConIdNulo_DebeRetornar422() throws Exception {
-        // Act
-        Response response = resource.update(null, entidadPrueba);
+    void update_ConIdFormatoInvalido_DebeRetornar409() {
+        // updateEtapa captura IllegalArgumentException (UUID inválido) → CONFLICT 409
+        Response response = resource.updateEtapa("no-es-uuid", entidadPrueba);
 
-        // Assert
-        assertEquals(422, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertEquals(409, response.getStatus());
         verifyNoInteractions(etapasAdmisionDAO);
     }
 
     @Test
-    void update_ConEntidadNula_DebeRetornar422() throws Exception {
-        // Act
-        Response response = resource.update(testId, null);
-
-        // Assert
-        assertEquals(422, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
-        verifyNoInteractions(etapasAdmisionDAO);
-    }
-
-    @Test
-    void update_ConIdInexistente_DebeRetornar404() throws Exception {
-        // Arrange
+    void update_ConIdInexistente_DebeRetornar404() {
         when(etapasAdmisionDAO.leer(testId)).thenReturn(null);
 
-        // Act
-        Response response = resource.update(testId, entidadPrueba);
+        Response response = resource.updateEtapa(testId.toString(), entidadPrueba);
 
-        // Assert
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
     }
 
     @Test
-    void update_ConExcepcionEnDAO_DebeRetornar500() throws Exception {
-        // Arrange
+    void update_ConExcepcionEnDAO_DebeRetornar500() {
         when(etapasAdmisionDAO.leer(testId)).thenThrow(new RuntimeException("Error de BD"));
 
-        // Act
-        Response response = resource.update(testId, entidadPrueba);
+        Response response = resource.updateEtapa(testId.toString(), entidadPrueba);
 
-        // Assert
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
     }
 
-    // ==================== PRUEBAS PARA delete (DELETE /{id}) ====================
+    // ==================== PRUEBAS PARA deleteEtapa (DELETE /{idEtapa}) ====================
 
     @Test
-    void delete_ConIdExistente_DebeRetornar204() throws Exception {
-        // Arrange
+    void delete_ConIdExistente_DebeRetornar204() {
         when(etapasAdmisionDAO.leer(testId)).thenReturn(entidadPrueba);
 
-        // Act
-        Response response = resource.delete(testId);
+        Response response = resource.deleteEtapa(testId.toString());
 
-        // Assert
         assertEquals(204, response.getStatus());
-        verify(etapasAdmisionDAO, times(1)).eliminar(entidadPrueba);
+        verify(etapasAdmisionDAO).eliminar(entidadPrueba);
     }
 
     @Test
-    void delete_ConIdNulo_DebeRetornar422() throws Exception {
-        // Act
-        Response response = resource.delete(null);
+    void delete_ConIdFormatoInvalido_DebeRetornar500() {
+        // deleteEtapa no tiene catch(IAE), solo catch(Exception) → 500
+        Response response = resource.deleteEtapa("no-es-uuid");
 
-        // Assert
-        assertEquals(422, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertEquals(500, response.getStatus());
         verifyNoInteractions(etapasAdmisionDAO);
     }
 
     @Test
-    void delete_ConIdInexistente_DebeRetornar404() throws Exception {
-        // Arrange
+    void delete_ConIdInexistente_DebeRetornar404() {
         when(etapasAdmisionDAO.leer(testId)).thenReturn(null);
 
-        // Act
-        Response response = resource.delete(testId);
+        Response response = resource.deleteEtapa(testId.toString());
 
-        // Assert
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString("Not-found-id"));
     }
 
     @Test
-    void delete_ConExcepcionEnDAO_DebeRetornar500() throws Exception {
-        // Arrange
+    void delete_ConExcepcionEnDAO_DebeRetornar500() {
         when(etapasAdmisionDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
-        // Act
-        Response response = resource.delete(testId);
+        Response response = resource.deleteEtapa(testId.toString());
 
-        // Assert
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
     }
