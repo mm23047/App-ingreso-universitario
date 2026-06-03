@@ -116,6 +116,15 @@ public class TemaDAO extends IngresoDefaultDataAccess<Tema> implements Serializa
                 .getResultList();
     }
 
+    public List<Tema> findByPrueba(UUID idPrueba) {
+        if (idPrueba == null) {
+            return Collections.emptyList();
+        }
+        return em.createNamedQuery("Tema.findByPrueba", Tema.class)
+                .setParameter("idPrueba", idPrueba)
+                .getResultList();
+    }
+
     /**
      * Sobrescribimos el método padre para prevenir LazyInitializationException.
      * Carga el Área y el Padre (si existe) en un solo viaje a la BD.

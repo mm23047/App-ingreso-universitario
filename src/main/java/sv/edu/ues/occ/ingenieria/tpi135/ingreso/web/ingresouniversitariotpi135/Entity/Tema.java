@@ -35,6 +35,10 @@ import java.util.UUID;
         @NamedQuery(
                 name = "Tema.findRaicesByArea",
                 query = "SELECT t FROM Tema t JOIN FETCH t.areaConocimiento LEFT JOIN FETCH t.idTemaPadre WHERE t.areaConocimiento.idAreaConocimiento = :idArea AND t.idTemaPadre IS NULL ORDER BY t.nombreTema ASC"
+        ),
+        @NamedQuery(
+                name = "Tema.findByPrueba",
+                query = "SELECT DISTINCT t FROM PreguntasPorClave pxc JOIN pxc.claveExamen c JOIN pxc.bancoPregunta bp JOIN bp.tema t JOIN FETCH t.areaConocimiento a WHERE c.pruebaAdmision.idPruebaAdmision = :idPrueba ORDER BY a.nombreArea ASC, t.nombreTema ASC"
         )
 })
 public class Tema implements Serializable {
