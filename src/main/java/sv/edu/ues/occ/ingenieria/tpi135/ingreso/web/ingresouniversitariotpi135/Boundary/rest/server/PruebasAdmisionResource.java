@@ -40,14 +40,28 @@ public class PruebasAdmisionResource extends AbstractResource<PruebasAdmision> {
     }
 
     /**
-     * GET /pruebas_admision
-     * Retorna lista paginada de pruebas.
+     * GET /pruebas_admision?first=0&max=50&buscar=texto
+     * Retorna lista paginada de pruebas, ordenada cronológicamente (año desc).
+     * Si se proporciona ?buscar=, filtra por nombre (LIKE) o año (exacto).
      */
     @GET
     public Response listPruebas(
             @DefaultValue("0") @QueryParam("first") int first,
-            @DefaultValue("50") @QueryParam("max") int max) {
-        return findRange(first, max);
+            @DefaultValue("50") @QueryParam("max") int max,
+            @QueryParam("buscar") String buscar) {
+        try {
+            List<PruebasAdmision> resultado;
+            if (buscar != null && !buscar.isBlank()) {
+                resultado = pruebasAdmisionDAO.buscarPorTermino(buscar.trim(), first, max);
+            } else {
+                resultado = pruebasAdmisionDAO.findAllOrdenado(first, max);
+            }
+            return Response.ok(resultado).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
+                    .build();
+        }
     }
 
     /**

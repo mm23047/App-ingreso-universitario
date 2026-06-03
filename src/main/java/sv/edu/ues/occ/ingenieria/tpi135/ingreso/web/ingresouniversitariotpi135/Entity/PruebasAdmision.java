@@ -25,6 +25,10 @@ import java.util.UUID;
         @NamedQuery(
                 name = "PruebasAdmision.desactivarOtras",
                 query = "UPDATE PruebasAdmision p SET p.activa = FALSE WHERE p.idPruebaAdmision <> :idExcluido"
+        ),
+        @NamedQuery(
+                name = "PruebasAdmision.findAllOrdenado",
+                query = "SELECT p FROM PruebasAdmision p ORDER BY p.anio DESC, p.nombrePrueba ASC"
         )
 })
 public class PruebasAdmision implements Serializable {

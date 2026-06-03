@@ -5,6 +5,10 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
 import java.io.Serializable;
@@ -51,6 +55,45 @@ public class PruebasAdmisionDAO extends IngresoDefaultDataAccess<PruebasAdmision
             throw new IllegalStateException("Error al acceder a la base de datos", e);
         }
     }
+    public List<PruebasAdmision> findAllOrdenado(int first, int max) {
+        try {
+            return em.createNamedQuery("PruebasAdmision.findAllOrdenado", PruebasAdmision.class)
+                    .setFirstResult(first)
+                    .setMaxResults(max)
+                    .getResultList();
+        } catch (Exception e) {
+            throw new IllegalStateException("Error al acceder a la base de datos", e);
+        }
+    }
+
+    public List<PruebasAdmision> buscarPorTermino(String termino, int first, int max) {
+        try {
+            String patron = "%" + termino.toLowerCase() + "%";
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<PruebasAdmision> cq = cb.createQuery(PruebasAdmision.class);
+            Root<PruebasAdmision> root = cq.from(PruebasAdmision.class);
+
+            Predicate porNombre = cb.like(cb.lower(root.get("nombrePrueba")), patron);
+            Predicate condicion;
+            try {
+                Integer anio = Integer.parseInt(termino.trim());
+                condicion = cb.or(porNombre, cb.equal(root.get("anio"), anio));
+            } catch (NumberFormatException nfe) {
+                condicion = porNombre;
+            }
+
+            cq.select(root).where(condicion)
+              .orderBy(cb.desc(root.get("anio")), cb.asc(root.get("nombrePrueba")));
+
+            return em.createQuery(cq)
+                    .setFirstResult(first)
+                    .setMaxResults(max)
+                    .getResultList();
+        } catch (Exception e) {
+            throw new IllegalStateException("Error al acceder a la base de datos", e);
+        }
+    }
+
     /**
      * REGLA DE NEGOCIO PRINCIPAL:
      * Garantiza que solo exista una prueba de admisión activa en todo el sistema.
