@@ -37,10 +37,14 @@ public class AspirantesDatoDAO extends IngresoDefaultDataAccess<AspirantesDato> 
 
         // Comprobación preventiva de llaves únicas (DUI y Correo)
         if (findByDui(entity.getDui()) != null) {
-            throw new IllegalArgumentException("El DUI proporcionado ya pertenece a un aspirante registrado.");
+            throw new ReglaNegocioException(
+                    ReglaNegocioException.Tipo.DUI_DUPLICADO,
+                    "El DUI proporcionado ya pertenece a un aspirante registrado.");
         }
         if (findByCorreo(entity.getCorreo()) != null) {
-            throw new IllegalArgumentException("El correo electrónico ya se encuentra en uso.");
+            throw new ReglaNegocioException(
+                    ReglaNegocioException.Tipo.CORREO_DUPLICADO,
+                    "El correo electrónico ya se encuentra en uso.");
         }
         super.crear(entity);
     }
@@ -54,10 +58,14 @@ public class AspirantesDatoDAO extends IngresoDefaultDataAccess<AspirantesDato> 
 
         // Validar unicidad excluyendo el registro actual
         if (countByDuiDiferenteId(entity.getDui(), entity.getId()) > 0) {
-            throw new IllegalArgumentException("El nuevo DUI ingresado ya está asignado a otro aspirante.");
+            throw new ReglaNegocioException(
+                    ReglaNegocioException.Tipo.DUI_DUPLICADO,
+                    "El nuevo DUI ingresado ya está asignado a otro aspirante.");
         }
         if (countByCorreoDiferenteId(entity.getCorreo(), entity.getId()) > 0) {
-            throw new IllegalArgumentException("El nuevo correo electrónico ingresado ya está en uso.");
+            throw new ReglaNegocioException(
+                    ReglaNegocioException.Tipo.CORREO_DUPLICADO,
+                    "El nuevo correo electrónico ingresado ya está en uso.");
         }
         return super.actualizar(entity);
     }
@@ -70,8 +78,10 @@ public class AspirantesDatoDAO extends IngresoDefaultDataAccess<AspirantesDato> 
 
         if (entity.getFechaNacimiento() != null) {
             int edad = Period.between(entity.getFechaNacimiento(), LocalDate.now()).getYears();
-            if (edad < 18) { // Edad mínima lógica para un aspirante universitario de educación media
-                throw new IllegalArgumentException("El aspirante debe tener al menos 18 años de edad para registrarse.");
+            if (edad < 18) {
+                throw new ReglaNegocioException(
+                        ReglaNegocioException.Tipo.EDAD_MINIMA,
+                        "El aspirante debe tener al menos 18 años de edad para registrarse.");
             }
         }
     }

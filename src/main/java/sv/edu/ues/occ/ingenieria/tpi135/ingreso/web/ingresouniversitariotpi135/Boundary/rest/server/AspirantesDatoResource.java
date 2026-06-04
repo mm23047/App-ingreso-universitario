@@ -1,5 +1,6 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.rest.server;
 
+import jakarta.ejb.EJBException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
@@ -9,6 +10,7 @@ import jakarta.ws.rs.core.UriInfo;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.AspirantesDatoDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.InscripcionesPruebaDAO;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.PruebasAdmisionDAO;
+import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Control.ReglaNegocioException;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
@@ -102,17 +104,43 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
             return Response.created(location)
                     .entity(aspirante)
                     .build();
+        } catch (ReglaNegocioException e) {
+            // @ApplicationException: llega aquí directamente, sin envoltura EJBException
+            boolean esConflicto = e.getTipo() == ReglaNegocioException.Tipo.DUI_DUPLICADO
+                               || e.getTipo() == ReglaNegocioException.Tipo.CORREO_DUPLICADO;
+            Response.Status status = esConflicto ? Response.Status.CONFLICT : Response.Status.BAD_REQUEST;
+            return Response.status(status)
+                    .entity(new ErrorNegocioDTO(e.getTipo().name(), e.getMessage()))
+                    .build();
         } catch (IllegalArgumentException e) {
-            // Captura los errores de reglas de negocio del DAO (DUI repetido, edad menor, etc.)
-            return Response.status(Response.Status.CONFLICT)
-                    .entity(e.getMessage())
-                    .header(RestHeaders.CONFLICT_REASON, e.getMessage())
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorNegocioDTO(null, e.getMessage()))
+                    .build();
+        } catch (EJBException e) {
+            // Seguridad: captura envolturas residuales de otras excepciones no anotadas
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Error al crear el aspirante")
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
                     .build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("Error al crear el aspirante")
                     .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
                     .build();
+        }
+    }
+
+    /**
+     * DTO de error de negocio para respuestas HTTP estructuradas.
+     * El campo 'tipo' permite al frontend distinguir el caso sin comparar texto del mensaje.
+     */
+    public static class ErrorNegocioDTO {
+        public String tipo;
+        public String mensaje;
+
+        public ErrorNegocioDTO(String tipo, String mensaje) {
+            this.tipo = tipo;
+            this.mensaje = mensaje;
         }
     }
 
@@ -180,10 +208,20 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
             AspirantesDato actualizado = aspirantesDAO.actualizar(aspirante);
 
             return Response.ok(actualizado).build();
+        } catch (ReglaNegocioException e) {
+            boolean esConflicto = e.getTipo() == ReglaNegocioException.Tipo.DUI_DUPLICADO
+                               || e.getTipo() == ReglaNegocioException.Tipo.CORREO_DUPLICADO;
+            Response.Status status = esConflicto ? Response.Status.CONFLICT : Response.Status.BAD_REQUEST;
+            return Response.status(status)
+                    .entity(new ErrorNegocioDTO(e.getTipo().name(), e.getMessage()))
+                    .build();
         } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.CONFLICT)
-                    .entity(e.getMessage())
-                    .header(RestHeaders.CONFLICT_REASON, e.getMessage())
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorNegocioDTO(null, e.getMessage()))
+                    .build();
+        } catch (EJBException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
                     .build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -312,6 +350,16 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
 
         } catch (IllegalArgumentException e) {
             return Response.status(Response.Status.CONFLICT)
+                    .entity(e.getMessage())
+                    .build();
+        } catch (EJBException e) {
+            Throwable causa = e.getCause();
+            if (causa instanceof IllegalArgumentException) {
+                return Response.status(Response.Status.CONFLICT)
+                        .entity(causa.getMessage())
+                        .build();
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(e.getMessage())
                     .build();
         } catch (Exception e) {

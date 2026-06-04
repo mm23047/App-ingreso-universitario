@@ -15,7 +15,10 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -205,26 +208,82 @@ public class PruebasAdmisionResource extends AbstractResource<PruebasAdmision> {
 
     /**
      * GET /pruebas_admision/{idPrueba}/areas
-     * Retorna las áreas de conocimiento con sus temas que participan en la prueba indicada.
+     * Retorna las áreas de conocimiento con la jerarquía real de temas (padre → hijo → nieto…)
+     * que participan en la prueba indicada.
+     *
+     * Algoritmo:
+     * 1. Obtiene los temas con preguntas en la prueba (hoja o cualquier nivel).
+     * 2. Carga iterativamente los ancestros que no estén en el conjunto inicial,
+     *    para que el árbol no tenga huecos de profundidad arbitraria.
+     * 3. Construye DTOs y conecta cada nodo con su padre, formando el árbol.
+     * 4. Agrupa los nodos raíz bajo su área de conocimiento.
      */
     @GET
     @Path("{idPrueba}/areas")
     public Response getAreasByPrueba(@PathParam("idPrueba") String idPruebaStr) {
         try {
             UUID idPrueba = UUID.fromString(idPruebaStr);
-            List<Tema> temas = temaDAO.findByPrueba(idPrueba);
 
-            LinkedHashMap<UUID, AreaConTemasDTO> mapa = new LinkedHashMap<>();
-            for (Tema t : temas) {
-                UUID areaId = t.getAreaConocimiento().getIdAreaConocimiento();
-                mapa.computeIfAbsent(areaId, k -> new AreaConTemasDTO(t.getAreaConocimiento()))
-                        .addTema(t.getIdTema(), t.getNombreTema());
+            // Paso 1: temas con preguntas (idTemaPadre ya pre-cargado por LEFT JOIN FETCH en la query)
+            List<Tema> temasConPreguntas = temaDAO.findByPrueba(idPrueba);
+
+            // Paso 2: mapa completo (temas con preguntas + sus ancestros)
+            Map<UUID, Tema> temaMap = new LinkedHashMap<>();
+            for (Tema t : temasConPreguntas) {
+                temaMap.put(t.getIdTema(), t);
             }
 
-            List<AreaConTemasDTO> resultado = new ArrayList<>(mapa.values());
+            // Carga iterativa de ancestros faltantes para soportar N niveles
+            boolean hayNuevos;
+            do {
+                hayNuevos = false;
+                Set<UUID> pendientes = new LinkedHashSet<>();
+                for (Tema t : new ArrayList<>(temaMap.values())) {
+                    Tema padre = t.getIdTemaPadre();
+                    if (padre != null && !temaMap.containsKey(padre.getIdTema())) {
+                        pendientes.add(padre.getIdTema());
+                    }
+                }
+                for (UUID padreId : pendientes) {
+                    Tema ancestro = temaDAO.leer(padreId);
+                    if (ancestro != null) {
+                        temaMap.put(ancestro.getIdTema(), ancestro);
+                        hayNuevos = true;
+                    }
+                }
+            } while (hayNuevos);
+
+            // Paso 3: construir un DTO por cada tema del mapa completo
+            Map<UUID, TemaResumenDTO> dtosById = new LinkedHashMap<>();
+            for (Tema t : temaMap.values()) {
+                dtosById.put(t.getIdTema(), new TemaResumenDTO(t.getIdTema(), t.getNombreTema()));
+            }
+
+            // Paso 4: agrupar áreas y conectar nodos padre-hijo
+            Map<UUID, AreaConTemasDTO> mapaAreas = new LinkedHashMap<>();
+            for (Tema t : temaMap.values()) {
+                UUID areaId = t.getAreaConocimiento().getIdAreaConocimiento();
+                mapaAreas.computeIfAbsent(areaId, k -> new AreaConTemasDTO(t.getAreaConocimiento()));
+            }
+
+            for (Tema t : temaMap.values()) {
+                UUID areaId = t.getAreaConocimiento().getIdAreaConocimiento();
+                TemaResumenDTO dto = dtosById.get(t.getIdTema());
+                Tema padre = t.getIdTemaPadre();
+                if (padre == null || !dtosById.containsKey(padre.getIdTema())) {
+                    // Nodo raíz dentro del área
+                    mapaAreas.get(areaId).temas.add(dto);
+                } else {
+                    // Nodo hijo: se anida bajo su padre
+                    dtosById.get(padre.getIdTema()).subtemas.add(dto);
+                }
+            }
+
+            List<AreaConTemasDTO> resultado = new ArrayList<>(mapaAreas.values());
             return Response.ok(resultado)
                     .header(RestHeaders.TOTAL_RECORDS, resultado.size())
                     .build();
+
         } catch (IllegalArgumentException e) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("UUID inválido")
@@ -273,15 +332,12 @@ public class PruebasAdmisionResource extends AbstractResource<PruebasAdmision> {
             this.idAreaConocimiento = area.getIdAreaConocimiento();
             this.nombreArea = area.getNombreArea();
         }
-
-        public void addTema(UUID idTema, String nombreTema) {
-            temas.add(new TemaResumenDTO(idTema, nombreTema));
-        }
     }
 
     public static class TemaResumenDTO {
         public UUID idTema;
         public String nombreTema;
+        public List<TemaResumenDTO> subtemas = new ArrayList<>();
 
         public TemaResumenDTO(UUID idTema, String nombreTema) {
             this.idTema = idTema;
