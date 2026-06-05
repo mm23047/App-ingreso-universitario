@@ -56,7 +56,8 @@ class PruebasAdmisionResourceTest {
         when(pruebasAdmisionDAO.count()).thenReturn(1);
         when(pruebasAdmisionDAO.findRange(0, 10)).thenReturn(List.of(entidad));
 
-        Response response = resource.listPruebas(0, 10);
+        // CORREGIDO: Se añade null como tercer parámetro de filtro
+        Response response = resource.listPruebas(0, 10, null);
 
         assertEquals(200, response.getStatus());
         assertNotNull(response.getEntity());
@@ -70,7 +71,8 @@ class PruebasAdmisionResourceTest {
         when(pruebasAdmisionDAO.count()).thenReturn(0);
         when(pruebasAdmisionDAO.findRange(0, 10)).thenReturn(Collections.emptyList());
 
-        Response response = resource.listPruebas(0, 10);
+        // CORREGIDO: Se añade null como tercer parámetro de filtro
+        Response response = resource.listPruebas(0, 10, null);
 
         assertEquals(200, response.getStatus());
         assertEquals("0", response.getHeaderString("Total-records"));
@@ -80,7 +82,8 @@ class PruebasAdmisionResourceTest {
     void findRange_ConExcepcionEnDAO_DebeRetornar500() {
         when(pruebasAdmisionDAO.count()).thenThrow(new RuntimeException("Error de BD"));
 
-        Response response = resource.listPruebas(0, 10);
+        // CORREGIDO: Se añade null como tercer parámetro de filtro
+        Response response = resource.listPruebas(0, 10, null);
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
