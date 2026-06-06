@@ -60,6 +60,7 @@ class PruebasAdmisionResourceTest {
         Response response = resource.listPruebas(0, 10, null);
 
         assertEquals(200, response.getStatus());
+
         assertNotNull(response.getEntity());
         assertEquals("1", response.getHeaderString("Total-records"));
         verify(pruebasAdmisionDAO).count();

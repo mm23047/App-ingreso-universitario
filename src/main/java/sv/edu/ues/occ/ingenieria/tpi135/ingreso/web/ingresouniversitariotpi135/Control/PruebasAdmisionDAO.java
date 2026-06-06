@@ -65,29 +65,15 @@ public class PruebasAdmisionDAO extends IngresoDefaultDataAccess<PruebasAdmision
     public List<PruebasAdmision> buscarPorTermino(String termino, int first, int max) {
         try {
             String patron = "%" + termino.toLowerCase() + "%";
-            try {
-                int anio = Integer.parseInt(termino.trim());
-                return em.createQuery(
-                        "SELECT p FROM PruebasAdmision p " +
-                        "WHERE LOWER(p.nombrePrueba) LIKE :patron OR p.anio = :anio " +
-                        "ORDER BY p.anio DESC, p.nombrePrueba ASC",
-                        PruebasAdmision.class)
-                    .setParameter("patron", patron)
-                    .setParameter("anio", anio)
-                    .setFirstResult(first)
-                    .setMaxResults(max)
-                    .getResultList();
-            } catch (NumberFormatException nfe) {
-                return em.createQuery(
-                        "SELECT p FROM PruebasAdmision p " +
-                        "WHERE LOWER(p.nombrePrueba) LIKE :patron " +
-                        "ORDER BY p.anio DESC, p.nombrePrueba ASC",
-                        PruebasAdmision.class)
-                    .setParameter("patron", patron)
-                    .setFirstResult(first)
-                    .setMaxResults(max)
-                    .getResultList();
-            }
+            return em.createQuery(
+                    "SELECT p FROM PruebasAdmision p " +
+                    "WHERE LOWER(p.nombrePrueba) LIKE :patron " +
+                    "ORDER BY p.anio DESC, p.nombrePrueba ASC",
+                    PruebasAdmision.class)
+                .setParameter("patron", patron)
+                .setFirstResult(first)
+                .setMaxResults(max)
+                .getResultList();
         } catch (Exception e) {
             throw new IllegalStateException("Error al acceder a la base de datos", e);
         }
