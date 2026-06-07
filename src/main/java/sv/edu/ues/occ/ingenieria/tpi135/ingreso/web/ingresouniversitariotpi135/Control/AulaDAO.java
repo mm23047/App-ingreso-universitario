@@ -31,7 +31,7 @@ public class AulaDAO extends IngresoDefaultDataAccess<Aula> implements Serializa
     public void crear(Aula entity) {
         validarLogicaNegocio(entity);
         if (findByCodigoAulaApi(entity.getCodigoAulaApi()) != null) {
-            throw new IllegalArgumentException("Ya existe un Aula registrada con el código API: " + entity.getCodigoAulaApi());
+            throw new IllegalStateException("Ya existe un Aula registrada con el código API: " + entity.getCodigoAulaApi());
         }
         super.crear(entity);
     }
@@ -43,7 +43,7 @@ public class AulaDAO extends IngresoDefaultDataAccess<Aula> implements Serializa
         }
         validarLogicaNegocio(entity);
         if (countByCodigoDiferenteId(entity.getCodigoAulaApi(), entity.getIdAula()) > 0) {
-            throw new IllegalArgumentException("El código API ingresado ya pertenece a otra Aula.");
+            throw new IllegalStateException("El código API ingresado ya pertenece a otra Aula.");
         }
         return super.actualizar(entity);
     }
@@ -52,8 +52,17 @@ public class AulaDAO extends IngresoDefaultDataAccess<Aula> implements Serializa
         if (entity == null) {
             throw new IllegalArgumentException("El aula no puede ser nula.");
         }
+        if (entity.getCodigoAulaApi() == null || entity.getCodigoAulaApi().isBlank()) {
+            throw new IllegalArgumentException("El código API del aula es obligatorio.");
+        }
         if (entity.getCapacidadFisica() == null || entity.getCapacidadFisica() <= 0) {
             throw new IllegalArgumentException("La capacidad física del aula debe ser un número entero mayor a cero.");
+        }
+        if (entity.getNombreSede() == null || entity.getNombreSede().isBlank()) {
+            throw new IllegalArgumentException("El nombre de la sede es obligatorio.");
+        }
+        if (entity.getDepartamento() == null || entity.getDepartamento().isBlank()) {
+            throw new IllegalArgumentException("El departamento de la sede es obligatorio.");
         }
     }
 

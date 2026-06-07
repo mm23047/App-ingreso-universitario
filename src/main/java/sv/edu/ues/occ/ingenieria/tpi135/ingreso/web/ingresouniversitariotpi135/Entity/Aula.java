@@ -51,10 +51,24 @@ public class Aula implements Serializable {
     @Column(name = "capacidad_fisica", nullable = false)
     private Integer capacidadFisica;
 
-    // CORRECCIÓN: Agregado nullable = false para alinear el comportamiento con PostgreSQL
     @NotNull
     @Column(name = "accesible_silla_ruedas", nullable = false)
     private Boolean accesibleSillaRuedas = false;
+
+    @Size(max = 100)
+    @NotNull
+    @Column(name = "nombre_sede", nullable = false, length = 100)
+    private String nombreSede;
+
+    @Size(max = 50)
+    @NotNull
+    @Column(name = "departamento", nullable = false, length = 50)
+    private String departamento;
+
+    @Size(max = 50)
+    @Column(name = "municipio", length = 50)
+    private String municipio;
+
     public UUID getIdAula() {
         return idAula;
     }
@@ -87,12 +101,37 @@ public class Aula implements Serializable {
         this.accesibleSillaRuedas = accesibleSillaRuedas;
     }
 
+    public String getNombreSede() {
+        return nombreSede;
+    }
+
+    public void setNombreSede(String nombreSede) {
+        this.nombreSede = nombreSede;
+    }
+
+    public String getDepartamento() {
+        return departamento;
+    }
+
+    public void setDepartamento(String departamento) {
+        this.departamento = departamento;
+    }
+
+    public String getMunicipio() {
+        return municipio;
+    }
+
+    public void setMunicipio(String municipio) {
+        this.municipio = municipio;
+    }
+
     @PrePersist
     @PreUpdate
     private void limpiarDatos() {
-        if (this.codigoAulaApi != null) {
-            this.codigoAulaApi = this.codigoAulaApi.trim();
-        }
+        if (this.codigoAulaApi != null) this.codigoAulaApi = this.codigoAulaApi.trim();
+        if (this.nombreSede    != null) this.nombreSede    = this.nombreSede.trim();
+        if (this.departamento  != null) this.departamento  = this.departamento.trim();
+        if (this.municipio     != null) this.municipio     = this.municipio.trim();
     }
 
     @Override

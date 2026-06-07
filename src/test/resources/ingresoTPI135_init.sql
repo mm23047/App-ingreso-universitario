@@ -74,7 +74,10 @@ CREATE TABLE IF NOT EXISTS aula (
     id_aula UUID PRIMARY KEY,
     codigo_aula_api VARCHAR(50) NOT NULL UNIQUE,
     capacidad_fisica INTEGER NOT NULL,
-    accesible_silla_ruedas BOOLEAN DEFAULT false
+    accesible_silla_ruedas BOOLEAN DEFAULT false,
+    nombre_sede VARCHAR(100) NOT NULL,
+    departamento VARCHAR(50) NOT NULL,
+    municipio VARCHAR(50)
 );
 CREATE TABLE IF NOT EXISTS disponibilidad_aula_turno (
     id_aula UUID REFERENCES aula(id_aula),
@@ -230,8 +233,8 @@ INSERT INTO turno_examen VALUES
 ('ffff0002-0002-0002-0002-000000000002', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'Turno Tarde',  '2026-07-15', '13:00', '16:00');
 
 INSERT INTO aula VALUES
-('ffffff11-1111-1111-1111-111111111111', 'AULA-A101', 40, true),
-('ffffff22-2222-2222-2222-222222222222', 'AULA-B202', 35, false);
+('ffffff11-1111-1111-1111-111111111111', 'AULA-A101', 40, true,  'Sede Central',   'San Salvador', 'San Salvador'),
+('ffffff22-2222-2222-2222-222222222222', 'AULA-B202', 35, false, 'Sede Santa Ana', 'Santa Ana',    'Santa Ana');
 
 -- 3 disponibilidades (count=3 para DisponibilidadAulaTurnoDAOIT)
 -- testCrear crea (ffffff11, ffff0002) como la 4a

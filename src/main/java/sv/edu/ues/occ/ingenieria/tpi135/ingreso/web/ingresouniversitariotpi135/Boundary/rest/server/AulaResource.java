@@ -48,10 +48,9 @@ public class AulaResource extends AbstractResource<Aula> {
      */
     @POST
     public Response createAula(Aula aula, @Context UriInfo uriInfo) {
-        if (aula == null || aula.getCodigoAulaApi() == null || aula.getCodigoAulaApi().isBlank()) {
+        if (aula == null) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("El código del aula es obligatorio")
-                    .header(RestHeaders.MISSING_PARAMETER, "codigoAulaApi")
+                    .header(RestHeaders.MISSING_PARAMETER, "body")
                     .build();
         }
 
@@ -64,6 +63,11 @@ public class AulaResource extends AbstractResource<Aula> {
                     .entity(aula)
                     .build();
         } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(e.getMessage())
+                    .header(RestHeaders.MISSING_PARAMETER, e.getMessage())
+                    .build();
+        } catch (IllegalStateException e) {
             return Response.status(Response.Status.CONFLICT)
                     .entity(e.getMessage())
                     .header(RestHeaders.CONFLICT_REASON, e.getMessage())
@@ -109,6 +113,11 @@ public class AulaResource extends AbstractResource<Aula> {
     @PUT
     @Path("{idAula}")
     public Response updateAula(@PathParam("idAula") String idAulaStr, Aula aula) {
+        if (aula == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .header(RestHeaders.MISSING_PARAMETER, "body")
+                    .build();
+        }
         try {
             UUID idAula = UUID.fromString(idAulaStr);
             Aula existente = aulaDAO.leer(idAula);
@@ -122,6 +131,11 @@ public class AulaResource extends AbstractResource<Aula> {
             Aula actualizada = aulaDAO.actualizar(aula);
             return Response.ok(actualizada).build();
         } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(e.getMessage())
+                    .header(RestHeaders.MISSING_PARAMETER, e.getMessage())
+                    .build();
+        } catch (IllegalStateException e) {
             return Response.status(Response.Status.CONFLICT)
                     .entity(e.getMessage())
                     .header(RestHeaders.CONFLICT_REASON, e.getMessage())
@@ -151,6 +165,11 @@ public class AulaResource extends AbstractResource<Aula> {
 
             aulaDAO.eliminar(existente);
             return Response.noContent().build();
+        } catch (IllegalStateException e) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(e.getMessage())
+                    .header(RestHeaders.CONFLICT_REASON, e.getMessage())
+                    .build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
