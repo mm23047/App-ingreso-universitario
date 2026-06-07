@@ -21,7 +21,7 @@ import java.util.UUID;
 
 /**
  * Recurso REST para gestionar los datos de los Aspirantes.
- * * Base: /resources/v1/aspirantes
+ * Base: /resources/v1/aspirantes
  */
 @Path("aspirantes")
 @Produces(MediaType.APPLICATION_JSON)
@@ -35,9 +35,9 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
     @Inject
     private PruebasAdmisionDAO pruebasDAO;
 
-    // TODO: Inyectar InscripcionesPruebaDAO cuando se implemente la validación de borrado
-     @Inject
-     private InscripcionesPruebaDAO inscripcionesDAO;
+    // Inyectar InscripcionesPruebaDAO para validación de borrado
+    @Inject
+    private InscripcionesPruebaDAO inscripcionesDAO;
 
     @Override
     protected AspirantesDatoDAO getDAO() {
@@ -46,23 +46,38 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
 
     /**
      * GET /aspirantes
-     * Retorna lista paginada de aspirantes o filtra por requerimiento de accesibilidad
-     * Ejemplo: /aspirantes?usaSilla=true
+     * Retorna lista paginada de aspirantes, o busca por requerimiento de accesibilidad, DUI o Correo.
+     * Ejemplo: /aspirantes?dui=01234567-8
      */
     @GET
     public Response listAspirantes(
             @DefaultValue("0") @QueryParam("first") int first,
             @DefaultValue("50") @QueryParam("max") int max,
-            @QueryParam("usaSilla") Boolean usaSilla) { // Nuevo parámetro opcional
-
+            @QueryParam("usaSilla") Boolean usaSilla,
+            @QueryParam("dui") String dui,
+            @QueryParam("correo") String correo
+    ) {
         try {
-            // Si el cliente envía ?usaSilla=true en la URL
+            // 1. Si buscan por DUI
+            if (dui != null && !dui.isBlank()) {
+                AspirantesDato encontrado = aspirantesDAO.findByDui(dui);
+                // Retornamos una lista de 1 elemento (o vacía) para mantener coherencia
+                return encontrado != null ? Response.ok(List.of(encontrado)).build() : Response.ok(List.of()).build();
+            }
+
+            // 2. Si buscan por Correo
+            if (correo != null && !correo.isBlank()) {
+                AspirantesDato encontrado = aspirantesDAO.findByCorreo(correo);
+                return encontrado != null ? Response.ok(List.of(encontrado)).build() : Response.ok(List.of()).build();
+            }
+
+            // 3. Si el cliente envía ?usaSilla=true en la URL
             if (usaSilla != null && usaSilla) {
                 // El DAO intercepta y trae solo a los que requieren silla de ruedas
                 return Response.ok(aspirantesDAO.findByRequiereSillaRuedas()).build();
             }
 
-            // Si no hay filtro, se comporta de forma estándar (paginación)
+            // 4. Si no hay filtro, se comporta de forma estándar (paginación)
             return findRange(first, max);
 
         } catch (Exception e) {
@@ -107,7 +122,7 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
         } catch (ReglaNegocioException e) {
             // @ApplicationException: llega aquí directamente, sin envoltura EJBException
             boolean esConflicto = e.getTipo() == ReglaNegocioException.Tipo.DUI_DUPLICADO
-                               || e.getTipo() == ReglaNegocioException.Tipo.CORREO_DUPLICADO;
+                    || e.getTipo() == ReglaNegocioException.Tipo.CORREO_DUPLICADO;
             Response.Status status = esConflicto ? Response.Status.CONFLICT : Response.Status.BAD_REQUEST;
             return Response.status(status)
                     .entity(new ErrorNegocioDTO(e.getTipo().name(), e.getMessage()))
@@ -210,7 +225,7 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
             return Response.ok(actualizado).build();
         } catch (ReglaNegocioException e) {
             boolean esConflicto = e.getTipo() == ReglaNegocioException.Tipo.DUI_DUPLICADO
-                               || e.getTipo() == ReglaNegocioException.Tipo.CORREO_DUPLICADO;
+                    || e.getTipo() == ReglaNegocioException.Tipo.CORREO_DUPLICADO;
             Response.Status status = esConflicto ? Response.Status.CONFLICT : Response.Status.BAD_REQUEST;
             return Response.status(status)
                     .entity(new ErrorNegocioDTO(e.getTipo().name(), e.getMessage()))
@@ -247,7 +262,6 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
                         .build();
             }
 
-            // TODO: Según el plan, se debe validar que no tenga inscripciones antes de borrar.
             // Validación de integridad: No borrar si tiene inscripciones
             List<InscripcionesPrueba> inscripciones = inscripcionesDAO.findByAspiranteId(idAspirante);
             if (inscripciones != null && !inscripciones.isEmpty()) {
@@ -280,7 +294,7 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
         try {
             UUID idAspirante = UUID.fromString(idAspiranteStr);
 
-            // 1. Verificamos que el aspirante exista (regla de oro del anidamiento)
+            // 1. Verificamos que el aspirante exista
             AspirantesDato aspirante = aspirantesDAO.leer(idAspirante);
             if (aspirante == null) {
                 return Response.status(Response.Status.NOT_FOUND)
@@ -288,7 +302,7 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
                         .build();
             }
 
-            // 2. Buscamos sus inscripciones usando el DAO
+            // 2. Buscamos sus inscripciones
             List<InscripcionesPrueba> lista = inscripcionesDAO.findByAspiranteId(idAspirante);
             return Response.ok(lista).build();
 
@@ -335,7 +349,7 @@ public class AspirantesDatoResource extends AbstractResource<AspirantesDato> {
                         .build();
             }
 
-            // 3. Ya seguro, forzamos los datos para evitar manipulación y mandamos a guardar
+            // 3. Forzamos los datos para evitar manipulación y guardamos
             nuevaInscripcion.setAspiranteDato(aspirante);
             nuevaInscripcion.setPruebaAdmision(prueba);
             inscripcionesDAO.crear(nuevaInscripcion);

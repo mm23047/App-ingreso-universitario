@@ -69,7 +69,8 @@ class AspirantesDatoResourceTest {
         when(aspirantesDAO.count()).thenReturn(1);
         when(aspirantesDAO.findRange(0, 10)).thenReturn(List.of(entidad));
 
-        Response response = resource.listAspirantes(0, 10, null);
+        // ACTUALIZADO: Se agregan dos nulls al final
+        Response response = resource.listAspirantes(0, 10, null, null, null);
 
         assertEquals(200, response.getStatus());
         assertEquals("1", response.getHeaderString("Total-records"));
@@ -80,7 +81,8 @@ class AspirantesDatoResourceTest {
         when(aspirantesDAO.count()).thenReturn(0);
         when(aspirantesDAO.findRange(0, 10)).thenReturn(Collections.emptyList());
 
-        Response response = resource.listAspirantes(0, 10, null);
+        // ACTUALIZADO: Se agregan dos nulls al final
+        Response response = resource.listAspirantes(0, 10, null, null, null);
 
         assertEquals(200, response.getStatus());
         assertEquals("0", response.getHeaderString("Total-records"));
@@ -90,7 +92,8 @@ class AspirantesDatoResourceTest {
     void findRange_ConExcepcionEnDAO_DebeRetornar500() {
         when(aspirantesDAO.count()).thenThrow(new RuntimeException("Error de BD"));
 
-        Response response = resource.listAspirantes(0, 10, null);
+        // ACTUALIZADO: Se agregan dos nulls al final
+        Response response = resource.listAspirantes(0, 10, null, null, null);
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
@@ -100,14 +103,14 @@ class AspirantesDatoResourceTest {
     void findRange_ConUsaSillaTrue_DebeRetornarListaFiltrada() {
         when(aspirantesDAO.findByRequiereSillaRuedas()).thenReturn(List.of(entidad));
 
-        Response response = resource.listAspirantes(0, 10, true);
+        // ACTUALIZADO: Se agregan dos nulls al final
+        Response response = resource.listAspirantes(0, 10, true, null, null);
 
         assertEquals(200, response.getStatus());
         assertNotNull(response.getEntity());
         verify(aspirantesDAO).findByRequiereSillaRuedas();
         verify(aspirantesDAO, never()).findRange(anyInt(), anyInt());
     }
-
     // ==================== getAspirante (GET /{idAspirante}) ====================
 
     @Test
@@ -350,5 +353,44 @@ class AspirantesDatoResourceTest {
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString("Server-exception"));
+    }
+
+    // ==================== listAspirantes (Filtros Nuevos: DUI y Correo) ====================
+
+    @Test
+    void listAspirantes_ConDuiExistente_DebeRetornarListaDeUno() {
+        when(aspirantesDAO.findByDui("01234567-8")).thenReturn(entidad);
+
+        // Simulamos que el usuario buscó por DUI
+        Response response = resource.listAspirantes(0, 10, null, "01234567-8", null);
+
+        assertEquals(200, response.getStatus());
+        List<AspirantesDato> listaResultado = (List<AspirantesDato>) response.getEntity();
+        assertEquals(1, listaResultado.size());
+        assertEquals("01234567-8", listaResultado.get(0).getDui());
+    }
+
+    @Test
+    void listAspirantes_ConDuiInexistente_DebeRetornarListaVacia() {
+        when(aspirantesDAO.findByDui("99999999-9")).thenReturn(null);
+
+        Response response = resource.listAspirantes(0, 10, null, "99999999-9", null);
+
+        assertEquals(200, response.getStatus());
+        List<AspirantesDato> listaResultado = (List<AspirantesDato>) response.getEntity();
+        assertTrue(listaResultado.isEmpty());
+    }
+
+    @Test
+    void listAspirantes_ConCorreoExistente_DebeRetornarListaDeUno() {
+        when(aspirantesDAO.findByCorreo("juan.perez@example.com")).thenReturn(entidad);
+
+        // Simulamos que el usuario buscó por Correo
+        Response response = resource.listAspirantes(0, 10, null, null, "juan.perez@example.com");
+
+        assertEquals(200, response.getStatus());
+        List<AspirantesDato> listaResultado = (List<AspirantesDato>) response.getEntity();
+        assertEquals(1, listaResultado.size());
+        assertEquals("juan.perez@example.com", listaResultado.get(0).getCorreo());
     }
 }
