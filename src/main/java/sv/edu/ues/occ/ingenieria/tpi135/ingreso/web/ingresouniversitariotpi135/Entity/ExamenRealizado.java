@@ -19,7 +19,7 @@ import java.util.UUID;
         ),
         @NamedQuery(
                 name = "ExamenRealizado.findByAspiranteId",
-                query = "SELECT e FROM ExamenRealizado e JOIN FETCH e.inscripcionesPrueba JOIN FETCH e.claveExamen JOIN FETCH e.etapaAdmision WHERE e.inscripcionesPrueba.aspiranteDato.id = :aspiranteId ORDER BY e.fechaRealizacion DESC"
+                query = "SELECT e FROM ExamenRealizado e JOIN FETCH e.inscripcionesPrueba ip JOIN FETCH ip.aspiranteDato JOIN FETCH e.claveExamen ce JOIN FETCH ce.pruebaAdmision JOIN FETCH e.etapaAdmision WHERE ip.aspiranteDato.id = :aspiranteId ORDER BY e.fechaRealizacion DESC"
         ),
         @NamedQuery(
                 name = "ExamenRealizado.findByPruebaId",
