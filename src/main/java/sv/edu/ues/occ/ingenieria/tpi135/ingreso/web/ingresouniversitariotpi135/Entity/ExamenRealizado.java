@@ -50,6 +50,14 @@ import java.util.UUID;
         @NamedQuery(
                 name = "ExamenRealizado.findClavesByPrueba",
                 query = "SELECT c FROM ClavesExamen c WHERE c.pruebaAdmision.idPruebaAdmision = :idPrueba"
+        ),
+        @NamedQuery(
+                name = "ExamenRealizado.findByAspiranteDui",
+                query = "SELECT e FROM ExamenRealizado e JOIN FETCH e.inscripcionesPrueba ip JOIN FETCH ip.aspiranteDato JOIN FETCH e.claveExamen ce JOIN FETCH ce.pruebaAdmision JOIN FETCH e.etapaAdmision WHERE ip.aspiranteDato.dui = :dui ORDER BY e.fechaRealizacion DESC"
+        ),
+        @NamedQuery(
+                name = "ExamenRealizado.findByAspiranteCorreo",
+                query = "SELECT e FROM ExamenRealizado e JOIN FETCH e.inscripcionesPrueba ip JOIN FETCH ip.aspiranteDato JOIN FETCH e.claveExamen ce JOIN FETCH ce.pruebaAdmision JOIN FETCH e.etapaAdmision WHERE ip.aspiranteDato.correo = :correo ORDER BY e.fechaRealizacion DESC"
         )
 })
 public class ExamenRealizado implements Serializable {

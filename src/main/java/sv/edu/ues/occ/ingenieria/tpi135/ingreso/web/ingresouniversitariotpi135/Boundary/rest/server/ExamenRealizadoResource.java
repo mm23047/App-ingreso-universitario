@@ -329,6 +329,61 @@ public class ExamenRealizadoResource extends AbstractResource<ExamenRealizado> {
         }
     }
 
+    @GET
+    @Path("/buscar")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarExamenes(@QueryParam("dui") String dui, @QueryParam("correo") String correo) {
+        List<ExamenRealizado> examenes;
+
+        // 1. Validar parámetros y realizar la consulta en el DAO
+        if (dui != null && !dui.isEmpty()) {
+            examenes = examenRealizadoDAO.findByAspiranteDui(dui);
+        } else if (correo != null && !correo.isEmpty()) {
+            examenes = examenRealizadoDAO.findByAspiranteCorreo(correo);
+        } else {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .header("Error", "Faltan parametros de busqueda (dui o correo)")
+                    .entity("Debe proveer un DUI o un correo electrónico.")
+                    .build();
+        }
+
+        // Si no se encontraron exámenes, devolvemos una lista vacía de forma segura
+        if (examenes.isEmpty()) {
+            return Response.ok(new ArrayList<>())
+                    .header(RestHeaders.TOTAL_RECORDS, 0)
+                    .build();
+        }
+
+        try {
+            // 2. ENRIQUECER CON PROCESO DE ADMISIÓN (Para no romper el Frontend)
+            // Como todos los exámenes pertenecen al mismo aspirante filtrado, tomamos el ID del primero
+            UUID idAspirante = examenes.get(0).getInscripcionesPrueba().getAspiranteDato().getId();
+            List<ProcesoAdmisionAspirante> procesos = procesoAdmisionDAO.findByAspiranteId(idAspirante);
+
+            // Mapeamos los procesos por el ID de inscripción
+            Map<UUID, ProcesoAdmisionAspirante> procesosPorInscripcion = new HashMap<>();
+            for (ProcesoAdmisionAspirante p : procesos) {
+                procesosPorInscripcion.put(p.getIdProcesoAdmisionAspirante(), p);
+            }
+
+            // 3. Transformar la lista de Entidades a la lista de DTOs que espera el Frontend
+            List<ResultadoAspiranteDTO> resultadoDTO = new ArrayList<>();
+            for (ExamenRealizado e : examenes) {
+                UUID idInscripcion = e.getInscripcionesPrueba().getIdInscripcionPrueba();
+                resultadoDTO.add(new ResultadoAspiranteDTO(e, procesosPorInscripcion.get(idInscripcion)));
+            }
+
+            return Response.ok(resultadoDTO)
+                    .header(RestHeaders.TOTAL_RECORDS, resultadoDTO.size())
+                    .build();
+
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
+                    .build();
+        }
+    }
+
     /**
      * DTO estático para recibir los parámetros estrictos de inicialización.
      */

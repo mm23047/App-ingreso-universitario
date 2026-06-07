@@ -274,4 +274,14 @@ public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado
 
         return nuevoExamen;
     }
+    public List<ExamenRealizado> findByAspiranteDui(String dui) {
+        return em.createNamedQuery("ExamenRealizado.findByAspiranteDui", ExamenRealizado.class)
+                .setParameter("dui", dui)
+                .getResultList();
+    }
+    public List<ExamenRealizado> findByAspiranteCorreo(String correo) {
+        return em.createNamedQuery("ExamenRealizado.findByAspiranteCorreo", ExamenRealizado.class)
+                .setParameter("correo", correo)
+                .getResultList();
+    }
 }
