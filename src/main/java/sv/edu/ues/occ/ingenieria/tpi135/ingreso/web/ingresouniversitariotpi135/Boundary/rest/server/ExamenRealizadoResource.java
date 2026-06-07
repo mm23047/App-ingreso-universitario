@@ -356,8 +356,15 @@ public class ExamenRealizadoResource extends AbstractResource<ExamenRealizado> {
 
         try {
             // 2. ENRIQUECER CON PROCESO DE ADMISIÓN (Para no romper el Frontend)
-            // Como todos los exámenes pertenecen al mismo aspirante filtrado, tomamos el ID del primero
-            UUID idAspirante = examenes.get(0).getInscripcionesPrueba().getAspiranteDato().getId();
+            InscripcionesPrueba primeraInscripcion = examenes.get(0).getInscripcionesPrueba();
+            if (primeraInscripcion == null || primeraInscripcion.getAspiranteDato() == null
+                    || primeraInscripcion.getAspiranteDato().getId() == null) {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .entity("Datos del aspirante incompletos en la base de datos.")
+                        .header(RestHeaders.SERVER_EXCEPTION, "InscripcionesPrueba o AspiranteDato es null")
+                        .build();
+            }
+            UUID idAspirante = primeraInscripcion.getAspiranteDato().getId();
             List<ProcesoAdmisionAspirante> procesos = procesoAdmisionDAO.findByAspiranteId(idAspirante);
 
             // Mapeamos los procesos por el ID de inscripción

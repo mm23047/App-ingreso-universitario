@@ -275,13 +275,28 @@ public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado
         return nuevoExamen;
     }
     public List<ExamenRealizado> findByAspiranteDui(String dui) {
-        return em.createNamedQuery("ExamenRealizado.findByAspiranteDui", ExamenRealizado.class)
-                .setParameter("dui", dui)
-                .getResultList();
+        if (dui == null || dui.isBlank()) {
+            throw new IllegalArgumentException("El DUI no puede ser nulo o vacío.");
+        }
+        try {
+            return em.createNamedQuery("ExamenRealizado.findByAspiranteDui", ExamenRealizado.class)
+                    .setParameter("dui", dui)
+                    .getResultList();
+        } catch (Exception e) {
+            throw new IllegalStateException("Error al consultar exámenes por DUI.", e);
+        }
     }
+
     public List<ExamenRealizado> findByAspiranteCorreo(String correo) {
-        return em.createNamedQuery("ExamenRealizado.findByAspiranteCorreo", ExamenRealizado.class)
-                .setParameter("correo", correo)
-                .getResultList();
+        if (correo == null || correo.isBlank()) {
+            throw new IllegalArgumentException("El correo no puede ser nulo o vacío.");
+        }
+        try {
+            return em.createNamedQuery("ExamenRealizado.findByAspiranteCorreo", ExamenRealizado.class)
+                    .setParameter("correo", correo)
+                    .getResultList();
+        } catch (Exception e) {
+            throw new IllegalStateException("Error al consultar exámenes por correo.", e);
+        }
     }
 }
