@@ -109,6 +109,22 @@ public class ExamenRealizadoResource extends AbstractResource<ExamenRealizado> {
                     .header(RestHeaders.CONFLICT_REASON, e.getMessage())
                     .entity(e.getMessage())
                     .build();
+        } catch (jakarta.ejb.EJBException e) {
+            Throwable cause = e.getCause() != null ? e.getCause() : e.getCausedByException();
+            if (cause instanceof IllegalStateException) {
+                return Response.status(Response.Status.CONFLICT)
+                        .header(RestHeaders.CONFLICT_REASON, cause.getMessage())
+                        .entity(cause.getMessage())
+                        .build();
+            }
+            if (cause instanceof IllegalArgumentException) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(cause.getMessage())
+                        .build();
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
+                    .build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())

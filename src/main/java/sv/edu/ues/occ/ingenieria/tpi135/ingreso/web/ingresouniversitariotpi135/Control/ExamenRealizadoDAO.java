@@ -205,11 +205,11 @@ public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado
 
         // REGLA DE NEGOCIO PROTECTORA: Verificar si ya existe un intento previo para no romper el Unique Constraint
         try {
-            ExamenRealizado examenExistente = em.createNamedQuery("ExamenRealizado.findByInscripcionAndEtapa", ExamenRealizado.class)
+            em.createNamedQuery("ExamenRealizado.findByInscripcionAndEtapa", ExamenRealizado.class)
                     .setParameter("idInscripcion", idInscripcion)
                     .setParameter("idEtapa", idEtapa)
                     .getSingleResult();
-            return examenExistente; // Si ya existe, lo devuelve de forma segura en vez de duplicarlo
+            throw new IllegalStateException("Ya existe un examen registrado para la inscripción y etapa indicadas.");
         } catch (NoResultException e) {
             // El comportamiento es correcto: No existe, procedemos a crearlo.
         }
