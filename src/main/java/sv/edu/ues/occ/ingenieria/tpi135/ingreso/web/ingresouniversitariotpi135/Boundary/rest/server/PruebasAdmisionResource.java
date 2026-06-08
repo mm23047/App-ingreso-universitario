@@ -53,13 +53,16 @@ public class PruebasAdmisionResource extends AbstractResource<PruebasAdmision> {
             @DefaultValue("50") @QueryParam("max") int max,
             @QueryParam("buscar") String buscar) {
         try {
+            int total = pruebasAdmisionDAO.count();
             List<PruebasAdmision> resultado;
             if (buscar != null && !buscar.isBlank()) {
                 resultado = pruebasAdmisionDAO.buscarPorTermino(buscar.trim(), first, max);
             } else {
-                resultado = pruebasAdmisionDAO.findAllOrdenado(first, max);
+                resultado = pruebasAdmisionDAO.findRange(first, max);
             }
-            return Response.ok(resultado).build();
+            return Response.ok(resultado)
+                    .header(RestHeaders.TOTAL_RECORDS, total)
+                    .build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .header(RestHeaders.SERVER_EXCEPTION, e.getMessage())
