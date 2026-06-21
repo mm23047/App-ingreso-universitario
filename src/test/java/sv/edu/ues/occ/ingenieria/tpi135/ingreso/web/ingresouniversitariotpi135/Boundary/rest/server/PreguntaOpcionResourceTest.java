@@ -19,68 +19,173 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class PreguntaOpcionResourceTest {
 
-    @Mock private PreguntaOpcionDAO dao;
-    @InjectMocks private PreguntaOpcionResource resource;
+    @Mock
+    private PreguntaOpcionDAO preguntaOpcionDAO;
 
-    private PreguntaOpcion testOpcion;
-    private String idOpcionStr;
+    @InjectMocks
+    private PreguntaOpcionResource resource;
+
+    private PreguntaOpcion entidad;
+    private UUID testId;
 
     @BeforeEach
     void setUp() {
-        testOpcion = new PreguntaOpcion();
-        testOpcion.setIdPreguntaOpcion(UUID.randomUUID());
-        testOpcion.setEsCorrecta(false);
-        idOpcionStr = testOpcion.getIdPreguntaOpcion().toString();
+        testId = UUID.randomUUID();
+        entidad = new PreguntaOpcion();
+        entidad.setIdPreguntaOpcion(testId);
+        entidad.setEsCorrecta(false);
     }
 
-    @Test
-    void updateOpcion_ConDatosValidos_Retorna200() {
-        PreguntaOpcion payload = new PreguntaOpcion();
-        when(dao.leer(testOpcion.getIdPreguntaOpcion())).thenReturn(testOpcion);
+    // ==================== getOpcion (GET /{idOpcion}) ====================
 
-        Response response = resource.updateOpcion(idOpcionStr, payload);
+    @Test
+    void getOpcion_ConIdExistente_DebeRetornar200() {
+        when(preguntaOpcionDAO.leer(testId)).thenReturn(entidad);
+
+        Response response = resource.getOpcion(testId.toString());
 
         assertEquals(200, response.getStatus());
-        verify(dao).actualizar(payload);
+        assertSame(entidad, response.getEntity());
+        verify(preguntaOpcionDAO).leer(testId);
     }
 
     @Test
-    void updateOpcion_ConIdInexistente_Retorna404() {
-        when(dao.leer(any())).thenReturn(null);
+    void getOpcion_ConIdInexistente_DebeRetornar404() {
+        when(preguntaOpcionDAO.leer(testId)).thenReturn(null);
 
-        Response response = resource.updateOpcion(idOpcionStr, new PreguntaOpcion());
+        Response response = resource.getOpcion(testId.toString());
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
-        verify(dao, never()).actualizar(any());
     }
 
     @Test
-    void deleteOpcion_ConIdExistente_Retorna204() {
-        when(dao.leer(testOpcion.getIdPreguntaOpcion())).thenReturn(testOpcion);
+    void getOpcion_ConUuidInvalido_DebeRetornar400() {
+        Response response = resource.getOpcion("no-es-uuid");
 
-        Response response = resource.deleteOpcion(idOpcionStr);
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(preguntaOpcionDAO);
+    }
+
+    @Test
+    void getOpcion_ConExcepcionEnDAO_DebeRetornar500() {
+        when(preguntaOpcionDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.getOpcion(testId.toString());
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+    }
+
+    // ==================== updateOpcion (PUT /{idOpcion}) ====================
+
+    @Test
+    void updateOpcion_ConDatosValidos_DebeRetornar200() {
+        when(preguntaOpcionDAO.leer(testId)).thenReturn(entidad);
+        PreguntaOpcion actualizada = new PreguntaOpcion();
+        actualizada.setEsCorrecta(true);
+        when(preguntaOpcionDAO.actualizar(actualizada)).thenReturn(actualizada);
+
+        Response response = resource.updateOpcion(testId.toString(), actualizada);
+
+        assertEquals(200, response.getStatus());
+        assertSame(actualizada, response.getEntity());
+        assertEquals(testId, actualizada.getIdPreguntaOpcion());
+        verify(preguntaOpcionDAO).actualizar(actualizada);
+    }
+
+    @Test
+    void updateOpcion_ConIdInexistente_DebeRetornar404() {
+        when(preguntaOpcionDAO.leer(testId)).thenReturn(null);
+
+        Response response = resource.updateOpcion(testId.toString(), new PreguntaOpcion());
+
+        assertEquals(404, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
+        verify(preguntaOpcionDAO, never()).actualizar(any());
+    }
+
+    @Test
+    void updateOpcion_ConUuidInvalido_DebeRetornar409() {
+        Response response = resource.updateOpcion("no-es-uuid", entidad);
+
+        assertEquals(409, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.CONFLICT_REASON));
+        verifyNoInteractions(preguntaOpcionDAO);
+    }
+
+    @Test
+    void updateOpcion_ConIllegalArgumentEnActualizar_DebeRetornar409() {
+        when(preguntaOpcionDAO.leer(testId)).thenReturn(entidad);
+        PreguntaOpcion datos = new PreguntaOpcion();
+        when(preguntaOpcionDAO.actualizar(datos))
+                .thenThrow(new IllegalArgumentException("Datos inválidos"));
+
+        Response response = resource.updateOpcion(testId.toString(), datos);
+
+        assertEquals(409, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.CONFLICT_REASON));
+    }
+
+    @Test
+    void updateOpcion_ConExcepcionEnLeer_DebeRetornar500() {
+        when(preguntaOpcionDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.updateOpcion(testId.toString(), entidad);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+    }
+
+    @Test
+    void updateOpcion_ConExcepcionEnActualizar_DebeRetornar500() {
+        when(preguntaOpcionDAO.leer(testId)).thenReturn(entidad);
+        PreguntaOpcion datos = new PreguntaOpcion();
+        when(preguntaOpcionDAO.actualizar(datos)).thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.updateOpcion(testId.toString(), datos);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+    }
+
+    // ==================== deleteOpcion (DELETE /{idOpcion}) ====================
+
+    @Test
+    void deleteOpcion_ConIdExistente_DebeRetornar204() {
+        when(preguntaOpcionDAO.leer(testId)).thenReturn(entidad);
+
+        Response response = resource.deleteOpcion(testId.toString());
 
         assertEquals(204, response.getStatus());
-        verify(dao).eliminar(testOpcion);
+        verify(preguntaOpcionDAO).eliminar(entidad);
     }
 
     @Test
-    void deleteOpcion_ConIdInexistente_Retorna404() {
-        when(dao.leer(any())).thenReturn(null);
+    void deleteOpcion_ConIdInexistente_DebeRetornar404() {
+        when(preguntaOpcionDAO.leer(testId)).thenReturn(null);
 
-        Response response = resource.deleteOpcion(idOpcionStr);
+        Response response = resource.deleteOpcion(testId.toString());
 
         assertEquals(404, response.getStatus());
         assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
-        verify(dao, never()).eliminar(any());
+        verify(preguntaOpcionDAO, never()).eliminar(any());
     }
 
     @Test
-    void deleteOpcion_ConExcepcionEnDAO_Retorna500() {
-        when(dao.leer(any())).thenThrow(new RuntimeException("Error de BD"));
+    void deleteOpcion_ConUuidInvalido_DebeRetornar500() {
+        Response response = resource.deleteOpcion("no-es-uuid");
 
-        Response response = resource.deleteOpcion(idOpcionStr);
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+        verifyNoInteractions(preguntaOpcionDAO);
+    }
+
+    @Test
+    void deleteOpcion_ConExcepcionEnDAO_DebeRetornar500() {
+        when(preguntaOpcionDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.deleteOpcion(testId.toString());
 
         assertEquals(500, response.getStatus());
         assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));

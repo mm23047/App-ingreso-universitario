@@ -66,7 +66,7 @@ class InscripcionesPruebaResourceTest {
         Response response = resource.listInscripciones(null, null, 0, 10);
 
         assertEquals(200, response.getStatus());
-        assertEquals("1", response.getHeaderString("Total-records"));
+        assertEquals("1", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
     }
 
     @Test
@@ -86,7 +86,7 @@ class InscripcionesPruebaResourceTest {
         Response response = resource.listInscripciones(null, null, 0, 10);
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     @Test
@@ -99,6 +99,19 @@ class InscripcionesPruebaResourceTest {
         assertEquals(200, response.getStatus());
         verify(inscripcionesPruebaDAO).findByPruebaAndEstado(pruebaId, "ACTIVO");
         verify(inscripcionesPruebaDAO, never()).findRange(anyInt(), anyInt());
+    }
+
+    @Test
+    void findRange_ConIdPruebaPeroSinEstado_DebeUsarFindRange() {
+        UUID pruebaId = UUID.randomUUID();
+        when(inscripcionesPruebaDAO.count()).thenReturn(1);
+        when(inscripcionesPruebaDAO.findRange(0, 10)).thenReturn(List.of(entidad));
+
+        Response response = resource.listInscripciones(pruebaId.toString(), null, 0, 10);
+
+        assertEquals(200, response.getStatus());
+        verify(inscripcionesPruebaDAO).findRange(0, 10);
+        verify(inscripcionesPruebaDAO, never()).findByPruebaAndEstado(any(), any());
     }
 
     @Test
@@ -128,7 +141,7 @@ class InscripcionesPruebaResourceTest {
         Response response = resource.getInscripcion(testId.toString());
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
     }
 
     @Test
@@ -146,7 +159,7 @@ class InscripcionesPruebaResourceTest {
         Response response = resource.getInscripcion(testId.toString());
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== updateInscripcion (PUT /{idInscripcion}) ====================
@@ -180,17 +193,45 @@ class InscripcionesPruebaResourceTest {
         Response response = resource.updateInscripcion(testId.toString(), entidad);
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
     }
 
     @Test
-    void update_ConExcepcionEnDAO_DebeRetornar500() {
+    void update_ConIllegalArgumentEnActualizar_DebeRetornar409() {
+        when(inscripcionesPruebaDAO.leer(testId)).thenReturn(entidad);
+        InscripcionesPrueba payload = new InscripcionesPrueba();
+        payload.setEstado("INVALIDO");
+        when(inscripcionesPruebaDAO.actualizar(payload))
+                .thenThrow(new IllegalArgumentException("Estado no válido"));
+
+        Response response = resource.updateInscripcion(testId.toString(), payload);
+
+        assertEquals(409, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.CONFLICT_REASON));
+    }
+
+    @Test
+    void update_ConExcepcionEnLeer_DebeRetornar500() {
         when(inscripcionesPruebaDAO.leer(testId)).thenThrow(new RuntimeException("BD error"));
 
         Response response = resource.updateInscripcion(testId.toString(), entidad);
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+    }
+
+    @Test
+    void update_ConExcepcionEnActualizar_DebeRetornar500() {
+        when(inscripcionesPruebaDAO.leer(testId)).thenReturn(entidad);
+        InscripcionesPrueba payload = new InscripcionesPrueba();
+        payload.setEstado("FINALIZADO");
+        when(inscripcionesPruebaDAO.actualizar(payload))
+                .thenThrow(new RuntimeException("BD error"));
+
+        Response response = resource.updateInscripcion(testId.toString(), payload);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== deleteInscripcion (DELETE /{idInscripcion}) ====================
@@ -220,7 +261,7 @@ class InscripcionesPruebaResourceTest {
         Response response = resource.deleteInscripcion(testId.toString());
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
     }
 
     @Test
@@ -230,7 +271,7 @@ class InscripcionesPruebaResourceTest {
         Response response = resource.deleteInscripcion(testId.toString());
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== generarExamen (POST /{id}/examen/generar) ====================
@@ -311,6 +352,49 @@ class InscripcionesPruebaResourceTest {
         inscripcionConExamen.setPruebaAdmision(prueba);
 
         when(inscripcionesPruebaDAO.leer(testId)).thenReturn(inscripcionConExamen);
+
+        Response response = resource.generarExamen(testId.toString(), UUID.randomUUID().toString());
+
+        assertEquals(409, response.getStatus());
+        verifyNoInteractions(clavesExamanDAO, examenRealizadoDAO);
+    }
+
+    @Test
+    void generarExamen_ConIdEtapaEnBlanco_DebeRetornar400() {
+        Response response = resource.generarExamen(testId.toString(), "   ");
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(inscripcionesPruebaDAO, clavesExamanDAO, examenRealizadoDAO);
+    }
+
+    @Test
+    void generarExamen_ConUuidInscripcionInvalido_DebeRetornar400() {
+        Response response = resource.generarExamen("no-es-uuid", UUID.randomUUID().toString());
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(inscripcionesPruebaDAO);
+    }
+
+    @Test
+    void generarExamen_ConExcepcionEnDAO_DebeRetornar500() {
+        when(inscripcionesPruebaDAO.leer(any())).thenThrow(new RuntimeException("BD error"));
+
+        Response response = resource.generarExamen(testId.toString(), UUID.randomUUID().toString());
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+    }
+
+    @Test
+    void generarExamen_ConEstadoCalificado_DebeRetornar409() {
+        InscripcionesPrueba inscripcionCalificada = new InscripcionesPrueba();
+        inscripcionCalificada.setIdInscripcionPrueba(testId);
+        inscripcionCalificada.setEstado("CALIFICADO");
+        PruebasAdmision prueba = new PruebasAdmision();
+        prueba.setIdPruebaAdmision(UUID.randomUUID());
+        inscripcionCalificada.setPruebaAdmision(prueba);
+
+        when(inscripcionesPruebaDAO.leer(testId)).thenReturn(inscripcionCalificada);
 
         Response response = resource.generarExamen(testId.toString(), UUID.randomUUID().toString());
 

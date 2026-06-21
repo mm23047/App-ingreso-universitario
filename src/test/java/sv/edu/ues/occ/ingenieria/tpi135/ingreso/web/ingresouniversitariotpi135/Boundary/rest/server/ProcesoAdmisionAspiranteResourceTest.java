@@ -56,7 +56,7 @@ class ProcesoAdmisionAspiranteResourceTest {
 
         assertEquals(200, response.getStatus());
         assertNotNull(response.getEntity());
-        assertEquals("1", response.getHeaderString("Total-records"));
+        assertEquals("1", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
         verify(procesoAspiranteDAO).count();
         verify(procesoAspiranteDAO).findRange(0, 10);
     }
@@ -69,7 +69,7 @@ class ProcesoAdmisionAspiranteResourceTest {
         Response response = resource.listProcesos(0, 10);
 
         assertEquals(200, response.getStatus());
-        assertEquals("0", response.getHeaderString("Total-records"));
+        assertEquals("0", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
     }
 
     @Test
@@ -79,7 +79,7 @@ class ProcesoAdmisionAspiranteResourceTest {
         Response response = resource.listProcesos(0, 10);
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== getProceso (GET /{idInscripcion}) ====================
@@ -103,7 +103,7 @@ class ProcesoAdmisionAspiranteResourceTest {
         Response response = resource.getProceso(testId.toString());
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
     }
 
     @Test
@@ -121,7 +121,7 @@ class ProcesoAdmisionAspiranteResourceTest {
         Response response = resource.getProceso(testId.toString());
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== asignarAspiranteIndividual (POST /{idInscripcion}/asignar) ====================
@@ -166,6 +166,17 @@ class ProcesoAdmisionAspiranteResourceTest {
     }
 
     @Test
+    void asignarCarrera_ConIllegalArgumentEnDAO_DebeRetornar400() {
+        when(procesoAspiranteDAO.leer(testId)).thenReturn(entidad);
+        when(procesoAspiranteDAO.asignarCarreraFinal(testId))
+                .thenThrow(new IllegalArgumentException("No tiene carreras elegidas"));
+
+        Response response = resource.asignarAspiranteIndividual(testId.toString());
+
+        assertEquals(400, response.getStatus());
+    }
+
+    @Test
     void asignarCarrera_ConExcepcionEnDAO_DebeRetornar500() {
         when(procesoAspiranteDAO.leer(testId)).thenReturn(entidad);
         when(procesoAspiranteDAO.asignarCarreraFinal(any())).thenThrow(new RuntimeException("BD error"));
@@ -173,7 +184,7 @@ class ProcesoAdmisionAspiranteResourceTest {
         Response response = resource.asignarAspiranteIndividual(testId.toString());
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== asignarMasivo (POST /asignar-masivo) ====================
@@ -208,5 +219,31 @@ class ProcesoAdmisionAspiranteResourceTest {
 
         assertEquals(200, response.getStatus());
         verify(procesoAspiranteDAO).procesarAsignacionMasiva(any(UUID.class));
+    }
+
+    @Test
+    void asignarMasivo_ConIdEtapaFormatoInvalido_DebeRetornar400() {
+        ProcesoAdmisionAspiranteResource.AsignacionMasivaPayload payload =
+            new ProcesoAdmisionAspiranteResource.AsignacionMasivaPayload();
+        payload.setIdEtapa("no-es-uuid");
+
+        Response response = resource.asignarMasivo(payload);
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(procesoAspiranteDAO);
+    }
+
+    @Test
+    void asignarMasivo_ConExcepcionEnDAO_DebeRetornar500() {
+        ProcesoAdmisionAspiranteResource.AsignacionMasivaPayload payload =
+            new ProcesoAdmisionAspiranteResource.AsignacionMasivaPayload();
+        payload.setIdEtapa(UUID.randomUUID().toString());
+        doThrow(new RuntimeException("Error en asignación masiva"))
+                .when(procesoAspiranteDAO).procesarAsignacionMasiva(any());
+
+        Response response = resource.asignarMasivo(payload);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 }

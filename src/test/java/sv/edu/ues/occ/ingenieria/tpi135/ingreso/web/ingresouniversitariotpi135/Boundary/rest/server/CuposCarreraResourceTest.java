@@ -81,7 +81,7 @@ class CuposCarreraResourceTest {
 
         assertEquals(200, response.getStatus());
         assertNotNull(response.getEntity());
-        assertEquals("1", response.getHeaderString("Total-records"));
+        assertEquals("1", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
         verify(cuposCarreraDAO).findRange(0, 10);
         verify(cuposCarreraDAO).count();
     }
@@ -94,7 +94,7 @@ class CuposCarreraResourceTest {
         Response response = resource.listCupos(0, 50);
 
         assertEquals(200, response.getStatus());
-        assertEquals("0", response.getHeaderString("Total-records"));
+        assertEquals("0", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
     }
 
     @Test
@@ -104,7 +104,7 @@ class CuposCarreraResourceTest {
         Response response = resource.listCupos(0, 10);
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== createCupo (POST /) ====================
@@ -139,7 +139,7 @@ class CuposCarreraResourceTest {
         Response response = resource.createCupo(null, uriInfo);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
         verifyNoInteractions(cuposCarreraDAO);
     }
 
@@ -150,7 +150,7 @@ class CuposCarreraResourceTest {
         Response response = resource.createCupo(entidad, uriInfo);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
         verifyNoInteractions(cuposCarreraDAO);
     }
 
@@ -161,7 +161,7 @@ class CuposCarreraResourceTest {
         Response response = resource.createCupo(entidad, uriInfo);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
         verifyNoInteractions(cuposCarreraDAO);
     }
 
@@ -172,7 +172,7 @@ class CuposCarreraResourceTest {
         Response response = resource.createCupo(entidad, uriInfo);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
         verifyNoInteractions(cuposCarreraDAO);
     }
 
@@ -183,7 +183,7 @@ class CuposCarreraResourceTest {
         Response response = resource.createCupo(entidad, uriInfo);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
         verifyNoInteractions(cuposCarreraDAO);
     }
 
@@ -195,7 +195,7 @@ class CuposCarreraResourceTest {
         Response response = resource.createCupo(entidad, uriInfo);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
     }
 
     @Test
@@ -206,7 +206,7 @@ class CuposCarreraResourceTest {
         Response response = resource.createCupo(entidad, uriInfo);
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== getCupo (GET /{idPrueba}/{idCarrera}/{idEtapa}) ====================
@@ -228,7 +228,7 @@ class CuposCarreraResourceTest {
         Response response = resource.getCupo(idPrueba.toString(), idCarrera, idEtapa.toString());
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
     }
 
     @Test
@@ -255,7 +255,7 @@ class CuposCarreraResourceTest {
         Response response = resource.getCupo(idPrueba.toString(), idCarrera, idEtapa.toString());
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== updateCupo (PUT /{idPrueba}/{idCarrera}/{idEtapa}) ====================
@@ -292,7 +292,7 @@ class CuposCarreraResourceTest {
                 idPrueba.toString(), idCarrera, idEtapa.toString(), datosActualizacion);
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
         verify(cuposCarreraDAO, never()).actualizar(any());
     }
 
@@ -304,7 +304,7 @@ class CuposCarreraResourceTest {
                 idPrueba.toString(), idCarrera, idEtapa.toString(), null);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
         verify(cuposCarreraDAO, never()).actualizar(any());
     }
 
@@ -318,7 +318,7 @@ class CuposCarreraResourceTest {
                 idPrueba.toString(), idCarrera, idEtapa.toString(), sinCupos);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
         verify(cuposCarreraDAO, never()).actualizar(any());
     }
 
@@ -364,7 +364,7 @@ class CuposCarreraResourceTest {
                 idPrueba.toString(), idCarrera, idEtapa.toString(), datosActualizacion);
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== deleteCupo (DELETE /{idPrueba}/{idCarrera}/{idEtapa}) ====================
@@ -386,7 +386,7 @@ class CuposCarreraResourceTest {
         Response response = resource.deleteCupo(idPrueba.toString(), idCarrera, idEtapa.toString());
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
         verify(cuposCarreraDAO, never()).eliminar(any());
     }
 
@@ -395,7 +395,7 @@ class CuposCarreraResourceTest {
         Response response = resource.deleteCupo("no-es-uuid", idCarrera, idEtapa.toString());
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
         verifyNoInteractions(cuposCarreraDAO);
     }
 
@@ -407,6 +407,6 @@ class CuposCarreraResourceTest {
         Response response = resource.deleteCupo(idPrueba.toString(), idCarrera, idEtapa.toString());
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 }

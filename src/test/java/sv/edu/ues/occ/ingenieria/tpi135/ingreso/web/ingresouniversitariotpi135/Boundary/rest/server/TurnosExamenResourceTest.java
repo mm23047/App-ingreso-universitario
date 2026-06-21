@@ -64,7 +64,7 @@ class TurnosExamenResourceTest {
 
         assertEquals(200, response.getStatus());
         assertNotNull(response.getEntity());
-        assertEquals("1", response.getHeaderString("Total-records"));
+        assertEquals("1", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
         verify(turnosExamenDAO).count();
         verify(turnosExamenDAO).findRange(0, 10);
     }
@@ -77,7 +77,7 @@ class TurnosExamenResourceTest {
         Response response = resource.listTurnos(0, 10);
 
         assertEquals(200, response.getStatus());
-        assertEquals("0", response.getHeaderString("Total-records"));
+        assertEquals("0", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
     }
 
     @Test
@@ -87,7 +87,7 @@ class TurnosExamenResourceTest {
         Response response = resource.listTurnos(0, 10);
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== getTurno (GET /{idTurno}) ====================
@@ -111,7 +111,7 @@ class TurnosExamenResourceTest {
         Response response = resource.getTurno(testId.toString());
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
     }
 
     @Test
@@ -129,7 +129,7 @@ class TurnosExamenResourceTest {
         Response response = resource.getTurno(testId.toString());
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== createTurno (POST /) ====================
@@ -166,7 +166,7 @@ class TurnosExamenResourceTest {
         Response response = resource.createTurno(null, uriInfo);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
         verifyNoInteractions(turnosExamenDAO);
     }
 
@@ -179,7 +179,7 @@ class TurnosExamenResourceTest {
         Response response = resource.createTurno(sinPrueba, uriInfo);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
         verifyNoInteractions(turnosExamenDAO);
     }
 
@@ -192,7 +192,7 @@ class TurnosExamenResourceTest {
         Response response = resource.createTurno(sinNombre, uriInfo);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
         verifyNoInteractions(turnosExamenDAO);
     }
 
@@ -211,6 +211,49 @@ class TurnosExamenResourceTest {
     }
 
     @Test
+    void create_ConNombreTurnoEnBlanco_DebeRetornar400() {
+        TurnosExamen conBlanco = new TurnosExamen();
+        conBlanco.setNombreTurno("   ");
+        conBlanco.setPruebaAdmision(new PruebasAdmision());
+
+        Response response = resource.createTurno(conBlanco, uriInfo);
+
+        assertEquals(400, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
+        verifyNoInteractions(turnosExamenDAO);
+    }
+
+    @Test
+    void create_ConHoraInicioIgualAHoraFin_DebeRetornar400() {
+        TurnosExamen horasIguales = new TurnosExamen();
+        horasIguales.setNombreTurno("Turno Iguales");
+        horasIguales.setPruebaAdmision(new PruebasAdmision());
+        horasIguales.setHoraInicio(LocalTime.of(10, 0));
+        horasIguales.setHoraFin(LocalTime.of(10, 0));
+
+        Response response = resource.createTurno(horasIguales, uriInfo);
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(turnosExamenDAO);
+    }
+
+    @Test
+    void create_ConTraslapeEnDAO_DebeRetornar409() {
+        TurnosExamen nuevo = new TurnosExamen();
+        nuevo.setNombreTurno("Turno Tarde");
+        nuevo.setPruebaAdmision(new PruebasAdmision());
+        nuevo.setHoraInicio(LocalTime.of(13, 0));
+        nuevo.setHoraFin(LocalTime.of(17, 0));
+        doThrow(new IllegalArgumentException("Existe traslape con otro turno"))
+                .when(turnosExamenDAO).crear(any());
+
+        Response response = resource.createTurno(nuevo, uriInfo);
+
+        assertEquals(409, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.CONFLICT_REASON));
+    }
+
+    @Test
     void create_ConExcepcionEnDAO_DebeRetornar500() {
         TurnosExamen nuevo = new TurnosExamen();
         nuevo.setNombreTurno("Turno Tarde");
@@ -220,7 +263,7 @@ class TurnosExamenResourceTest {
         Response response = resource.createTurno(nuevo, uriInfo);
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== updateTurno (PUT /{idTurno}) ====================
@@ -253,17 +296,44 @@ class TurnosExamenResourceTest {
         Response response = resource.updateTurno(testId.toString(), entidad);
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
     }
 
     @Test
-    void update_ConExcepcionEnDAO_DebeRetornar500() {
+    void update_ConIllegalArgumentEnActualizar_DebeRetornar409() {
+        when(turnosExamenDAO.leer(testId)).thenReturn(entidad);
+        TurnosExamen datos = new TurnosExamen();
+        datos.setNombreTurno("Actualizado");
+        when(turnosExamenDAO.actualizar(datos))
+                .thenThrow(new IllegalArgumentException("Traslape de horarios"));
+
+        Response response = resource.updateTurno(testId.toString(), datos);
+
+        assertEquals(409, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.CONFLICT_REASON));
+    }
+
+    @Test
+    void update_ConExcepcionEnLeer_DebeRetornar500() {
         when(turnosExamenDAO.leer(testId)).thenThrow(new RuntimeException("Error de BD"));
 
         Response response = resource.updateTurno(testId.toString(), entidad);
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+    }
+
+    @Test
+    void update_ConExcepcionEnActualizar_DebeRetornar500() {
+        when(turnosExamenDAO.leer(testId)).thenReturn(entidad);
+        TurnosExamen datos = new TurnosExamen();
+        datos.setNombreTurno("Nuevo");
+        when(turnosExamenDAO.actualizar(datos)).thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.updateTurno(testId.toString(), datos);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== deleteTurno (DELETE /{idTurno}) ====================
@@ -294,7 +364,7 @@ class TurnosExamenResourceTest {
         Response response = resource.deleteTurno(testId.toString());
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
     }
 
     @Test
@@ -304,6 +374,6 @@ class TurnosExamenResourceTest {
         Response response = resource.deleteTurno(testId.toString());
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 }

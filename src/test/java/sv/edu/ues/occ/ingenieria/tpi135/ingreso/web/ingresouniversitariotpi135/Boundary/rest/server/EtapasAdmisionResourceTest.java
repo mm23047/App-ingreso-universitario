@@ -63,7 +63,7 @@ class EtapasAdmisionResourceTest {
 
         assertEquals(200, response.getStatus());
         assertNotNull(response.getEntity());
-        assertEquals("1", response.getHeaderString("Total-records"));
+        assertEquals("1", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
         verify(etapasAdmisionDAO).count();
         verify(etapasAdmisionDAO).findRange(0, 10);
     }
@@ -76,7 +76,7 @@ class EtapasAdmisionResourceTest {
         Response response = resource.listEtapas(0, 10);
 
         assertEquals(200, response.getStatus());
-        assertEquals("0", response.getHeaderString("Total-records"));
+        assertEquals("0", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
     }
 
     @Test
@@ -86,7 +86,7 @@ class EtapasAdmisionResourceTest {
         Response response = resource.listEtapas(0, 10);
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== PRUEBAS PARA getEtapa (GET /{idEtapa}) ====================
@@ -111,7 +111,7 @@ class EtapasAdmisionResourceTest {
         Response response = resource.getEtapa(testId.toString());
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
     }
 
     @Test
@@ -129,7 +129,7 @@ class EtapasAdmisionResourceTest {
         Response response = resource.getEtapa(testId.toString());
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== PRUEBAS PARA createEtapa (POST /) ====================
@@ -161,7 +161,7 @@ class EtapasAdmisionResourceTest {
         Response response = resource.createEtapa(null, uriInfo);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
         verifyNoInteractions(etapasAdmisionDAO);
     }
 
@@ -173,7 +173,7 @@ class EtapasAdmisionResourceTest {
         Response response = resource.createEtapa(sinNombre, uriInfo);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
         verifyNoInteractions(etapasAdmisionDAO);
     }
 
@@ -185,7 +185,7 @@ class EtapasAdmisionResourceTest {
         Response response = resource.createEtapa(sinCantidad, uriInfo);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
         verifyNoInteractions(etapasAdmisionDAO);
     }
 
@@ -198,8 +198,48 @@ class EtapasAdmisionResourceTest {
         Response response = resource.createEtapa(conCero, uriInfo);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
         verifyNoInteractions(etapasAdmisionDAO);
+    }
+
+    @Test
+    void create_ConNombreEnBlanco_DebeRetornar400() {
+        EtapasAdmision conBlanco = new EtapasAdmision();
+        conBlanco.setNombre("   ");
+        conBlanco.setCantidadPreguntasRequeridas(20);
+
+        Response response = resource.createEtapa(conBlanco, uriInfo);
+
+        assertEquals(400, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
+        verifyNoInteractions(etapasAdmisionDAO);
+    }
+
+    @Test
+    void create_ConCantidadPreguntasNegativa_DebeRetornar400() {
+        EtapasAdmision conNegativa = new EtapasAdmision();
+        conNegativa.setNombre("Etapa");
+        conNegativa.setCantidadPreguntasRequeridas(-5);
+
+        Response response = resource.createEtapa(conNegativa, uriInfo);
+
+        assertEquals(400, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
+        verifyNoInteractions(etapasAdmisionDAO);
+    }
+
+    @Test
+    void create_ConNombreDuplicado_DebeRetornar409() {
+        EtapasAdmision nueva = new EtapasAdmision();
+        nueva.setNombre("Etapa Preuniversitaria");
+        nueva.setCantidadPreguntasRequeridas(20);
+        doThrow(new IllegalArgumentException("Ya existe una etapa con ese nombre"))
+                .when(etapasAdmisionDAO).crear(any());
+
+        Response response = resource.createEtapa(nueva, uriInfo);
+
+        assertEquals(409, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.CONFLICT_REASON));
     }
 
     @Test
@@ -212,7 +252,7 @@ class EtapasAdmisionResourceTest {
         Response response = resource.createEtapa(nueva, uriInfo);
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== PRUEBAS PARA updateEtapa (PUT /{idEtapa}) ====================
@@ -247,17 +287,44 @@ class EtapasAdmisionResourceTest {
         Response response = resource.updateEtapa(testId.toString(), entidadPrueba);
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
     }
 
     @Test
-    void update_ConExcepcionEnDAO_DebeRetornar500() {
+    void update_ConIllegalArgumentEnActualizar_DebeRetornar409() {
+        when(etapasAdmisionDAO.leer(testId)).thenReturn(entidadPrueba);
+        EtapasAdmision datos = new EtapasAdmision();
+        datos.setNombre("Duplicada");
+        when(etapasAdmisionDAO.actualizar(datos))
+                .thenThrow(new IllegalArgumentException("Nombre duplicado"));
+
+        Response response = resource.updateEtapa(testId.toString(), datos);
+
+        assertEquals(409, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.CONFLICT_REASON));
+    }
+
+    @Test
+    void update_ConExcepcionEnLeer_DebeRetornar500() {
         when(etapasAdmisionDAO.leer(testId)).thenThrow(new RuntimeException("Error de BD"));
 
         Response response = resource.updateEtapa(testId.toString(), entidadPrueba);
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+    }
+
+    @Test
+    void update_ConExcepcionEnActualizar_DebeRetornar500() {
+        when(etapasAdmisionDAO.leer(testId)).thenReturn(entidadPrueba);
+        EtapasAdmision datos = new EtapasAdmision();
+        datos.setNombre("Nuevo");
+        when(etapasAdmisionDAO.actualizar(datos)).thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.updateEtapa(testId.toString(), datos);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== PRUEBAS PARA deleteEtapa (DELETE /{idEtapa}) ====================
@@ -288,7 +355,7 @@ class EtapasAdmisionResourceTest {
         Response response = resource.deleteEtapa(testId.toString());
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
     }
 
     @Test
@@ -298,6 +365,6 @@ class EtapasAdmisionResourceTest {
         Response response = resource.deleteEtapa(testId.toString());
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 }

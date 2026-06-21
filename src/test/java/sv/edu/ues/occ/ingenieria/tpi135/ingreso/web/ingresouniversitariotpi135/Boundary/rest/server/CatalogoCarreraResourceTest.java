@@ -59,7 +59,7 @@ class CatalogoCarreraResourceTest {
 
         assertEquals(200, response.getStatus());
         assertNotNull(response.getEntity());
-        assertEquals("1", response.getHeaderString("Total-records"));
+        assertEquals("1", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
         verify(catalogoCarreraDAO).count();
         verify(catalogoCarreraDAO).findRange(0, 10);
     }
@@ -72,7 +72,7 @@ class CatalogoCarreraResourceTest {
         Response response = resource.listCarreras(0, 10);
 
         assertEquals(200, response.getStatus());
-        assertEquals("0", response.getHeaderString("Total-records"));
+        assertEquals("0", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
     }
 
     @Test
@@ -82,7 +82,7 @@ class CatalogoCarreraResourceTest {
         Response response = resource.listCarreras(0, 10);
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== getCarrera (GET /{idCarrera}) ====================
@@ -106,7 +106,7 @@ class CatalogoCarreraResourceTest {
         Response response = resource.getCarrera("INEXISTENTE");
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
     }
 
     @Test
@@ -116,7 +116,7 @@ class CatalogoCarreraResourceTest {
         Response response = resource.getCarrera("ING");
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== createCarrera (POST /) ====================
@@ -141,7 +141,7 @@ class CatalogoCarreraResourceTest {
         Response response = resource.createCarrera(null, uriInfo);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
         verifyNoInteractions(catalogoCarreraDAO);
     }
 
@@ -153,7 +153,7 @@ class CatalogoCarreraResourceTest {
         Response response = resource.createCarrera(sinId, uriInfo);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
         verifyNoInteractions(catalogoCarreraDAO);
     }
 
@@ -166,8 +166,22 @@ class CatalogoCarreraResourceTest {
         Response response = resource.createCarrera(conIdVacio, uriInfo);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
         verifyNoInteractions(catalogoCarreraDAO);
+    }
+
+    @Test
+    void create_ConIdDuplicadoEnDAO_DebeRetornar409() {
+        CatalogoCarrera nueva = new CatalogoCarrera();
+        nueva.setIdCarrera("ING");
+        nueva.setNombreCatalogoCarrera("Duplicada");
+        doThrow(new IllegalArgumentException("Ya existe una carrera con ese ID"))
+                .when(catalogoCarreraDAO).crear(any());
+
+        Response response = resource.createCarrera(nueva, uriInfo);
+
+        assertEquals(409, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.CONFLICT_REASON));
     }
 
     @Test
@@ -180,7 +194,7 @@ class CatalogoCarreraResourceTest {
         Response response = resource.createCarrera(nueva, uriInfo);
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== updateCarrera (PUT /{idCarrera}) ====================
@@ -204,17 +218,30 @@ class CatalogoCarreraResourceTest {
         Response response = resource.updateCarrera("INEXISTENTE", entidad);
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
     }
 
     @Test
-    void update_ConExcepcionEnDAO_DebeRetornar500() {
+    void update_ConExcepcionEnLeer_DebeRetornar500() {
         when(catalogoCarreraDAO.leer("ING")).thenThrow(new RuntimeException("Error de BD"));
 
         Response response = resource.updateCarrera("ING", entidad);
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+    }
+
+    @Test
+    void update_ConExcepcionEnActualizar_DebeRetornar500() {
+        when(catalogoCarreraDAO.leer("ING")).thenReturn(entidad);
+        CatalogoCarrera datos = new CatalogoCarrera();
+        datos.setNombreCatalogoCarrera("Nuevo nombre");
+        when(catalogoCarreraDAO.actualizar(datos)).thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.updateCarrera("ING", datos);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== deleteCarrera (DELETE /{idCarrera}) ====================
@@ -236,7 +263,7 @@ class CatalogoCarreraResourceTest {
         Response response = resource.deleteCarrera("INEXISTENTE");
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
     }
 
     @Test
@@ -246,6 +273,6 @@ class CatalogoCarreraResourceTest {
         Response response = resource.deleteCarrera("ING");
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 }

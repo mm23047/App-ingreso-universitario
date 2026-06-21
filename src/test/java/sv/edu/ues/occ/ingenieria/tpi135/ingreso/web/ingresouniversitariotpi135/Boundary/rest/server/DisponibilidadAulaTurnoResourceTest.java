@@ -81,11 +81,30 @@ class DisponibilidadAulaTurnoResourceTest {
     }
 
     @Test
-    void listDisponibilidad_ConIdFormatoInvalido_Retorna400() {
+    void listDisponibilidad_ConIdAulaFormatoInvalido_Retorna400() {
         Response response = resource.listDisponibilidad("no-uuid", idTurnoStr, 0, 50);
 
         assertEquals(400, response.getStatus());
         verifyNoInteractions(disponibilidadDAO);
+    }
+
+    @Test
+    void listDisponibilidad_ConIdTurnoFormatoInvalido_Retorna400() {
+        Response response = resource.listDisponibilidad(idAulaStr, "no-uuid", 0, 50);
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(disponibilidadDAO);
+    }
+
+    @Test
+    void listDisponibilidad_ConExcepcionEnDAO_Retorna500() {
+        when(disponibilidadDAO.findFiltrado(any(), any(), anyInt(), anyInt()))
+                .thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.listDisponibilidad(idAulaStr, idTurnoStr, 0, 50);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== createDisponibilidad (POST /aulas/{idAula}/disponibilidad/{idTurno}) ====================
@@ -122,6 +141,19 @@ class DisponibilidadAulaTurnoResourceTest {
     }
 
     @Test
+    void createDisponibilidad_ConTurnoInexistente_Retorna404() {
+        Aula aula = new Aula();
+        aula.setIdAula(idAula);
+        when(aulaDAO.leer(idAula)).thenReturn(aula);
+        when(turnosDAO.leer(idTurno)).thenReturn(null);
+
+        Response response = resource.createDisponibilidad(idAulaStr, idTurnoStr, uriInfo);
+
+        assertEquals(404, response.getStatus());
+        verify(disponibilidadDAO, never()).crear(any());
+    }
+
+    @Test
     void createDisponibilidad_ConDuplicado_Retorna409() {
         Aula aula = new Aula();
         aula.setIdAula(idAula);
@@ -137,6 +169,24 @@ class DisponibilidadAulaTurnoResourceTest {
         assertEquals(409, response.getStatus());
         assertNotNull(response.getHeaderString(RestHeaders.CONFLICT_REASON));
         verify(disponibilidadDAO, never()).crear(any());
+    }
+
+    @Test
+    void createDisponibilidad_ConUuidInvalido_Retorna400() {
+        Response response = resource.createDisponibilidad("no-uuid", idTurnoStr, uriInfo);
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(aulaDAO, turnosDAO, disponibilidadDAO);
+    }
+
+    @Test
+    void createDisponibilidad_ConExcepcionEnDAO_Retorna500() {
+        when(aulaDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.createDisponibilidad(idAulaStr, idTurnoStr, uriInfo);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== deleteDisponibilidad (DELETE /aulas/{idAula}/disponibilidad/{idTurno}) ====================
@@ -163,10 +213,29 @@ class DisponibilidadAulaTurnoResourceTest {
     }
 
     @Test
-    void deleteDisponibilidad_ConIdFormatoInvalido_Retorna400() {
+    void deleteDisponibilidad_ConIdAulaFormatoInvalido_Retorna400() {
         Response response = resource.deleteDisponibilidad("no-uuid", idTurnoStr);
 
         assertEquals(400, response.getStatus());
         verifyNoInteractions(disponibilidadDAO);
+    }
+
+    @Test
+    void deleteDisponibilidad_ConIdTurnoFormatoInvalido_Retorna400() {
+        Response response = resource.deleteDisponibilidad(idAulaStr, "no-uuid");
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(disponibilidadDAO);
+    }
+
+    @Test
+    void deleteDisponibilidad_ConExcepcionEnDAO_Retorna500() {
+        when(disponibilidadDAO.leer(any(DisponibilidadAulaTurnoId.class)))
+                .thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.deleteDisponibilidad(idAulaStr, idTurnoStr);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 }
