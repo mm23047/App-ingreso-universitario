@@ -1,10 +1,9 @@
 package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Boundary.rest.server;
 
 import jakarta.ws.rs.core.Response;
-import org.junit.jupiter.api.BeforeEach;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
-import java.net.URI;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,6 +15,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.BancoRespuesta;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntaOpcion;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -24,11 +24,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-/**
- * Pruebas unitarias para BancoPreguntaResource.
- * NOTA: BancoPreguntaResource NO expone un endpoint POST al raíz (/preguntas).
- * Las preguntas se crean bajo un área mediante el endpoint de AreasConocimientoResource.
- */
 @ExtendWith(MockitoExtension.class)
 class BancoPreguntaResourceTest {
 
@@ -37,6 +32,12 @@ class BancoPreguntaResourceTest {
 
     @Mock
     private PreguntaOpcionDAO preguntaOpcionDAO;
+
+    @Mock
+    private UriInfo uriInfo;
+
+    @Mock
+    private UriBuilder uriBuilder;
 
     @InjectMocks
     private BancoPreguntaResource resource;
@@ -55,7 +56,7 @@ class BancoPreguntaResourceTest {
     // ==================== listPreguntas (GET /) ====================
 
     @Test
-    void findRange_ConParametrosValidos_DebeRetornar200ConLista() {
+    void listPreguntas_ConParametrosValidos_DebeRetornar200ConLista() {
         when(bancoPreguntaDAO.count()).thenReturn(1);
         when(bancoPreguntaDAO.findRange(0, 10)).thenReturn(List.of(entidad));
 
@@ -63,58 +64,57 @@ class BancoPreguntaResourceTest {
 
         assertEquals(200, response.getStatus());
         assertNotNull(response.getEntity());
-        assertEquals("1", response.getHeaderString("Total-records"));
-        verify(bancoPreguntaDAO).count();
+        assertEquals("1", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
         verify(bancoPreguntaDAO).findRange(0, 10);
+        verify(bancoPreguntaDAO).count();
     }
 
     @Test
-    void findRange_ConListaVacia_DebeRetornar200ConListaVacia() {
+    void listPreguntas_ConListaVacia_DebeRetornar200ConTotalCero() {
         when(bancoPreguntaDAO.count()).thenReturn(0);
         when(bancoPreguntaDAO.findRange(0, 10)).thenReturn(Collections.emptyList());
 
         Response response = resource.listPreguntas(0, 10);
 
         assertEquals(200, response.getStatus());
-        assertEquals("0", response.getHeaderString("Total-records"));
+        assertEquals("0", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
     }
 
     @Test
-    void findRange_ConExcepcionEnDAO_DebeRetornar500() {
+    void listPreguntas_ConExcepcionEnDAO_DebeRetornar500() {
         when(bancoPreguntaDAO.count()).thenThrow(new RuntimeException("Error de BD"));
 
         Response response = resource.listPreguntas(0, 10);
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== getPregunta (GET /{idPregunta}) ====================
 
     @Test
-    void findById_ConIdExistente_DebeRetornar200ConEntidad() {
+    void getPregunta_ConIdExistente_DebeRetornar200() {
         when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
 
         Response response = resource.getPregunta(testId.toString());
 
         assertEquals(200, response.getStatus());
-        BancoPregunta resultado = (BancoPregunta) response.getEntity();
-        assertEquals(testId, resultado.getIdBancoPregunta());
+        assertSame(entidad, response.getEntity());
         verify(bancoPreguntaDAO).leer(testId);
     }
 
     @Test
-    void findById_ConIdInexistente_DebeRetornar404() {
+    void getPregunta_ConIdInexistente_DebeRetornar404() {
         when(bancoPreguntaDAO.leer(testId)).thenReturn(null);
 
         Response response = resource.getPregunta(testId.toString());
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
     }
 
     @Test
-    void findById_ConIdFormatoInvalido_DebeRetornar400() {
+    void getPregunta_ConUuidInvalido_DebeRetornar400() {
         Response response = resource.getPregunta("no-es-uuid");
 
         assertEquals(400, response.getStatus());
@@ -122,62 +122,93 @@ class BancoPreguntaResourceTest {
     }
 
     @Test
-    void findById_ConExcepcionEnDAO_DebeRetornar500() {
+    void getPregunta_ConExcepcionEnDAO_DebeRetornar500() {
         when(bancoPreguntaDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
         Response response = resource.getPregunta(testId.toString());
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== updatePregunta (PUT /{idPregunta}) ====================
 
     @Test
-    void update_ConIdYEntidadValidos_DebeRetornar200() {
+    void updatePregunta_ConDatosValidos_DebeRetornar200() {
         when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
         BancoPregunta actualizada = new BancoPregunta();
         actualizada.setEnunciado("¿Cuánto es 3+3?");
+        when(bancoPreguntaDAO.actualizar(actualizada)).thenReturn(actualizada);
 
         Response response = resource.updatePregunta(testId.toString(), actualizada);
 
         assertEquals(200, response.getStatus());
+        assertSame(actualizada, response.getEntity());
+        assertEquals(testId, actualizada.getIdBancoPregunta());
         verify(bancoPreguntaDAO).actualizar(actualizada);
     }
 
     @Test
-    void update_ConIdFormatoInvalido_DebeRetornar409() {
-        // updatePregunta captura IllegalArgumentException (UUID inválido) → CONFLICT 409
-        Response response = resource.updatePregunta("no-es-uuid", entidad);
-
-        assertEquals(409, response.getStatus());
-        verifyNoInteractions(bancoPreguntaDAO);
-    }
-
-    @Test
-    void update_ConIdInexistente_DebeRetornar404() {
+    void updatePregunta_ConIdInexistente_DebeRetornar404() {
         when(bancoPreguntaDAO.leer(testId)).thenReturn(null);
 
         Response response = resource.updatePregunta(testId.toString(), entidad);
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
+        verify(bancoPreguntaDAO, never()).actualizar(any());
     }
 
     @Test
-    void update_ConExcepcionEnDAO_DebeRetornar500() {
-        when(bancoPreguntaDAO.leer(testId)).thenThrow(new RuntimeException("Error de BD"));
+    void updatePregunta_ConUuidInvalido_DebeRetornar409() {
+        Response response = resource.updatePregunta("no-es-uuid", entidad);
+
+        assertEquals(409, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.CONFLICT_REASON));
+        verifyNoInteractions(bancoPreguntaDAO);
+    }
+
+    @Test
+    void updatePregunta_ConIllegalArgumentEnActualizar_DebeRetornar409() {
+        when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
+        BancoPregunta datos = new BancoPregunta();
+        datos.setEnunciado("Duplicada");
+        when(bancoPreguntaDAO.actualizar(datos))
+                .thenThrow(new IllegalArgumentException("Ya existe una pregunta con ese enunciado"));
+
+        Response response = resource.updatePregunta(testId.toString(), datos);
+
+        assertEquals(409, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.CONFLICT_REASON));
+    }
+
+    @Test
+    void updatePregunta_ConExcepcionEnLeer_DebeRetornar500() {
+        when(bancoPreguntaDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
         Response response = resource.updatePregunta(testId.toString(), entidad);
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+    }
+
+    @Test
+    void updatePregunta_ConExcepcionEnActualizar_DebeRetornar500() {
+        when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
+        BancoPregunta datos = new BancoPregunta();
+        datos.setEnunciado("Nuevo enunciado");
+        when(bancoPreguntaDAO.actualizar(datos)).thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.updatePregunta(testId.toString(), datos);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== deletePregunta (DELETE /{idPregunta}) ====================
 
     @Test
-    void delete_ConIdExistente_SinOpciones_DebeRetornar204() {
+    void deletePregunta_SinOpciones_DebeRetornar204() {
         when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
         when(preguntaOpcionDAO.findByPregunta(testId)).thenReturn(Collections.emptyList());
 
@@ -188,56 +219,124 @@ class BancoPreguntaResourceTest {
     }
 
     @Test
-    void delete_ConIdExistente_ConOpciones_DebeRetornar409() {
+    void deletePregunta_ConOpcionesAsociadas_DebeRetornar409() {
         when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
-        when(preguntaOpcionDAO.findByPregunta(testId)).thenReturn(List.of(
-            new sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PreguntaOpcion()
-        ));
+        when(preguntaOpcionDAO.findByPregunta(testId)).thenReturn(List.of(new PreguntaOpcion()));
 
         Response response = resource.deletePregunta(testId.toString());
 
         assertEquals(409, response.getStatus());
-        assertNotNull(response.getHeaderString("Conflict-reason"));
+        assertNotNull(response.getHeaderString(RestHeaders.CONFLICT_REASON));
         verify(bancoPreguntaDAO, never()).eliminar(any());
     }
 
     @Test
-    void delete_ConIdFormatoInvalido_DebeRetornar500() {
-        // UUID.fromString("no-es-uuid") lanza IAE capturada por el handler de Exception → 500
-        Response response = resource.deletePregunta("no-es-uuid");
-
-        assertEquals(500, response.getStatus());
-        verifyNoInteractions(bancoPreguntaDAO);
-    }
-
-    @Test
-    void delete_ConIdInexistente_DebeRetornar404() {
+    void deletePregunta_ConIdInexistente_DebeRetornar404() {
         when(bancoPreguntaDAO.leer(testId)).thenReturn(null);
 
         Response response = resource.deletePregunta(testId.toString());
 
         assertEquals(404, response.getStatus());
-        assertNotNull(response.getHeaderString("Not-found-id"));
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
     }
 
     @Test
-    void delete_ConExcepcionEnDAO_DebeRetornar500() {
+    void deletePregunta_ConUuidInvalido_DebeRetornar500() {
+        Response response = resource.deletePregunta("no-es-uuid");
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+        verifyNoInteractions(bancoPreguntaDAO);
+    }
+
+    @Test
+    void deletePregunta_ConExcepcionEnDAO_DebeRetornar500() {
         when(bancoPreguntaDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
         Response response = resource.deletePregunta(testId.toString());
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+    }
+
+    // ==================== getOpcionesOfPregunta (GET /{idPregunta}/opciones) ====================
+
+    @Test
+    void getOpciones_ConPreguntaExistenteConOpciones_DebeRetornar200() {
+        when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
+        PreguntaOpcion op1 = new PreguntaOpcion();
+        op1.setIdPreguntaOpcion(UUID.randomUUID());
+        PreguntaOpcion op2 = new PreguntaOpcion();
+        op2.setIdPreguntaOpcion(UUID.randomUUID());
+        when(preguntaOpcionDAO.findByPregunta(testId)).thenReturn(List.of(op1, op2));
+
+        Response response = resource.getOpcionesOfPregunta(testId.toString(), 0, 50);
+
+        assertEquals(200, response.getStatus());
+        assertNotNull(response.getEntity());
+        assertEquals("2", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
+    }
+
+    @Test
+    void getOpciones_ConPreguntaExistenteSinOpciones_DebeRetornar200ConListaVacia() {
+        when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
+        when(preguntaOpcionDAO.findByPregunta(testId)).thenReturn(Collections.emptyList());
+
+        Response response = resource.getOpcionesOfPregunta(testId.toString(), 0, 50);
+
+        assertEquals(200, response.getStatus());
+        assertEquals("0", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
+    }
+
+    @Test
+    void getOpciones_ConPaginacion_DebeRetornarSubLista() {
+        when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
+        PreguntaOpcion op1 = new PreguntaOpcion();
+        PreguntaOpcion op2 = new PreguntaOpcion();
+        PreguntaOpcion op3 = new PreguntaOpcion();
+        when(preguntaOpcionDAO.findByPregunta(testId)).thenReturn(List.of(op1, op2, op3));
+
+        Response response = resource.getOpcionesOfPregunta(testId.toString(), 1, 1);
+
+        assertEquals(200, response.getStatus());
+        List<?> resultado = (List<?>) response.getEntity();
+        assertEquals(1, resultado.size());
+        assertEquals("3", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
+    }
+
+    @Test
+    void getOpciones_ConPreguntaInexistente_DebeRetornar404() {
+        when(bancoPreguntaDAO.leer(testId)).thenReturn(null);
+
+        Response response = resource.getOpcionesOfPregunta(testId.toString(), 0, 50);
+
+        assertEquals(404, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
+        verifyNoInteractions(preguntaOpcionDAO);
+    }
+
+    @Test
+    void getOpciones_ConUuidInvalido_DebeRetornar400() {
+        Response response = resource.getOpcionesOfPregunta("no-es-uuid", 0, 50);
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(bancoPreguntaDAO, preguntaOpcionDAO);
+    }
+
+    @Test
+    void getOpciones_ConExcepcionEnDAO_DebeRetornar500() {
+        when(bancoPreguntaDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.getOpcionesOfPregunta(testId.toString(), 0, 50);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== createOpcionInPregunta (POST /{idPregunta}/opciones) ====================
 
-    @Mock private UriInfo uriInfo;
-    @Mock private UriBuilder uriBuilder;
-
     @Test
-    void createOpcion_ConOpcionValida_DebeRetornar201() {
-        UUID opcionId = UUID.randomUUID();
+    void createOpcion_ConDatosValidos_DebeRetornar201() {
         BancoRespuesta respuesta = new BancoRespuesta();
         respuesta.setIdBancoRespuesta(UUID.randomUUID());
         PreguntaOpcion opcion = new PreguntaOpcion();
@@ -246,18 +345,19 @@ class BancoPreguntaResourceTest {
         when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
         doAnswer(inv -> {
             PreguntaOpcion op = inv.getArgument(0);
-            op.setIdPreguntaOpcion(opcionId);
+            op.setIdPreguntaOpcion(UUID.randomUUID());
             return null;
         }).when(preguntaOpcionDAO).crear(any(PreguntaOpcion.class));
         when(uriInfo.getBaseUriBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
-        when(uriBuilder.build(any())).thenReturn(URI.create("http://localhost/opciones/" + opcionId));
+        when(uriBuilder.build(any())).thenReturn(URI.create("http://localhost/opciones/1"));
 
         Response response = resource.createOpcionInPregunta(testId.toString(), opcion, uriInfo);
 
         assertEquals(201, response.getStatus());
+        assertNotNull(response.getEntity());
         verify(preguntaOpcionDAO).crear(opcion);
-        assertEquals(entidad, opcion.getBancoPregunta());
+        assertSame(entidad, opcion.getBancoPregunta());
     }
 
     @Test
@@ -265,18 +365,18 @@ class BancoPreguntaResourceTest {
         Response response = resource.createOpcionInPregunta(testId.toString(), null, uriInfo);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
-        verifyNoInteractions(preguntaOpcionDAO);
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
+        verifyNoInteractions(bancoPreguntaDAO, preguntaOpcionDAO);
     }
 
     @Test
     void createOpcion_SinRespuestaGlobal_DebeRetornar400() {
-        PreguntaOpcion opcionSinRespuesta = new PreguntaOpcion();
+        PreguntaOpcion sinRespuesta = new PreguntaOpcion();
 
-        Response response = resource.createOpcionInPregunta(testId.toString(), opcionSinRespuesta, uriInfo);
+        Response response = resource.createOpcionInPregunta(testId.toString(), sinRespuesta, uriInfo);
 
         assertEquals(400, response.getStatus());
-        assertNotNull(response.getHeaderString("Missing-parameter"));
+        assertNotNull(response.getHeaderString(RestHeaders.MISSING_PARAMETER));
         verifyNoInteractions(bancoPreguntaDAO, preguntaOpcionDAO);
     }
 
@@ -286,12 +386,57 @@ class BancoPreguntaResourceTest {
         respuesta.setIdBancoRespuesta(UUID.randomUUID());
         PreguntaOpcion opcion = new PreguntaOpcion();
         opcion.setIdRespuestaGlobal(respuesta);
-
         when(bancoPreguntaDAO.leer(testId)).thenReturn(null);
 
         Response response = resource.createOpcionInPregunta(testId.toString(), opcion, uriInfo);
 
         assertEquals(404, response.getStatus());
-        verifyNoInteractions(preguntaOpcionDAO);
+        verify(preguntaOpcionDAO, never()).crear(any());
+    }
+
+    @Test
+    void createOpcion_ConUuidPreguntaInvalido_DebeRetornar409() {
+        BancoRespuesta respuesta = new BancoRespuesta();
+        respuesta.setIdBancoRespuesta(UUID.randomUUID());
+        PreguntaOpcion opcion = new PreguntaOpcion();
+        opcion.setIdRespuestaGlobal(respuesta);
+
+        Response response = resource.createOpcionInPregunta("no-es-uuid", opcion, uriInfo);
+
+        assertEquals(409, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.CONFLICT_REASON));
+        verifyNoInteractions(bancoPreguntaDAO, preguntaOpcionDAO);
+    }
+
+    @Test
+    void createOpcion_ConIllegalArgumentEnDAO_DebeRetornar409() {
+        BancoRespuesta respuesta = new BancoRespuesta();
+        respuesta.setIdBancoRespuesta(UUID.randomUUID());
+        PreguntaOpcion opcion = new PreguntaOpcion();
+        opcion.setIdRespuestaGlobal(respuesta);
+        when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
+        doThrow(new IllegalArgumentException("Opción duplicada"))
+                .when(preguntaOpcionDAO).crear(any());
+
+        Response response = resource.createOpcionInPregunta(testId.toString(), opcion, uriInfo);
+
+        assertEquals(409, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.CONFLICT_REASON));
+    }
+
+    @Test
+    void createOpcion_ConExcepcionEnDAO_DebeRetornar500() {
+        BancoRespuesta respuesta = new BancoRespuesta();
+        respuesta.setIdBancoRespuesta(UUID.randomUUID());
+        PreguntaOpcion opcion = new PreguntaOpcion();
+        opcion.setIdRespuestaGlobal(respuesta);
+        when(bancoPreguntaDAO.leer(testId)).thenReturn(entidad);
+        doThrow(new RuntimeException("Error de BD"))
+                .when(preguntaOpcionDAO).crear(any());
+
+        Response response = resource.createOpcionInPregunta(testId.toString(), opcion, uriInfo);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 }

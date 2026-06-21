@@ -125,7 +125,7 @@ class PreguntasPorClaveResourceTest {
         Response response = resource.getPreguntasByClave(idClave.toString());
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== asignarPreguntaAClave (POST /{idClave}/preguntas) ====================
@@ -216,6 +216,173 @@ class PreguntasPorClaveResourceTest {
         verify(preguntasPorClaveDAO, never()).crear(any());
     }
 
+    @Test
+    void asignar_ConPreguntaInexistenteEnBanco_DebeRetornar404() {
+        when(clavesDAO.findByIdWithEtapa(idClave)).thenReturn(clave);
+        when(preguntasPorClaveDAO.countPreguntasByClave(idClave)).thenReturn(0L);
+        when(preguntasDAO.leer(idPregunta)).thenReturn(null);
+
+        PreguntasPorClaveResource.AsignarPreguntaDTO payload =
+            new PreguntasPorClaveResource.AsignarPreguntaDTO();
+        payload.setIdPregunta(idPregunta);
+
+        Response response = resource.asignarPreguntaAClave(idClave.toString(), payload, uriInfo);
+
+        assertEquals(404, response.getStatus());
+        verify(preguntasPorClaveDAO, never()).crear(any());
+    }
+
+    @Test
+    void asignar_ConUuidClaveInvalido_DebeRetornar400() {
+        PreguntasPorClaveResource.AsignarPreguntaDTO payload =
+            new PreguntasPorClaveResource.AsignarPreguntaDTO();
+        payload.setIdPregunta(idPregunta);
+
+        Response response = resource.asignarPreguntaAClave("no-es-uuid", payload, uriInfo);
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(clavesDAO, preguntasPorClaveDAO);
+    }
+
+    @Test
+    void asignar_ConExcepcionEnDAO_DebeRetornar500() {
+        when(clavesDAO.findByIdWithEtapa(any()))
+            .thenThrow(new RuntimeException("Error de BD"));
+
+        PreguntasPorClaveResource.AsignarPreguntaDTO payload =
+            new PreguntasPorClaveResource.AsignarPreguntaDTO();
+        payload.setIdPregunta(idPregunta);
+
+        Response response = resource.asignarPreguntaAClave(idClave.toString(), payload, uriInfo);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+    }
+
+    // ==================== asignarPreguntasMasivamente (POST /{idClave}/preguntas/masivo) ====================
+
+    @Test
+    void asignarMasivo_ConDatosValidos_DebeRetornar200() {
+        UUID idP1 = UUID.randomUUID();
+        UUID idP2 = UUID.randomUUID();
+
+        when(clavesDAO.findByIdWithEtapa(idClave)).thenReturn(clave);
+        when(preguntasPorClaveDAO.countPreguntasByClave(idClave)).thenReturn(0L);
+        when(preguntasPorClaveDAO.existsByClaveAndPregunta(eq(idClave), any())).thenReturn(false);
+
+        PreguntasPorClaveResource.AsignacionMasivaDTO payload =
+            new PreguntasPorClaveResource.AsignacionMasivaDTO();
+        payload.setIdsPreguntas(List.of(idP1, idP2));
+
+        Response response = resource.asignarPreguntasMasivamente(idClave.toString(), payload);
+
+        assertEquals(200, response.getStatus());
+        verify(preguntasPorClaveDAO, times(2)).crear(any(PreguntasPorClave.class));
+    }
+
+    @Test
+    void asignarMasivo_ConPayloadNulo_DebeRetornar400() {
+        Response response = resource.asignarPreguntasMasivamente(idClave.toString(), null);
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(clavesDAO, preguntasPorClaveDAO);
+    }
+
+    @Test
+    void asignarMasivo_ConListaVacia_DebeRetornar400() {
+        PreguntasPorClaveResource.AsignacionMasivaDTO payload =
+            new PreguntasPorClaveResource.AsignacionMasivaDTO();
+        payload.setIdsPreguntas(java.util.Collections.emptyList());
+
+        Response response = resource.asignarPreguntasMasivamente(idClave.toString(), payload);
+
+        assertEquals(400, response.getStatus());
+    }
+
+    @Test
+    void asignarMasivo_ConListaNula_DebeRetornar400() {
+        PreguntasPorClaveResource.AsignacionMasivaDTO payload =
+            new PreguntasPorClaveResource.AsignacionMasivaDTO();
+
+        Response response = resource.asignarPreguntasMasivamente(idClave.toString(), payload);
+
+        assertEquals(400, response.getStatus());
+    }
+
+    @Test
+    void asignarMasivo_ConClaveInexistente_DebeRetornar404() {
+        when(clavesDAO.findByIdWithEtapa(idClave)).thenReturn(null);
+
+        PreguntasPorClaveResource.AsignacionMasivaDTO payload =
+            new PreguntasPorClaveResource.AsignacionMasivaDTO();
+        payload.setIdsPreguntas(List.of(UUID.randomUUID()));
+
+        Response response = resource.asignarPreguntasMasivamente(idClave.toString(), payload);
+
+        assertEquals(404, response.getStatus());
+        verifyNoInteractions(preguntasPorClaveDAO);
+    }
+
+    @Test
+    void asignarMasivo_ConLimiteSuperado_DebeRetornar409() {
+        when(clavesDAO.findByIdWithEtapa(idClave)).thenReturn(clave);
+        when(preguntasPorClaveDAO.countPreguntasByClave(idClave)).thenReturn(9L);
+
+        PreguntasPorClaveResource.AsignacionMasivaDTO payload =
+            new PreguntasPorClaveResource.AsignacionMasivaDTO();
+        payload.setIdsPreguntas(List.of(UUID.randomUUID(), UUID.randomUUID()));
+
+        Response response = resource.asignarPreguntasMasivamente(idClave.toString(), payload);
+
+        assertEquals(409, response.getStatus());
+        verify(preguntasPorClaveDAO, never()).crear(any());
+    }
+
+    @Test
+    void asignarMasivo_IgnoraDuplicadosExistentes_DebeRetornar200() {
+        UUID idP1 = UUID.randomUUID();
+
+        when(clavesDAO.findByIdWithEtapa(idClave)).thenReturn(clave);
+        when(preguntasPorClaveDAO.countPreguntasByClave(idClave)).thenReturn(0L);
+        when(preguntasPorClaveDAO.existsByClaveAndPregunta(idClave, idP1)).thenReturn(true);
+
+        PreguntasPorClaveResource.AsignacionMasivaDTO payload =
+            new PreguntasPorClaveResource.AsignacionMasivaDTO();
+        payload.setIdsPreguntas(List.of(idP1));
+
+        Response response = resource.asignarPreguntasMasivamente(idClave.toString(), payload);
+
+        assertEquals(200, response.getStatus());
+        verify(preguntasPorClaveDAO, never()).crear(any());
+    }
+
+    @Test
+    void asignarMasivo_ConUuidClaveInvalido_DebeRetornar400() {
+        PreguntasPorClaveResource.AsignacionMasivaDTO payload =
+            new PreguntasPorClaveResource.AsignacionMasivaDTO();
+        payload.setIdsPreguntas(List.of(UUID.randomUUID()));
+
+        Response response = resource.asignarPreguntasMasivamente("no-es-uuid", payload);
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(clavesDAO, preguntasPorClaveDAO);
+    }
+
+    @Test
+    void asignarMasivo_ConExcepcionEnDAO_DebeRetornar500() {
+        when(clavesDAO.findByIdWithEtapa(any()))
+            .thenThrow(new RuntimeException("Error de BD"));
+
+        PreguntasPorClaveResource.AsignacionMasivaDTO payload =
+            new PreguntasPorClaveResource.AsignacionMasivaDTO();
+        payload.setIdsPreguntas(List.of(UUID.randomUUID()));
+
+        Response response = resource.asignarPreguntasMasivamente(idClave.toString(), payload);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+    }
+
     // ==================== desasignarPregunta (DELETE /{idClave}/preguntas/{idPregunta}) ====================
 
     @Test
@@ -257,6 +424,6 @@ class PreguntasPorClaveResourceTest {
             idClave.toString(), idPregunta.toString());
 
         assertEquals(500, response.getStatus());
-        assertNotNull(response.getHeaderString("Server-exception"));
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 }

@@ -25,15 +25,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-/**
- * Pruebas unitarias para AsignacionAulaAspiranteResource.
- * Endpoints:
- *   POST   /asignaciones_aula/inscripciones/{id}  → asignarAulaAspirante
- *   GET    /asignaciones_aula/disponibilidad/{idAula}/{idTurno}
- *   DELETE /asignaciones_aula/{idAsignacion}
- */
 @ExtendWith(MockitoExtension.class)
-class AsignacionAulaAspiranteResourceHardeningTest {
+class AsignacionAulaAspiranteResourceTest {
 
     @Mock
     private AsignacionAulaAspiranteDAO asignacionAulaAspiranteDAO;
@@ -56,86 +49,34 @@ class AsignacionAulaAspiranteResourceHardeningTest {
     private UUID idInscripcion;
     private UUID idAula;
     private UUID idTurno;
+    private InscripcionesPrueba inscripcion;
+    private DisponibilidadAulaTurno disponibilidad;
 
     @BeforeEach
     void setUp() {
         idInscripcion = UUID.randomUUID();
         idAula = UUID.randomUUID();
         idTurno = UUID.randomUUID();
-    }
 
-    // ==================== asignarAulaAspirante (POST /inscripciones/{id}) ====================
-
-    @Test
-    void asignar_ConPayloadNulo_DebeRetornar400() {
-        Response response = resource.asignarAulaAspirante(idInscripcion.toString(), null, uriInfo);
-
-        assertEquals(400, response.getStatus());
-        verifyNoInteractions(inscripcionesDAO, disponibilidadDAO, asignacionAulaAspiranteDAO);
-    }
-
-    @Test
-    void asignar_ConIdAulaNulo_DebeRetornar400() {
-        AsignacionAulaAspiranteResource.AsignacionRequest payload = new AsignacionAulaAspiranteResource.AsignacionRequest();
-        payload.setIdTurno(idTurno);
-        // idAula null
-
-        Response response = resource.asignarAulaAspirante(idInscripcion.toString(), payload, uriInfo);
-
-        assertEquals(400, response.getStatus());
-        verifyNoInteractions(inscripcionesDAO);
-    }
-
-    @Test
-    void asignar_ConIdTurnoNulo_DebeRetornar400() {
-        AsignacionAulaAspiranteResource.AsignacionRequest payload = new AsignacionAulaAspiranteResource.AsignacionRequest();
-        payload.setIdAula(idAula);
-        // idTurno null
-
-        Response response = resource.asignarAulaAspirante(idInscripcion.toString(), payload, uriInfo);
-
-        assertEquals(400, response.getStatus());
-        verifyNoInteractions(inscripcionesDAO);
-    }
-
-    @Test
-    void asignar_ConInscripcionInexistente_DebeRetornar404() {
-        AsignacionAulaAspiranteResource.AsignacionRequest payload = new AsignacionAulaAspiranteResource.AsignacionRequest();
-        payload.setIdAula(idAula);
-        payload.setIdTurno(idTurno);
-        when(inscripcionesDAO.leer(idInscripcion)).thenReturn(null);
-
-        Response response = resource.asignarAulaAspirante(idInscripcion.toString(), payload, uriInfo);
-
-        assertEquals(404, response.getStatus());
-        verifyNoInteractions(disponibilidadDAO, asignacionAulaAspiranteDAO);
-    }
-
-    @Test
-    void asignar_SinDisponibilidad_DebeRetornar400() {
-        AsignacionAulaAspiranteResource.AsignacionRequest payload = new AsignacionAulaAspiranteResource.AsignacionRequest();
-        payload.setIdAula(idAula);
-        payload.setIdTurno(idTurno);
-        InscripcionesPrueba inscripcion = new InscripcionesPrueba();
+        inscripcion = new InscripcionesPrueba();
         inscripcion.setIdInscripcionPrueba(idInscripcion);
 
-        when(inscripcionesDAO.leer(idInscripcion)).thenReturn(inscripcion);
-        when(disponibilidadDAO.findFiltrado(idAula, idTurno, 0, 1)).thenReturn(Collections.emptyList());
-
-        Response response = resource.asignarAulaAspirante(idInscripcion.toString(), payload, uriInfo);
-
-        assertEquals(400, response.getStatus());
-        verifyNoInteractions(asignacionAulaAspiranteDAO);
+        disponibilidad = new DisponibilidadAulaTurno();
     }
+
+    private AsignacionAulaAspiranteResource.AsignacionRequest crearPayload() {
+        AsignacionAulaAspiranteResource.AsignacionRequest payload =
+                new AsignacionAulaAspiranteResource.AsignacionRequest();
+        payload.setIdAula(idAula);
+        payload.setIdTurno(idTurno);
+        return payload;
+    }
+
+    // ==================== asignarAulaAspirante (POST /inscripciones/{idInscripcion}) ====================
 
     @Test
     void asignar_ConDatosValidos_DebeRetornar201() {
-        AsignacionAulaAspiranteResource.AsignacionRequest payload = new AsignacionAulaAspiranteResource.AsignacionRequest();
-        payload.setIdAula(idAula);
-        payload.setIdTurno(idTurno);
-        InscripcionesPrueba inscripcion = new InscripcionesPrueba();
-        inscripcion.setIdInscripcionPrueba(idInscripcion);
-        DisponibilidadAulaTurno disponibilidad = new DisponibilidadAulaTurno();
+        AsignacionAulaAspiranteResource.AsignacionRequest payload = crearPayload();
 
         when(inscripcionesDAO.leer(idInscripcion)).thenReturn(inscripcion);
         when(disponibilidadDAO.findFiltrado(idAula, idTurno, 0, 1)).thenReturn(List.of(disponibilidad));
@@ -151,49 +92,162 @@ class AsignacionAulaAspiranteResourceHardeningTest {
         Response response = resource.asignarAulaAspirante(idInscripcion.toString(), payload, uriInfo);
 
         assertEquals(201, response.getStatus());
+        assertNotNull(response.getEntity());
         verify(asignacionAulaAspiranteDAO).crear(any(AsignacionAulaAspirante.class));
     }
 
     @Test
-    void asignar_ConCapacidadExcedida_DebeRetornar409() {
-        AsignacionAulaAspiranteResource.AsignacionRequest payload = new AsignacionAulaAspiranteResource.AsignacionRequest();
-        payload.setIdAula(idAula);
-        payload.setIdTurno(idTurno);
-        InscripcionesPrueba inscripcion = new InscripcionesPrueba();
-        inscripcion.setIdInscripcionPrueba(idInscripcion);
-        DisponibilidadAulaTurno disponibilidad = new DisponibilidadAulaTurno();
+    void asignar_ConPayloadNulo_DebeRetornar400() {
+        Response response = resource.asignarAulaAspirante(idInscripcion.toString(), null, uriInfo);
 
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(inscripcionesDAO, disponibilidadDAO, asignacionAulaAspiranteDAO);
+    }
+
+    @Test
+    void asignar_ConIdAulaNulo_DebeRetornar400() {
+        AsignacionAulaAspiranteResource.AsignacionRequest payload =
+                new AsignacionAulaAspiranteResource.AsignacionRequest();
+        payload.setIdTurno(idTurno);
+
+        Response response = resource.asignarAulaAspirante(idInscripcion.toString(), payload, uriInfo);
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(inscripcionesDAO);
+    }
+
+    @Test
+    void asignar_ConIdTurnoNulo_DebeRetornar400() {
+        AsignacionAulaAspiranteResource.AsignacionRequest payload =
+                new AsignacionAulaAspiranteResource.AsignacionRequest();
+        payload.setIdAula(idAula);
+
+        Response response = resource.asignarAulaAspirante(idInscripcion.toString(), payload, uriInfo);
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(inscripcionesDAO);
+    }
+
+    @Test
+    void asignar_ConInscripcionInexistente_DebeRetornar404() {
+        AsignacionAulaAspiranteResource.AsignacionRequest payload = crearPayload();
+        when(inscripcionesDAO.leer(idInscripcion)).thenReturn(null);
+
+        Response response = resource.asignarAulaAspirante(idInscripcion.toString(), payload, uriInfo);
+
+        assertEquals(404, response.getStatus());
+        verifyNoInteractions(disponibilidadDAO, asignacionAulaAspiranteDAO);
+    }
+
+    @Test
+    void asignar_SinDisponibilidadAulaTurno_DebeRetornar400() {
+        AsignacionAulaAspiranteResource.AsignacionRequest payload = crearPayload();
+        when(inscripcionesDAO.leer(idInscripcion)).thenReturn(inscripcion);
+        when(disponibilidadDAO.findFiltrado(idAula, idTurno, 0, 1)).thenReturn(Collections.emptyList());
+
+        Response response = resource.asignarAulaAspirante(idInscripcion.toString(), payload, uriInfo);
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(asignacionAulaAspiranteDAO);
+    }
+
+    @Test
+    void asignar_ConCapacidadExcedida_DebeRetornar409() {
+        AsignacionAulaAspiranteResource.AsignacionRequest payload = crearPayload();
         when(inscripcionesDAO.leer(idInscripcion)).thenReturn(inscripcion);
         when(disponibilidadDAO.findFiltrado(idAula, idTurno, 0, 1)).thenReturn(List.of(disponibilidad));
         doThrow(new IllegalStateException("El aula seleccionada ha alcanzado su capacidad máxima"))
-            .when(asignacionAulaAspiranteDAO).crear(any());
+                .when(asignacionAulaAspiranteDAO).crear(any());
 
         Response response = resource.asignarAulaAspirante(idInscripcion.toString(), payload, uriInfo);
 
         assertEquals(409, response.getStatus());
     }
 
-    // ==================== getAsignacionesPorAulaYTurno (GET /disponibilidad/{idAula}/{idTurno}) ====================
-
     @Test
-    void getAsignaciones_ConParametrosValidos_DebeRetornar200() {
-        when(asignacionAulaAspiranteDAO.findByAulaAndTurno(idAula, idTurno, 0, 50))
-            .thenReturn(Collections.emptyList());
-        when(asignacionAulaAspiranteDAO.countByAulaAndTurno(idAula, idTurno)).thenReturn(0L);
+    void asignar_ConUuidInscripcionInvalido_DebeRetornar400() {
+        AsignacionAulaAspiranteResource.AsignacionRequest payload = crearPayload();
 
-        Response response = resource.getAsignacionesPorAulaYTurno(
-            idAula.toString(), idTurno.toString(), 0, 50);
+        Response response = resource.asignarAulaAspirante("no-es-uuid", payload, uriInfo);
 
-        assertEquals(200, response.getStatus());
-        assertEquals("0", response.getHeaderString("Total-records"));
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(inscripcionesDAO, disponibilidadDAO, asignacionAulaAspiranteDAO);
     }
 
     @Test
-    void getAsignaciones_ConIdFormatoInvalido_DebeRetornar400() {
-        Response response = resource.getAsignacionesPorAulaYTurno("no-uuid", idTurno.toString(), 0, 50);
+    void asignar_ConExcepcionEnDAO_DebeRetornar500() {
+        AsignacionAulaAspiranteResource.AsignacionRequest payload = crearPayload();
+        when(inscripcionesDAO.leer(idInscripcion)).thenReturn(inscripcion);
+        when(disponibilidadDAO.findFiltrado(idAula, idTurno, 0, 1)).thenReturn(List.of(disponibilidad));
+        doThrow(new RuntimeException("Error de BD"))
+                .when(asignacionAulaAspiranteDAO).crear(any());
+
+        Response response = resource.asignarAulaAspirante(idInscripcion.toString(), payload, uriInfo);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+    }
+
+    // ==================== getAsignacionesPorAulaYTurno (GET /disponibilidad/{idAula}/{idTurno}) ====================
+
+    @Test
+    void getAsignaciones_ConParametrosValidos_DebeRetornar200ConLista() {
+        AsignacionAulaAspirante asignacion = new AsignacionAulaAspirante();
+        asignacion.setIdAsignacionAulaAspirante(UUID.randomUUID());
+        when(asignacionAulaAspiranteDAO.findByAulaAndTurno(idAula, idTurno, 0, 50))
+                .thenReturn(List.of(asignacion));
+        when(asignacionAulaAspiranteDAO.countByAulaAndTurno(idAula, idTurno)).thenReturn(1L);
+
+        Response response = resource.getAsignacionesPorAulaYTurno(
+                idAula.toString(), idTurno.toString(), 0, 50);
+
+        assertEquals(200, response.getStatus());
+        assertNotNull(response.getEntity());
+        assertEquals("1", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
+        verify(asignacionAulaAspiranteDAO).findByAulaAndTurno(idAula, idTurno, 0, 50);
+    }
+
+    @Test
+    void getAsignaciones_ConListaVacia_DebeRetornar200ConTotalCero() {
+        when(asignacionAulaAspiranteDAO.findByAulaAndTurno(idAula, idTurno, 0, 50))
+                .thenReturn(Collections.emptyList());
+        when(asignacionAulaAspiranteDAO.countByAulaAndTurno(idAula, idTurno)).thenReturn(0L);
+
+        Response response = resource.getAsignacionesPorAulaYTurno(
+                idAula.toString(), idTurno.toString(), 0, 50);
+
+        assertEquals(200, response.getStatus());
+        assertEquals("0", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
+    }
+
+    @Test
+    void getAsignaciones_ConIdAulaInvalido_DebeRetornar400() {
+        Response response = resource.getAsignacionesPorAulaYTurno(
+                "no-es-uuid", idTurno.toString(), 0, 50);
 
         assertEquals(400, response.getStatus());
         verifyNoInteractions(asignacionAulaAspiranteDAO);
+    }
+
+    @Test
+    void getAsignaciones_ConIdTurnoInvalido_DebeRetornar400() {
+        Response response = resource.getAsignacionesPorAulaYTurno(
+                idAula.toString(), "no-es-uuid", 0, 50);
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(asignacionAulaAspiranteDAO);
+    }
+
+    @Test
+    void getAsignaciones_ConExcepcionEnDAO_DebeRetornar500() {
+        when(asignacionAulaAspiranteDAO.findByAulaAndTurno(any(), any(), anyInt(), anyInt()))
+                .thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.getAsignacionesPorAulaYTurno(
+                idAula.toString(), idTurno.toString(), 0, 50);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 
     // ==================== deleteAsignacion (DELETE /{idAsignacion}) ====================
@@ -218,13 +272,27 @@ class AsignacionAulaAspiranteResourceHardeningTest {
         Response response = resource.deleteAsignacion(idAsignacion.toString());
 
         assertEquals(404, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.NOT_FOUND_ID));
+        verify(asignacionAulaAspiranteDAO, never()).eliminar(any());
     }
 
     @Test
-    void delete_ConIdFormatoInvalido_DebeRetornar400() {
+    void delete_ConUuidInvalido_DebeRetornar400() {
         Response response = resource.deleteAsignacion("no-es-uuid");
 
         assertEquals(400, response.getStatus());
         verifyNoInteractions(asignacionAulaAspiranteDAO);
+    }
+
+    @Test
+    void delete_ConExcepcionEnDAO_DebeRetornar500() {
+        UUID idAsignacion = UUID.randomUUID();
+        when(asignacionAulaAspiranteDAO.leer(any()))
+                .thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.deleteAsignacion(idAsignacion.toString());
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 }

@@ -36,26 +36,37 @@ class CarrerasElegidaResourceTest {
 
     @InjectMocks private CarrerasElegidaResource resource;
 
-    private InscripcionesPrueba testInscripcion;
+    private InscripcionesPrueba inscripcion;
     private UUID idInscripcion;
     private String idInscripcionStr;
+    private CatalogoCarrera carreraISI;
 
     @BeforeEach
     void setUp() {
         idInscripcion = UUID.randomUUID();
         idInscripcionStr = idInscripcion.toString();
-        testInscripcion = new InscripcionesPrueba();
-        testInscripcion.setIdInscripcionPrueba(idInscripcion);
+        inscripcion = new InscripcionesPrueba();
+        inscripcion.setIdInscripcionPrueba(idInscripcion);
+
+        carreraISI = new CatalogoCarrera();
+        carreraISI.setIdCarrera("ISI");
     }
 
-    // ==================== getCarrerasElegidas (GET /{idInscripcion}/carreras) ====================
+    private CarrerasElegida crearEleccion(String idCarrera, short prioridad) {
+        CatalogoCarrera cat = new CatalogoCarrera();
+        cat.setIdCarrera(idCarrera);
+        CarrerasElegida eleccion = new CarrerasElegida();
+        eleccion.setCatalogoCarrera(cat);
+        eleccion.setPrioridad(prioridad);
+        return eleccion;
+    }
+
+    // ==================== getCarrerasElegidas (GET /) ====================
 
     @Test
-    void getCarrerasElegidas_ConInscripcionExistente_Retorna200ConLista() {
-        CarrerasElegida carrera = new CarrerasElegida();
-        carrera.setPrioridad((short) 1);
-        List<CarrerasElegida> lista = List.of(carrera);
-        when(inscripcionesDAO.leer(idInscripcion)).thenReturn(testInscripcion);
+    void getCarreras_ConInscripcionExistente_DebeRetornar200ConLista() {
+        when(inscripcionesDAO.leer(idInscripcion)).thenReturn(inscripcion);
+        List<CarrerasElegida> lista = List.of(crearEleccion("ISI", (short) 1));
         when(carrerasElegidaDAO.findByInscripcionOrderByPrioridad(idInscripcion)).thenReturn(lista);
 
         Response response = resource.getCarrerasElegidas(idInscripcionStr);
@@ -65,8 +76,8 @@ class CarrerasElegidaResourceTest {
     }
 
     @Test
-    void getCarrerasElegidas_ConListaVacia_Retorna200() {
-        when(inscripcionesDAO.leer(idInscripcion)).thenReturn(testInscripcion);
+    void getCarreras_ConListaVacia_DebeRetornar200() {
+        when(inscripcionesDAO.leer(idInscripcion)).thenReturn(inscripcion);
         when(carrerasElegidaDAO.findByInscripcionOrderByPrioridad(idInscripcion)).thenReturn(Collections.emptyList());
 
         Response response = resource.getCarrerasElegidas(idInscripcionStr);
@@ -75,7 +86,7 @@ class CarrerasElegidaResourceTest {
     }
 
     @Test
-    void getCarrerasElegidas_ConInscripcionInexistente_Retorna404() {
+    void getCarreras_ConInscripcionInexistente_DebeRetornar404() {
         when(inscripcionesDAO.leer(idInscripcion)).thenReturn(null);
 
         Response response = resource.getCarrerasElegidas(idInscripcionStr);
@@ -85,32 +96,54 @@ class CarrerasElegidaResourceTest {
         verifyNoInteractions(carrerasElegidaDAO);
     }
 
-    // ==================== addCarreraElegida (POST /{idInscripcion}/carreras) ====================
+    @Test
+    void getCarreras_ConUuidInvalido_DebeRetornar400() {
+        Response response = resource.getCarrerasElegidas("no-es-uuid");
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(inscripcionesDAO, carrerasElegidaDAO);
+    }
 
     @Test
-    void addCarreraElegida_ConDatosValidos_Retorna201() {
-        CatalogoCarrera catalogo = new CatalogoCarrera();
-        catalogo.setIdCarrera("ISI");
-        CarrerasElegida nuevaEleccion = new CarrerasElegida();
-        nuevaEleccion.setCatalogoCarrera(catalogo);
-        nuevaEleccion.setPrioridad((short) 1);
+    void getCarreras_ConExcepcionEnDAO_DebeRetornar500() {
+        when(inscripcionesDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
 
-        when(inscripcionesDAO.leer(idInscripcion)).thenReturn(testInscripcion);
-        when(catalogoCarreraDAO.leer("ISI")).thenReturn(catalogo);
+        Response response = resource.getCarrerasElegidas(idInscripcionStr);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+    }
+
+    // ==================== addCarreraElegida (POST /) ====================
+
+    @Test
+    void addCarrera_ConDatosValidos_DebeRetornar201() {
+        CarrerasElegida nueva = crearEleccion("ISI", (short) 1);
+
+        when(inscripcionesDAO.leer(idInscripcion)).thenReturn(inscripcion);
+        when(catalogoCarreraDAO.leer("ISI")).thenReturn(carreraISI);
         when(carrerasElegidaDAO.existsByInscripcionAndCarrera(idInscripcion, "ISI")).thenReturn(false);
         when(carrerasElegidaDAO.existsByInscripcionAndPrioridad(idInscripcion, (short) 1)).thenReturn(false);
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
-        when(uriBuilder.build()).thenReturn(URI.create("http://localhost/inscripciones_prueba/1/carreras/ISI"));
+        when(uriBuilder.build()).thenReturn(URI.create("http://localhost/carreras/ISI"));
 
-        Response response = resource.addCarreraElegida(idInscripcionStr, nuevaEleccion, uriInfo);
+        Response response = resource.addCarreraElegida(idInscripcionStr, nueva, uriInfo);
 
         assertEquals(201, response.getStatus());
-        verify(carrerasElegidaDAO).crear(nuevaEleccion);
+        verify(carrerasElegidaDAO).crear(nueva);
     }
 
     @Test
-    void addCarreraElegida_SinCatalogoCarrera_Retorna400() {
+    void addCarrera_ConPayloadNulo_DebeRetornar400() {
+        Response response = resource.addCarreraElegida(idInscripcionStr, null, uriInfo);
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(inscripcionesDAO, carrerasElegidaDAO);
+    }
+
+    @Test
+    void addCarrera_SinCatalogoCarrera_DebeRetornar400() {
         CarrerasElegida sinCatalogo = new CarrerasElegida();
         sinCatalogo.setPrioridad((short) 1);
 
@@ -121,29 +154,52 @@ class CarrerasElegidaResourceTest {
     }
 
     @Test
-    void addCarreraElegida_SinPrioridad_Retorna400() {
-        CatalogoCarrera catalogo = new CatalogoCarrera();
-        catalogo.setIdCarrera("MED");
-        CarrerasElegida sinPrioridad = new CarrerasElegida();
-        sinPrioridad.setCatalogoCarrera(catalogo);
-        // prioridad null
+    void addCarrera_SinPrioridad_DebeRetornar400() {
+        CarrerasElegida sinPrioridad = crearEleccion("ISI", (short) 0);
+        sinPrioridad.setPrioridad(null);
 
         Response response = resource.addCarreraElegida(idInscripcionStr, sinPrioridad, uriInfo);
 
         assertEquals(400, response.getStatus());
-        verifyNoInteractions(inscripcionesDAO, carrerasElegidaDAO);
     }
 
     @Test
-    void addCarreraElegida_ConCarreraDuplicada_Retorna409() {
-        CatalogoCarrera catalogo = new CatalogoCarrera();
-        catalogo.setIdCarrera("ISI");
-        CarrerasElegida duplicada = new CarrerasElegida();
-        duplicada.setCatalogoCarrera(catalogo);
-        duplicada.setPrioridad((short) 2);
+    void addCarrera_ConPrioridadMenorA1_DebeRetornar400() {
+        CarrerasElegida prioridadInvalida = crearEleccion("ISI", (short) 0);
 
-        when(inscripcionesDAO.leer(idInscripcion)).thenReturn(testInscripcion);
-        when(catalogoCarreraDAO.leer("ISI")).thenReturn(catalogo);
+        Response response = resource.addCarreraElegida(idInscripcionStr, prioridadInvalida, uriInfo);
+
+        assertEquals(400, response.getStatus());
+    }
+
+    @Test
+    void addCarrera_ConInscripcionInexistente_DebeRetornar404() {
+        CarrerasElegida nueva = crearEleccion("ISI", (short) 1);
+        when(inscripcionesDAO.leer(idInscripcion)).thenReturn(null);
+
+        Response response = resource.addCarreraElegida(idInscripcionStr, nueva, uriInfo);
+
+        assertEquals(404, response.getStatus());
+        verifyNoInteractions(carrerasElegidaDAO);
+    }
+
+    @Test
+    void addCarrera_ConCarreraNoExisteEnCatalogo_DebeRetornar404() {
+        CarrerasElegida nueva = crearEleccion("XXX", (short) 1);
+        when(inscripcionesDAO.leer(idInscripcion)).thenReturn(inscripcion);
+        when(catalogoCarreraDAO.leer("XXX")).thenReturn(null);
+
+        Response response = resource.addCarreraElegida(idInscripcionStr, nueva, uriInfo);
+
+        assertEquals(404, response.getStatus());
+        verifyNoInteractions(carrerasElegidaDAO);
+    }
+
+    @Test
+    void addCarrera_ConCarreraDuplicada_DebeRetornar409() {
+        CarrerasElegida duplicada = crearEleccion("ISI", (short) 2);
+        when(inscripcionesDAO.leer(idInscripcion)).thenReturn(inscripcion);
+        when(catalogoCarreraDAO.leer("ISI")).thenReturn(carreraISI);
         when(carrerasElegidaDAO.existsByInscripcionAndCarrera(idInscripcion, "ISI")).thenReturn(true);
 
         Response response = resource.addCarreraElegida(idInscripcionStr, duplicada, uriInfo);
@@ -153,28 +209,88 @@ class CarrerasElegidaResourceTest {
         verify(carrerasElegidaDAO, never()).crear(any());
     }
 
-    // ==================== updatePrioridad (PUT /{idInscripcion}/carreras/{idCarrera}) ====================
+    @Test
+    void addCarrera_ConPrioridadOcupada_DebeRetornar409() {
+        CarrerasElegida nueva = crearEleccion("MED", (short) 1);
+        CatalogoCarrera carreraMED = new CatalogoCarrera();
+        carreraMED.setIdCarrera("MED");
+        when(inscripcionesDAO.leer(idInscripcion)).thenReturn(inscripcion);
+        when(catalogoCarreraDAO.leer("MED")).thenReturn(carreraMED);
+        when(carrerasElegidaDAO.existsByInscripcionAndCarrera(idInscripcion, "MED")).thenReturn(false);
+        when(carrerasElegidaDAO.existsByInscripcionAndPrioridad(idInscripcion, (short) 1)).thenReturn(true);
+
+        Response response = resource.addCarreraElegida(idInscripcionStr, nueva, uriInfo);
+
+        assertEquals(409, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.CONFLICT_REASON));
+        verify(carrerasElegidaDAO, never()).crear(any());
+    }
 
     @Test
-    void updatePrioridad_ConDatosValidos_Retorna200() {
-        String idCarrera = "ISI";
+    void addCarrera_ConUuidInvalido_DebeRetornar400() {
+        CarrerasElegida nueva = crearEleccion("ISI", (short) 1);
+
+        Response response = resource.addCarreraElegida("no-es-uuid", nueva, uriInfo);
+
+        assertEquals(400, response.getStatus());
+    }
+
+    @Test
+    void addCarrera_ConExcepcionEnDAO_DebeRetornar500() {
+        CarrerasElegida nueva = crearEleccion("ISI", (short) 1);
+        when(inscripcionesDAO.leer(any())).thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.addCarreraElegida(idInscripcionStr, nueva, uriInfo);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+    }
+
+    // ==================== updatePrioridad (PUT /{idCarrera}) ====================
+
+    @Test
+    void updatePrioridad_ConDatosValidos_DebeRetornar200() {
         CarrerasElegida existente = new CarrerasElegida();
         existente.setPrioridad((short) 1);
-        CarrerasElegida datosActualizacion = new CarrerasElegida();
-        datosActualizacion.setPrioridad((short) 2);
+        CarrerasElegida datos = new CarrerasElegida();
+        datos.setPrioridad((short) 2);
 
-        when(carrerasElegidaDAO.findByInscripcionAndCarrera(idInscripcion, idCarrera)).thenReturn(existente);
+        when(carrerasElegidaDAO.findByInscripcionAndCarrera(idInscripcion, "ISI")).thenReturn(existente);
         when(carrerasElegidaDAO.existsByInscripcionAndPrioridad(idInscripcion, (short) 2)).thenReturn(false);
         when(carrerasElegidaDAO.actualizar(existente)).thenReturn(existente);
 
-        Response response = resource.updatePrioridad(idInscripcionStr, idCarrera, datosActualizacion);
+        Response response = resource.updatePrioridad(idInscripcionStr, "ISI", datos);
 
         assertEquals(200, response.getStatus());
         verify(carrerasElegidaDAO).actualizar(existente);
     }
 
     @Test
-    void updatePrioridad_SinPrioridad_Retorna400() {
+    void updatePrioridad_ConMismaPrioridad_DebeRetornar200SinValidarColision() {
+        CarrerasElegida existente = new CarrerasElegida();
+        existente.setPrioridad((short) 1);
+        CarrerasElegida datos = new CarrerasElegida();
+        datos.setPrioridad((short) 1);
+
+        when(carrerasElegidaDAO.findByInscripcionAndCarrera(idInscripcion, "ISI")).thenReturn(existente);
+        when(carrerasElegidaDAO.actualizar(existente)).thenReturn(existente);
+
+        Response response = resource.updatePrioridad(idInscripcionStr, "ISI", datos);
+
+        assertEquals(200, response.getStatus());
+        verify(carrerasElegidaDAO, never()).existsByInscripcionAndPrioridad(any(), anyShort());
+    }
+
+    @Test
+    void updatePrioridad_ConPayloadNulo_DebeRetornar400() {
+        Response response = resource.updatePrioridad(idInscripcionStr, "ISI", null);
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(carrerasElegidaDAO);
+    }
+
+    @Test
+    void updatePrioridad_SinPrioridad_DebeRetornar400() {
         CarrerasElegida sinPrioridad = new CarrerasElegida();
 
         Response response = resource.updatePrioridad(idInscripcionStr, "ISI", sinPrioridad);
@@ -184,38 +300,213 @@ class CarrerasElegidaResourceTest {
     }
 
     @Test
-    void updatePrioridad_ConCarreraInexistente_Retorna404() {
-        CarrerasElegida datosActualizacion = new CarrerasElegida();
-        datosActualizacion.setPrioridad((short) 2);
-
+    void updatePrioridad_ConCarreraInexistente_DebeRetornar404() {
+        CarrerasElegida datos = new CarrerasElegida();
+        datos.setPrioridad((short) 2);
         when(carrerasElegidaDAO.findByInscripcionAndCarrera(idInscripcion, "ISI")).thenReturn(null);
 
-        Response response = resource.updatePrioridad(idInscripcionStr, "ISI", datosActualizacion);
+        Response response = resource.updatePrioridad(idInscripcionStr, "ISI", datos);
 
         assertEquals(404, response.getStatus());
     }
 
-    // ==================== deleteCarreraElegida (DELETE /{idInscripcion}/carreras/{idCarrera}) ====================
+    @Test
+    void updatePrioridad_ConColisionDePrioridades_DebeRetornar409() {
+        CarrerasElegida existente = new CarrerasElegida();
+        existente.setPrioridad((short) 1);
+        CarrerasElegida datos = new CarrerasElegida();
+        datos.setPrioridad((short) 2);
+
+        when(carrerasElegidaDAO.findByInscripcionAndCarrera(idInscripcion, "ISI")).thenReturn(existente);
+        when(carrerasElegidaDAO.existsByInscripcionAndPrioridad(idInscripcion, (short) 2)).thenReturn(true);
+
+        Response response = resource.updatePrioridad(idInscripcionStr, "ISI", datos);
+
+        assertEquals(409, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.CONFLICT_REASON));
+        verify(carrerasElegidaDAO, never()).actualizar(any());
+    }
 
     @Test
-    void deleteCarreraElegida_ConEntidadExistente_Retorna204() {
-        String idCarrera = "ARQ";
-        CarrerasElegida existente = new CarrerasElegida();
-        when(carrerasElegidaDAO.findByInscripcionAndCarrera(idInscripcion, idCarrera)).thenReturn(existente);
+    void updatePrioridad_ConUuidInvalido_DebeRetornar400() {
+        CarrerasElegida datos = new CarrerasElegida();
+        datos.setPrioridad((short) 2);
 
-        Response response = resource.deleteCarreraElegida(idInscripcionStr, idCarrera);
+        Response response = resource.updatePrioridad("no-es-uuid", "ISI", datos);
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(carrerasElegidaDAO);
+    }
+
+    @Test
+    void updatePrioridad_ConExcepcionEnDAO_DebeRetornar500() {
+        CarrerasElegida datos = new CarrerasElegida();
+        datos.setPrioridad((short) 2);
+        when(carrerasElegidaDAO.findByInscripcionAndCarrera(any(), any()))
+                .thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.updatePrioridad(idInscripcionStr, "ISI", datos);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+    }
+
+    // ==================== deleteCarreraElegida (DELETE /{idCarrera}) ====================
+
+    @Test
+    void deleteCarrera_ConEntidadExistente_DebeRetornar204() {
+        CarrerasElegida existente = new CarrerasElegida();
+        when(carrerasElegidaDAO.findByInscripcionAndCarrera(idInscripcion, "ARQ")).thenReturn(existente);
+
+        Response response = resource.deleteCarreraElegida(idInscripcionStr, "ARQ");
 
         assertEquals(204, response.getStatus());
         verify(carrerasElegidaDAO).eliminar(existente);
     }
 
     @Test
-    void deleteCarreraElegida_ConEntidadInexistente_Retorna404() {
+    void deleteCarrera_ConEntidadInexistente_DebeRetornar404() {
         when(carrerasElegidaDAO.findByInscripcionAndCarrera(idInscripcion, "ISI")).thenReturn(null);
 
         Response response = resource.deleteCarreraElegida(idInscripcionStr, "ISI");
 
         assertEquals(404, response.getStatus());
         verify(carrerasElegidaDAO, never()).eliminar(any());
+    }
+
+    @Test
+    void deleteCarrera_ConUuidInvalido_DebeRetornar400() {
+        Response response = resource.deleteCarreraElegida("no-es-uuid", "ISI");
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(carrerasElegidaDAO);
+    }
+
+    @Test
+    void deleteCarrera_ConExcepcionEnDAO_DebeRetornar500() {
+        when(carrerasElegidaDAO.findByInscripcionAndCarrera(any(), any()))
+                .thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.deleteCarreraElegida(idInscripcionStr, "ISI");
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+    }
+
+    // ==================== getPrimeraOpcion (GET /primera-opcion) ====================
+
+    @Test
+    void getPrimeraOpcion_ConOpcionRegistrada_DebeRetornar200() {
+        CarrerasElegida primera = crearEleccion("ISI", (short) 1);
+        when(carrerasElegidaDAO.findByInscripcionAndPrioridadLevel(idInscripcion, (short) 1))
+                .thenReturn(primera);
+
+        Response response = resource.getPrimeraOpcion(idInscripcionStr);
+
+        assertEquals(200, response.getStatus());
+        assertSame(primera, response.getEntity());
+    }
+
+    @Test
+    void getPrimeraOpcion_SinOpcionRegistrada_DebeRetornar404() {
+        when(carrerasElegidaDAO.findByInscripcionAndPrioridadLevel(idInscripcion, (short) 1))
+                .thenReturn(null);
+
+        Response response = resource.getPrimeraOpcion(idInscripcionStr);
+
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    void getPrimeraOpcion_ConUuidInvalido_DebeRetornar400() {
+        Response response = resource.getPrimeraOpcion("no-es-uuid");
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(carrerasElegidaDAO);
+    }
+
+    @Test
+    void getPrimeraOpcion_ConExcepcionEnDAO_DebeRetornar500() {
+        when(carrerasElegidaDAO.findByInscripcionAndPrioridadLevel(any(), anyShort()))
+                .thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.getPrimeraOpcion(idInscripcionStr);
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
+    }
+
+    // ==================== reordenarCarreras (PATCH /reordenar) ====================
+
+    @Test
+    void reordenar_ConOrdenValido_DebeRetornar200() {
+        CarrerasElegida c1 = crearEleccion("ISI", (short) 1);
+        CarrerasElegida c2 = crearEleccion("MED", (short) 2);
+        when(carrerasElegidaDAO.findByInscripcionOrderByPrioridad(idInscripcion))
+                .thenReturn(List.of(c1, c2))
+                .thenReturn(List.of(c2, c1));
+        when(carrerasElegidaDAO.actualizar(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        Response response = resource.reordenarCarreras(idInscripcionStr, List.of("MED", "ISI"));
+
+        assertEquals(200, response.getStatus());
+        verify(carrerasElegidaDAO, times(2)).actualizar(any());
+    }
+
+    @Test
+    void reordenar_ConListaNula_DebeRetornar400() {
+        Response response = resource.reordenarCarreras(idInscripcionStr, null);
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(carrerasElegidaDAO);
+    }
+
+    @Test
+    void reordenar_ConListaVacia_DebeRetornar400() {
+        Response response = resource.reordenarCarreras(idInscripcionStr, Collections.emptyList());
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(carrerasElegidaDAO);
+    }
+
+    @Test
+    void reordenar_ConCantidadIncorrecta_DebeRetornar400() {
+        CarrerasElegida c1 = crearEleccion("ISI", (short) 1);
+        when(carrerasElegidaDAO.findByInscripcionOrderByPrioridad(idInscripcion))
+                .thenReturn(List.of(c1));
+
+        Response response = resource.reordenarCarreras(idInscripcionStr, List.of("ISI", "MED"));
+
+        assertEquals(400, response.getStatus());
+    }
+
+    @Test
+    void reordenar_ConCarreraNoRegistrada_DebeRetornar400() {
+        CarrerasElegida c1 = crearEleccion("ISI", (short) 1);
+        when(carrerasElegidaDAO.findByInscripcionOrderByPrioridad(idInscripcion))
+                .thenReturn(List.of(c1));
+
+        Response response = resource.reordenarCarreras(idInscripcionStr, List.of("XXX"));
+
+        assertEquals(400, response.getStatus());
+    }
+
+    @Test
+    void reordenar_ConUuidInvalido_DebeRetornar400() {
+        Response response = resource.reordenarCarreras("no-es-uuid", List.of("ISI"));
+
+        assertEquals(400, response.getStatus());
+        verifyNoInteractions(carrerasElegidaDAO);
+    }
+
+    @Test
+    void reordenar_ConExcepcionEnDAO_DebeRetornar500() {
+        when(carrerasElegidaDAO.findByInscripcionOrderByPrioridad(any()))
+                .thenThrow(new RuntimeException("Error de BD"));
+
+        Response response = resource.reordenarCarreras(idInscripcionStr, List.of("ISI"));
+
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getHeaderString(RestHeaders.SERVER_EXCEPTION));
     }
 }
