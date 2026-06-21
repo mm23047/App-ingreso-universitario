@@ -1,4 +1,4 @@
-/*
+/*uso futuro
  * Pipeline del backend IngresoUniversitarioTPI135.
  *
  * Requisitos en el agente Jenkins:
