@@ -1,5 +1,5 @@
 /*
- * Pipeline del backend IngresoUniversitarioTPI135 2026S.
+ * Pipeline del backend IngresoUniversitarioTPI135.
  *
  * Requisitos en el agente Jenkins:
  *   - JDK 21 (o el mvnw lo resuelve via toolchain del agente)
