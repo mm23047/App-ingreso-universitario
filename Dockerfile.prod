@@ -1,4 +1,3 @@
-# 
 #── Imagen de despliegue real ───────────────────────────────────────────────
 # Reutiliza la imagen base de pruebas (Dockerfile) que ya trae JDK 21,
 # OpenLiberty jakartaee10 y el driver JDBC de PostgreSQL configurados.
