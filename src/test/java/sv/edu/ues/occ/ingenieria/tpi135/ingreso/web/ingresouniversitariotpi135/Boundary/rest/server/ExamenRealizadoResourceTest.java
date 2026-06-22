@@ -309,18 +309,28 @@ class ExamenRealizadoResourceTest {
 
     // ==================== getRanking (GET /ranking) ====================
 
-    @Test
+  @Test
     void getRanking_ConParametrosValidos_DebeRetornar200() {
-        UUID idPrueba = UUID.randomUUID();
-        when(examenRealizadoDAO.findRankingByPruebaAndEtapa(eq(idPrueba), eq(etapaId), eq(0), eq(20)))
-                .thenReturn(List.of(examen));
+    UUID idPrueba = UUID.randomUUID();
 
-        Response response = resource.getRanking(idPrueba.toString(), etapaId.toString(), 0, 20);
+    when(examenRealizadoDAO.findRankingByPruebaAndEtapa(
+            idPrueba,
+            etapaId,
+            0,
+            20))
+        .thenReturn(List.of(examen));
 
-        assertEquals(200, response.getStatus());
-        assertNotNull(response.getEntity());
-        assertEquals("1", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
-    }
+    Response response =
+            resource.getRanking(
+                    idPrueba.toString(),
+                    etapaId.toString(),
+                    0,
+                    20);
+
+    assertEquals(200, response.getStatus());
+    assertNotNull(response.getEntity());
+    assertEquals("1", response.getHeaderString(RestHeaders.TOTAL_RECORDS));
+}
 
     @Test
     void getRanking_SinIdPrueba_DebeRetornar400() {
