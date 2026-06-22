@@ -11,10 +11,12 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 public class TurnosExamenDAOIT extends AbstractBaseIT {
 
-    // Horario fijo y determinístico para los turnos de prueba.
-    // No se usa LocalTime.now(): si el pipeline corre cerca de medianoche,
-    // "now().plusHours(2)" puede envolver al día siguiente y producir
+    // Fecha y horario fijos y determinísticos para los turnos de prueba.
+    // No se usa el reloj del sistema (LocalDate.now() / LocalTime.now()):
+    // además de violar la regla SonarQube java:S8692, "now().plusHours(2)"
+    // puede envolver al día siguiente cerca de medianoche y producir
     // horaFin < horaInicio, violando la regla de negocio de forma intermitente.
+    private static final LocalDate FECHA_PRUEBA = LocalDate.of(2026, 1, 15);
     private static final LocalTime HORA_INICIO_PRUEBA = LocalTime.of(8, 0);
     private static final LocalTime HORA_FIN_PRUEBA = LocalTime.of(10, 0);
 
@@ -25,7 +27,7 @@ public class TurnosExamenDAOIT extends AbstractBaseIT {
         TurnosExamen turno = new TurnosExamen();
         turno.setNombreTurno(nombreTurno);
         turno.setPruebaAdmision(pruebaAdmision);
-        turno.setFecha(LocalDate.now());
+        turno.setFecha(FECHA_PRUEBA);
         turno.setHoraInicio(HORA_INICIO_PRUEBA);
         turno.setHoraFin(HORA_FIN_PRUEBA);
         return turno;
