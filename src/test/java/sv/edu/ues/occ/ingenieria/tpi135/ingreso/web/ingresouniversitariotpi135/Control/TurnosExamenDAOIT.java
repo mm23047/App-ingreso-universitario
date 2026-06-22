@@ -11,8 +11,24 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 public class TurnosExamenDAOIT extends AbstractBaseIT {
 
+    // Horario fijo y determinístico para los turnos de prueba.
+    // No se usa LocalTime.now(): si el pipeline corre cerca de medianoche,
+    // "now().plusHours(2)" puede envolver al día siguiente y producir
+    // horaFin < horaInicio, violando la regla de negocio de forma intermitente.
+    private static final LocalTime HORA_INICIO_PRUEBA = LocalTime.of(8, 0);
+    private static final LocalTime HORA_FIN_PRUEBA = LocalTime.of(10, 0);
 
     public TurnosExamenDAOIT() {
+    }
+
+    private static TurnosExamen construirTurnoValido(PruebasAdmision pruebaAdmision, String nombreTurno) {
+        TurnosExamen turno = new TurnosExamen();
+        turno.setNombreTurno(nombreTurno);
+        turno.setPruebaAdmision(pruebaAdmision);
+        turno.setFecha(LocalDate.now());
+        turno.setHoraInicio(HORA_INICIO_PRUEBA);
+        turno.setHoraFin(HORA_FIN_PRUEBA);
+        return turno;
     }
 
     @Test
@@ -66,12 +82,7 @@ public class TurnosExamenDAOIT extends AbstractBaseIT {
                     .getSingleResult();
             assertNotNull(pruebasAdmision);
 
-            TurnosExamen nuevoTurno = new TurnosExamen();
-            nuevoTurno.setNombreTurno("Turno Matutino");
-            nuevoTurno.setPruebaAdmision(pruebasAdmision);
-            nuevoTurno.setFecha(LocalDate.now());
-            nuevoTurno.setHoraInicio(LocalTime.now());
-            nuevoTurno.setHoraFin(LocalTime.now().plusHours(2));
+            TurnosExamen nuevoTurno = construirTurnoValido(pruebasAdmision, "Turno Matutino");
 
             // Creamos el nuevo turno
             cut.crear(nuevoTurno);
@@ -155,12 +166,7 @@ public class TurnosExamenDAOIT extends AbstractBaseIT {
                     .getSingleResult();
 
             // Creamos el dato temporal
-            TurnosExamen turnoTemporal = new TurnosExamen();
-            turnoTemporal.setNombreTurno("Turno Temporal a Eliminar");
-            turnoTemporal.setPruebaAdmision(pruebasAdmision);
-            turnoTemporal.setFecha(LocalDate.now());
-            turnoTemporal.setHoraInicio(LocalTime.now());
-            turnoTemporal.setHoraFin(LocalTime.now().plusHours(2));
+            TurnosExamen turnoTemporal = construirTurnoValido(pruebasAdmision, "Turno Temporal a Eliminar");
 
             cut.crear(turnoTemporal);
 
