@@ -730,8 +730,9 @@ class ExamenRealizadoDAOIT extends AbstractBaseIT {
             ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
             cut.em = em;
 
+            UUID idInscripcionInexistente = UUID.randomUUID();
             assertThrows(IllegalArgumentException.class,
-                    () -> cut.iniciarExamenAspirante(UUID.randomUUID(), ID_ETAPA_1));
+                    () -> cut.iniciarExamenAspirante(idInscripcionInexistente, ID_ETAPA_1));
             return null;
         });
     }

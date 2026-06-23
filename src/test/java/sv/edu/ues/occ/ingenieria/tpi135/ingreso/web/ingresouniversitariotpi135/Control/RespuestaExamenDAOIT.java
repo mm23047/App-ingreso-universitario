@@ -434,8 +434,6 @@ class RespuestaExamenDAOIT extends AbstractBaseIT {
 
             // Crear un examen con una sola respuesta para garantizar getSingleResult()
             ExamenRealizado examen = em.find(ExamenRealizado.class, ID_EXAMEN_1);
-            PreguntaOpcion opcion = em.find(PreguntaOpcion.class, ID_OPCION_7); // pregunta 55555555
-            BancoPregunta pregunta3 = em.find(BancoPregunta.class, ID_PREGUNTA_3);
             PreguntaOpcion opcionP3 = em.createQuery(
                     "SELECT po FROM PreguntaOpcion po WHERE po.bancoPregunta.idBancoPregunta = :idP",
                     PreguntaOpcion.class)
@@ -496,8 +494,10 @@ class RespuestaExamenDAOIT extends AbstractBaseIT {
             RespuestaExamenDAO cut = new RespuestaExamenDAO();
             cut.em = em;
 
+            UUID idExamenInexistente = UUID.randomUUID();
+            List<UUID> opciones = List.of(ID_OPCION_1);
             assertThrows(IllegalArgumentException.class,
-                    () -> cut.guardarLoteMejorado(UUID.randomUUID(), List.of(ID_OPCION_1)));
+                    () -> cut.guardarLoteMejorado(idExamenInexistente, opciones));
             return null;
         });
     }

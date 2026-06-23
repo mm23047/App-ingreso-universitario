@@ -361,8 +361,9 @@ class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
             assertThrows(IllegalArgumentException.class,
                     () -> cut.existsByInscripcionAndPrioridad(null, (short) 1));
+            UUID idAlAzar = UUID.randomUUID();
             assertThrows(IllegalArgumentException.class,
-                    () -> cut.existsByInscripcionAndPrioridad(UUID.randomUUID(), null));
+                    () -> cut.existsByInscripcionAndPrioridad(idAlAzar, null));
             assertThrows(IllegalArgumentException.class,
                     () -> cut.existsByInscripcionAndPrioridad(null, null));
 
@@ -399,10 +400,12 @@ class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
             assertThrows(IllegalArgumentException.class,
                     () -> cut.findByInscripcionAndCarrera(null, "ICS"));
+            UUID idAlAzar1 = UUID.randomUUID();
             assertThrows(IllegalArgumentException.class,
-                    () -> cut.findByInscripcionAndCarrera(UUID.randomUUID(), null));
+                    () -> cut.findByInscripcionAndCarrera(idAlAzar1, null));
+            UUID idAlAzar2 = UUID.randomUUID();
             assertThrows(IllegalArgumentException.class,
-                    () -> cut.findByInscripcionAndCarrera(UUID.randomUUID(), "   "));
+                    () -> cut.findByInscripcionAndCarrera(idAlAzar2, "   "));
 
             return null;
         });
@@ -420,10 +423,12 @@ class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
             assertThrows(IllegalArgumentException.class,
                     () -> cut.existsByInscripcionAndCarrera(null, "ICS"));
+            UUID idAlAzar1 = UUID.randomUUID();
             assertThrows(IllegalArgumentException.class,
-                    () -> cut.existsByInscripcionAndCarrera(UUID.randomUUID(), null));
+                    () -> cut.existsByInscripcionAndCarrera(idAlAzar1, null));
+            UUID idAlAzar2 = UUID.randomUUID();
             assertThrows(IllegalArgumentException.class,
-                    () -> cut.existsByInscripcionAndCarrera(UUID.randomUUID(), ""));
+                    () -> cut.existsByInscripcionAndCarrera(idAlAzar2, ""));
 
             return null;
         });
@@ -441,8 +446,9 @@ class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
             assertThrows(IllegalArgumentException.class,
                     () -> cut.findByInscripcionAndPrioridadLevel(null, (short) 1));
+            UUID idAlAzar = UUID.randomUUID();
             assertThrows(IllegalArgumentException.class,
-                    () -> cut.findByInscripcionAndPrioridadLevel(UUID.randomUUID(), null));
+                    () -> cut.findByInscripcionAndPrioridadLevel(idAlAzar, null));
 
             return null;
         });

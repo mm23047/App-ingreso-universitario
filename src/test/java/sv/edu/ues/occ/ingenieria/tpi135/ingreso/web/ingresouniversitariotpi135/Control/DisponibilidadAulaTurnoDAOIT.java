@@ -220,7 +220,8 @@ class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
             DisponibilidadAulaTurnoDAO cut = new DisponibilidadAulaTurnoDAO();
             cut.em = em;
 
-            assertThrows(IllegalArgumentException.class, () -> cut.leer(UUID.randomUUID()));
+            Object idInvalido = UUID.randomUUID();
+            assertThrows(IllegalArgumentException.class, () -> cut.leer(idInvalido));
             assertThrows(IllegalArgumentException.class, () -> cut.leer("id-invalido"));
             return null;
         });

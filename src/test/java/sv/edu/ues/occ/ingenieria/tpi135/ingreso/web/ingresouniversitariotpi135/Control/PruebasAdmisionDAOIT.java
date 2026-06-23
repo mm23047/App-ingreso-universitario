@@ -374,8 +374,9 @@ class PruebasAdmisionDAOIT extends AbstractBaseIT {
             PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
             cut.em = em;
 
+            UUID idInexistente = UUID.randomUUID();
             assertThrows(IllegalArgumentException.class,
-                    () -> cut.setPruebaActivaExclusiva(UUID.randomUUID()));
+                    () -> cut.setPruebaActivaExclusiva(idInexistente));
             return null;
         });
     }

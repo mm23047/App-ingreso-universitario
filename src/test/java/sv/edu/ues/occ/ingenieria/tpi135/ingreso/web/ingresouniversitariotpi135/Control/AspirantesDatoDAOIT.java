@@ -3,6 +3,7 @@ package sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.
 import org.junit.jupiter.api.Test;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.AspirantesDato;
 import java.time.LocalDate;
+import java.time.Month;
 
 import java.util.List;
 import java.util.UUID;
@@ -307,7 +308,7 @@ class AspirantesDatoDAOIT extends AbstractBaseIT {
             duplicado.setApellidos("Aspirante");
             duplicado.setDui("01234567-8"); // DUI de Carlos, ya existe
             duplicado.setCorreo("nuevo.unico@test.com");
-            duplicado.setFechaNacimiento(LocalDate.of(1990, 1, 1));
+            duplicado.setFechaNacimiento(LocalDate.of(1990, Month.JANUARY, 1));
             duplicado.setUsaSillaRuedas(false);
 
             ReglaNegocioException ex = assertThrows(ReglaNegocioException.class,
@@ -331,7 +332,7 @@ class AspirantesDatoDAOIT extends AbstractBaseIT {
             duplicado.setApellidos("Aspirante");
             duplicado.setDui("11111111-1"); // DUI unico
             duplicado.setCorreo("carlos.ramirez@gmail.com"); // Correo de Carlos, ya existe
-            duplicado.setFechaNacimiento(LocalDate.of(1990, 1, 1));
+            duplicado.setFechaNacimiento(LocalDate.of(1990, Month.JANUARY, 1));
             duplicado.setUsaSillaRuedas(false);
 
             ReglaNegocioException ex = assertThrows(ReglaNegocioException.class,
@@ -355,7 +356,7 @@ class AspirantesDatoDAOIT extends AbstractBaseIT {
             menor.setApellidos("De Edad");
             menor.setDui("55555555-5");
             menor.setCorreo("menor@test.com");
-            menor.setFechaNacimiento(LocalDate.of(2015, 1, 1)); // 11 años en 2026
+            menor.setFechaNacimiento(LocalDate.of(2015, Month.JANUARY, 1)); // 11 años en 2026
             menor.setUsaSillaRuedas(false);
 
             ReglaNegocioException ex = assertThrows(ReglaNegocioException.class,
@@ -395,7 +396,7 @@ class AspirantesDatoDAOIT extends AbstractBaseIT {
             sinId.setApellidos("Test");
             sinId.setDui("44444444-4");
             sinId.setCorreo("sinid@test.com");
-            sinId.setFechaNacimiento(LocalDate.of(1990, 1, 1));
+            sinId.setFechaNacimiento(LocalDate.of(1990, Month.JANUARY, 1));
             sinId.setUsaSillaRuedas(false);
 
             assertThrows(IllegalArgumentException.class, () -> cut.actualizar(sinId));
