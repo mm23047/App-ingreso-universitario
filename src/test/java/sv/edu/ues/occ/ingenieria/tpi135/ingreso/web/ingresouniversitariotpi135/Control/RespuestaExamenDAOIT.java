@@ -404,4 +404,158 @@ public class RespuestaExamenDAOIT extends AbstractBaseIT {
             return null;
         });
     }
+
+    // ===================== COBERTURA FALTANTE =====================
+
+    @Test
+    @Order(19)
+    public void testLeerNulo() {
+        System.out.println("RespuestaExamenDAOIT.leer() - null");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.leer(null));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(20)
+    public void testFindByExamenAndPreguntaExiste() {
+        System.out.println("RespuestaExamenDAOIT.findByExamenAndPregunta() - resultado existe");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
+            cut.em = em;
+
+            // Crear un examen con una sola respuesta para garantizar getSingleResult()
+            ExamenRealizado examen = em.find(ExamenRealizado.class, ID_EXAMEN_1);
+            PreguntaOpcion opcion = em.find(PreguntaOpcion.class, ID_OPCION_7); // pregunta 55555555
+            BancoPregunta pregunta3 = em.find(BancoPregunta.class, ID_PREGUNTA_3);
+            PreguntaOpcion opcionP3 = em.createQuery(
+                    "SELECT po FROM PreguntaOpcion po WHERE po.bancoPregunta.idBancoPregunta = :idP",
+                    PreguntaOpcion.class)
+                    .setParameter("idP", ID_PREGUNTA_3)
+                    .setMaxResults(1)
+                    .getSingleResult();
+
+            // Crear una sola respuesta para examen1 + pregunta3
+            RespuestaExamen nueva = new RespuestaExamen();
+            nueva.setExamenRealizado(examen);
+            nueva.setPreguntaOpcion(opcionP3);
+            em.persist(nueva);
+            em.flush();
+
+            // Buscar la respuesta recién creada
+            RespuestaExamen resultado = cut.findByExamenAndPregunta(ID_EXAMEN_1, ID_PREGUNTA_3);
+
+            assertNotNull(resultado, "Debe encontrar la respuesta existente");
+            assertEquals(ID_EXAMEN_1, resultado.getExamenRealizado().getIdExamenRealizado());
+            assertNotNull(resultado.getPreguntaOpcion());
+            return null;
+        });
+    }
+
+    @Test
+    @Order(21)
+    public void testGuardarLoteMejoradoNuloOVacio() {
+        System.out.println("RespuestaExamenDAOIT.guardarLoteMejorado() - null/vacio");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
+            cut.em = em;
+
+            // null idExamen → no-op (return silencioso)
+            cut.guardarLoteMejorado(null, List.of(UUID.randomUUID()));
+            assertEquals(4, cut.count());
+
+            // null lista → no-op
+            cut.guardarLoteMejorado(ID_EXAMEN_1, null);
+            assertEquals(4, cut.count());
+
+            // lista vacía → no-op
+            cut.guardarLoteMejorado(ID_EXAMEN_1, List.of());
+            assertEquals(4, cut.count());
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(22)
+    public void testGuardarLoteMejoradoExamenInexistente() {
+        System.out.println("RespuestaExamenDAOIT.guardarLoteMejorado() - examen inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.guardarLoteMejorado(UUID.randomUUID(), List.of(ID_OPCION_1)));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(23)
+    public void testGuardarLoteMejoradoInsert() {
+        System.out.println("RespuestaExamenDAOIT.guardarLoteMejorado() - INSERT nuevas respuestas");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
+            cut.em = em;
+
+            // Examen 1 tiene 2 respuestas (pregunta1→opcion cccc, pregunta1→opcion bbbb)
+            // ID_OPCION_7 (eeeeeeee) es de pregunta 55555555 que ya tiene respuestas en examen1
+            // Usamos examen2 que tiene respuestas para preguntas f1000000...001
+            // La opcion eeeeeeee pertenece a pregunta 55555555 → no existe en examen2
+            cut.guardarLoteMejorado(ID_EXAMEN_2, List.of(ID_OPCION_7));
+
+            // Debe haber insertado 1 nueva respuesta: 4 + 1 = 5
+            // Nota: em fue cleared por guardarLoteMejorado, re-query
+            Long total = em.createQuery("SELECT COUNT(r) FROM RespuestaExamen r", Long.class)
+                    .getSingleResult();
+            assertEquals(5L, total);
+
+            return null;
+        });
+
+        // Verificar rollback
+        ejecutarEnTransaccion(em -> {
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
+            cut.em = em;
+            assertEquals(4, cut.count());
+            return null;
+        });
+    }
+
+    @Test
+    @Order(24)
+    public void testGuardarLoteMejoradoUpdate() {
+        System.out.println("RespuestaExamenDAOIT.guardarLoteMejorado() - UPDATE respuesta existente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
+            cut.em = em;
+
+            // Examen 1 ya tiene respuesta para pregunta 55555555 con opcion cccccccc
+            // Enviar opcion bbbbbbbb (misma pregunta 55555555) → debe hacer UPDATE
+            cut.guardarLoteMejorado(ID_EXAMEN_1, List.of(ID_OPCION_1));
+
+            // El count no cambia (fue UPDATE, no INSERT)
+            Long total = em.createQuery("SELECT COUNT(r) FROM RespuestaExamen r", Long.class)
+                    .getSingleResult();
+            assertEquals(4L, total);
+
+            return null;
+        });
+    }
 }

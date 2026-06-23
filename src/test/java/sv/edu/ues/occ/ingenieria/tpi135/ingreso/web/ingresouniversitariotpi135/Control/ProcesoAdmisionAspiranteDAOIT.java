@@ -548,4 +548,54 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             return null;
         });
     }
+
+    @Test
+    @Order(16)
+    public void testLeerNulo() {
+        System.out.println("ProcesoAdmisionAspiranteDAOIT.leer() - null");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.leer(null));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(17)
+    public void testProcesarAsignacionMasivaEtapaSinPendientes() {
+        System.out.println("ProcesoAdmisionAspiranteDAOIT.procesarAsignacionMasiva() - etapa sin pendientes");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
+            cut.em = em;
+            CuposCarreraDAO cuposDAO = new CuposCarreraDAO();
+            cuposDAO.em = em;
+            cut.setCuposCarreraDAO(cuposDAO);
+
+            // Etapa inexistente no tiene aspirantes PENDIENTE → no hace nada
+            cut.procesarAsignacionMasiva(UUID.randomUUID());
+
+            // BD no cambia
+            assertEquals(2, cut.count());
+            return null;
+        });
+    }
+
+    @Test
+    @Order(18)
+    public void testGetCuposCarreraDAO() {
+        System.out.println("ProcesoAdmisionAspiranteDAOIT.getCuposCarreraDAO()");
+
+        ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
+        assertNull(cut.getCuposCarreraDAO(), "Debe ser null si no se ha inyectado");
+
+        CuposCarreraDAO cuposDAO = new CuposCarreraDAO();
+        cut.setCuposCarreraDAO(cuposDAO);
+        assertSame(cuposDAO, cut.getCuposCarreraDAO(), "Debe retornar la misma instancia inyectada");
+    }
 }

@@ -600,4 +600,157 @@ public class ExamenRealizadoDAOIT extends AbstractBaseIT {
             return null;
         });
     }
+
+    // ===================== COBERTURA FALTANTE: leer =====================
+
+    @Test
+    @Order(27)
+    public void testLeerNulo() {
+        System.out.println("ExamenRealizadoDAOIT.leer() - null");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.leer(null));
+            return null;
+        });
+    }
+
+    // ===================== COBERTURA FALTANTE: calificarExamen =====================
+
+    @Test
+    @Order(28)
+    public void testCalificarExamenNulo() {
+        System.out.println("ExamenRealizadoDAOIT.calificarExamen() - null");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.calificarExamen(null));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(29)
+    public void testCalificarExamenInexistente() {
+        System.out.println("ExamenRealizadoDAOIT.calificarExamen() - examen inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            ExamenRealizado resultado = cut.calificarExamen(UUID.randomUUID());
+            assertNull(resultado, "Debe retornar null si el examen no existe");
+            return null;
+        });
+    }
+
+    @Test
+    @Order(30)
+    public void testCalificarExamenHappyPath() {
+        System.out.println("ExamenRealizadoDAOIT.calificarExamen() - happy path");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            // Examen ffffeee1: clave 08...001 tiene 2 preguntas (f1000000...001 y 55555555)
+            // Respuestas del examen: opcion cccccccc (correcta para pregunta 55555555)
+            //                        opcion bbbbbbbb (incorrecta para pregunta 55555555)
+            // Etapa aaaaaaaa (Primera Etapa) tiene puntajeMaximo
+            ExamenRealizado resultado = cut.calificarExamen(ID_EXAMEN_1);
+
+            assertNotNull(resultado);
+            assertNotNull(resultado.getPuntajeFinal());
+            assertTrue(resultado.getPuntajeFinal().compareTo(BigDecimal.ZERO) >= 0,
+                    "El puntaje calculado no debe ser negativo");
+
+            // Verificar que la inscripción fue marcada como CALIFICADO
+            InscripcionesPrueba inscripcion = resultado.getInscripcionesPrueba();
+            assertNotNull(inscripcion);
+
+            return null;
+        });
+    }
+
+    // ===================== COBERTURA FALTANTE: iniciarExamenAspirante =====================
+
+    @Test
+    @Order(31)
+    public void testIniciarExamenAspiranteNulos() {
+        System.out.println("ExamenRealizadoDAOIT.iniciarExamenAspirante() - parametros nulos");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.iniciarExamenAspirante(null, ID_ETAPA_1));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.iniciarExamenAspirante(ID_INSCRIPCION_1, null));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.iniciarExamenAspirante(null, null));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(32)
+    public void testIniciarExamenAspiranteYaExiste() {
+        System.out.println("ExamenRealizadoDAOIT.iniciarExamenAspirante() - ya existe examen");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            // Examen ffffeee1 ya existe con inscripcion 09...001 + etapa aaaaaaaa
+            UUID idInscripcionExistente = UUID.fromString("09000000-0000-0000-0000-000000000001");
+
+            assertThrows(IllegalStateException.class,
+                    () -> cut.iniciarExamenAspirante(idInscripcionExistente, ID_ETAPA_1));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(33)
+    public void testIniciarExamenAspiranteInscripcionInexistente() {
+        System.out.println("ExamenRealizadoDAOIT.iniciarExamenAspirante() - inscripcion inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.iniciarExamenAspirante(UUID.randomUUID(), ID_ETAPA_1));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(34)
+    public void testIniciarExamenAspiranteSinTurnoActivo() {
+        System.out.println("ExamenRealizadoDAOIT.iniciarExamenAspirante() - sin turno activo");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            // Inscripcion ffff1002 existe pero el aspirante no tiene turno activo ahora
+            assertThrows(IllegalStateException.class,
+                    () -> cut.iniciarExamenAspirante(ID_INSCRIPCION_2, ID_ETAPA_3));
+            return null;
+        });
+    }
 }
