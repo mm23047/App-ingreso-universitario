@@ -10,25 +10,32 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - ingreso_pgdata:/var/lib/postgresql/data
+      # Mismo script de esquema/datos que usa Testcontainers en los tests (ST/BDD),
+      # para que el stack levantado por compose tenga el esquema real desde el primer arranque.
+      - ./src/test/resources/ingresoTPI135_init.sql:/docker-entrypoint-initdb.d/01-ingresoTPI135_init.sql:ro
     networks:
       - ingreso-network
     restart: unless-stopped
 
   # ── Aplicación OpenLiberty ─────────────────────────────────────────────────
   ingreso-app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+      args:
+        BASE_IMAGE: ${LIBERTY_BASE_IMAGE:-ingresouniversitariotpi135-base:26.0.0.2}
     container_name: ingreso-app
     ports:
       - "9080:9080"   # HTTP
       - "9443:9443"   # HTTPS
     environment:
       TZ: America/El_Salvador
-      # Conexión a la base de datos (apunta al servicio "postgres" de este compose)
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: ${DB_NAME:-ingreso_tpi135}
-      DB_USER: ${DB_USER:-ingreso_user}
-      DB_PASSWORD: ${DB_PASSWORD}
+      # Conexión a la base de datos (nombres exigidos por server.xml / dataSource pgdb)
+      PGSERVER: postgres
+      PGPORT: 5432
+      PGDBNAME: ${DB_NAME:-ingreso_tpi135}
+      PGUSER: ${DB_USER:-ingreso_user}
+      PGPASSWORD: ${DB_PASSWORD}
       # Contraseña del keystore SSL generado en el arranque del contenedor
       KEYSTORE_PASSWORD: ${KEYSTORE_PASSWORD}
     depends_on:

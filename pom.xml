@@ -16,6 +16,21 @@
         <maven.compiler.source>21</maven.compiler.source>
         <junit.version>5.11.3</junit.version>
         <mockito.version>5.14.2</mockito.version>
+
+        <!-- Ruta local de instalación de Open Liberty usada por liberty-maven-plugin (solo goals
+             liberty:*, no atados a ninguna fase del lifecycle por defecto). Sobreescribible con
+             -Dliberty.installDirectory=... en máquinas distintas a la del desarrollador original. -->
+        <liberty.installDirectory>C:\Users\estua\Documents\TPI\openliberty-jakartaee10-26.0.0.2\wlp</liberty.installDirectory>
+
+        <!-- SonarQube Community: projectKey estable, independiente de la versión del WAR -->
+        <sonar.projectKey>ingreso-universitario-tpi135-backend</sonar.projectKey>
+        <sonar.projectName>IngresoUniversitarioTPI135 - Backend</sonar.projectName>
+        <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
+        <sonar.java.binaries>${project.build.outputDirectory}</sonar.java.binaries>
+        <!-- jacoco-unitintegration-test-coverage-report ya es la union de unit+integration (ver
+             ejecucion "mezclar unidad e integracion" del jacoco-maven-plugin mas abajo): es la
+             unica fuente que Sonar necesita para reportar la cobertura combinada real. -->
+        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco-unitintegration-test-coverage-report/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencies>
@@ -281,9 +296,14 @@
                 <artifactId>liberty-maven-plugin</artifactId>
                 <version>3.12.0</version>
                 <configuration>
-                    <installDirectory>C:\Users\estua\Documents\TPI\openliberty-jakartaee10-26.0.0.2\wlp</installDirectory>
+                    <installDirectory>${liberty.installDirectory}</installDirectory>
                     <serverName>tpi135_2026</serverName>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>3.11.0.3922</version>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>

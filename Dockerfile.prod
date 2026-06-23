@@ -1,0 +1,19 @@
+
+#── Imagen de despliegue real ───────────────────────────────────────────────
+# Reutiliza la imagen base de pruebas (Dockerfile) que ya trae JDK 21,
+# OpenLiberty jakartaee10 y el driver JDBC de PostgreSQL configurados.
+# La única diferencia es que aquí SÍ se empaqueta el WAR dentro de la imagen,
+# en vez de inyectarlo en runtime como hace Testcontainers para ST/BDD.
+#
+# Build (requiere haber construido antes la imagen base):
+#   docker build -t ingresouniversitariotpi135-base:26.0.0.2 .
+#   ./mvnw clean package -DskipTests
+#   docker build -f Dockerfile.prod -t ingreso-app:latest .
+ARG BASE_IMAGE=ingresouniversitariotpi135-base:26.0.0.2
+FROM ${BASE_IMAGE}
+
+COPY target/IngresoUniversitarioTPI135-1.0-SNAPSHOT.war \
+     /opt/wlp/usr/servers/tpi135_2026/dropins/ingreso.war
+
+HEALTHCHECK --interval=15s --timeout=5s --start-period=60s --retries=8 \
+    CMD wget -q --spider http://localhost:9080/ingreso/resources/v1/areas || exit 1
