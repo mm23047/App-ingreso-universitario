@@ -20,6 +20,7 @@ import java.util.UUID;
 public class RespuestaExamenDAO extends IngresoDefaultDataAccess<RespuestaExamen> implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    private static final String PARAM_ID_EXAMEN = "idExamen";
 
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
@@ -39,7 +40,7 @@ public class RespuestaExamenDAO extends IngresoDefaultDataAccess<RespuestaExamen
         }
         try {
             return em.createNamedQuery("RespuestaExamen.findByExamenId", RespuestaExamen.class)
-                    .setParameter("idExamen", examenId)
+                    .setParameter(PARAM_ID_EXAMEN, examenId)
                     .getResultList();
         } catch (Exception e) {
             throw new IllegalStateException("Cannot access db", e);
@@ -72,7 +73,7 @@ public class RespuestaExamenDAO extends IngresoDefaultDataAccess<RespuestaExamen
         }
         try {
             Long count = em.createNamedQuery("RespuestaExamen.countByExamenAndPregunta", Long.class)
-                    .setParameter("idExamen", examenId)
+                    .setParameter(PARAM_ID_EXAMEN, examenId)
                     .setParameter("idPregunta", preguntaId)
                     .getSingleResult();
             return count > 0;
@@ -93,7 +94,7 @@ public class RespuestaExamenDAO extends IngresoDefaultDataAccess<RespuestaExamen
         }
         try {
             return em.createNamedQuery("RespuestaExamen.findByExamenAndPregunta", RespuestaExamen.class)
-                    .setParameter("idExamen", examenId)
+                    .setParameter(PARAM_ID_EXAMEN, examenId)
                     .setParameter("idPregunta", preguntaId)
                     .getSingleResult();
         } catch (NoResultException e) {
@@ -114,7 +115,7 @@ public class RespuestaExamenDAO extends IngresoDefaultDataAccess<RespuestaExamen
         }
         try {
             return em.createNamedQuery("RespuestaExamen.countRespuestasByExamen", Long.class)
-                    .setParameter("idExamen", examenId)
+                    .setParameter(PARAM_ID_EXAMEN, examenId)
                     .getSingleResult();
         } catch (Exception e) {
             throw new IllegalStateException("Error al acceder a la base de datos", e);
@@ -145,7 +146,7 @@ public class RespuestaExamenDAO extends IngresoDefaultDataAccess<RespuestaExamen
 
         // 3. Traer las respuestas previas del estudiante
         List<RespuestaExamen> respuestasPrevias = em.createNamedQuery("RespuestaExamen.findByExamenId", RespuestaExamen.class)
-                .setParameter("idExamen", idExamen)
+                .setParameter(PARAM_ID_EXAMEN, idExamen)
                 .getResultList();
 
         // 4. Mapear en memoria para acceso rápido O(1)

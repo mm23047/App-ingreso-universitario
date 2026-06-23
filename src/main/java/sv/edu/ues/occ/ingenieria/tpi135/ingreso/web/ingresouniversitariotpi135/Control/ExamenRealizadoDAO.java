@@ -21,6 +21,7 @@ import java.util.UUID;
 public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado> implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    private static final String PARAM_ID_CLAVE = "idClave";
 
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
@@ -43,7 +44,7 @@ public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado
             throw new IllegalArgumentException("El ID de la clave no puede ser nulo.");
         }
         return em.createNamedQuery("ExamenRealizado.countByClave", Long.class)
-                .setParameter("idClave", idClave)
+                .setParameter(PARAM_ID_CLAVE, idClave)
                 .getSingleResult();
     }
     @Override
@@ -116,13 +117,13 @@ public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado
 
             // 1. Llamada al NamedQuery para el total de preguntas
             Long totalPreguntasClave = em.createNamedQuery("ExamenRealizado.countPreguntasByClave", Long.class)
-                    .setParameter("idClave", claveId)
+                    .setParameter(PARAM_ID_CLAVE, claveId)
                     .getSingleResult();
 
             // 2. Llamada al NamedQuery para las respuestas correctas
             Long preguntasCorrectas = em.createNamedQuery("ExamenRealizado.countRespuestasCorrectas", Long.class)
                     .setParameter("idExamen", examenId)
-                    .setParameter("idClave", claveId)
+                    .setParameter(PARAM_ID_CLAVE, claveId)
                     .getSingleResult();
 
             BigDecimal puntajeMaximo = examen.getEtapaAdmision() != null && examen.getEtapaAdmision().getPuntajeMaximo() != null
@@ -249,7 +250,7 @@ public class ExamenRealizadoDAO extends IngresoDefaultDataAccess<ExamenRealizado
         ClavesExamen claveAsignada = null;
         for (ClavesExamen clave : clavesDisponibles) {
             Long cantidadPreguntas = em.createNamedQuery("ExamenRealizado.countPreguntasByClave", Long.class)
-                    .setParameter("idClave", clave.getIdClaveExaman())
+                    .setParameter(PARAM_ID_CLAVE, clave.getIdClaveExaman())
                     .getSingleResult();
 
             if (cantidadPreguntas != null && cantidadPreguntas > 0) {

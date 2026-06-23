@@ -16,6 +16,7 @@ import java.util.UUID;
 public class PreguntasPorClaveDAO extends IngresoDefaultDataAccess<PreguntasPorClave> implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    private static final String PARAM_ID_CLAVE = "idClave";
 
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
@@ -34,7 +35,7 @@ public class PreguntasPorClaveDAO extends IngresoDefaultDataAccess<PreguntasPorC
             throw new IllegalArgumentException("idClave and idPregunta must not be null");
         }
         Long count = em.createNamedQuery("PreguntasPorClave.countByClaveAndPregunta", Long.class)
-                .setParameter("idClave", idClave)
+                .setParameter(PARAM_ID_CLAVE, idClave)
                 .setParameter("idPregunta", idPregunta)
                 .getSingleResult();
         return count > 0;
@@ -49,7 +50,7 @@ public class PreguntasPorClaveDAO extends IngresoDefaultDataAccess<PreguntasPorC
             return Collections.emptyList();
         }
         return em.createNamedQuery("PreguntasPorClave.findPreguntasByClave", PreguntasPorClave.class)
-                .setParameter("idClave", idClave)
+                .setParameter(PARAM_ID_CLAVE, idClave)
                 .getResultList();
     }
 
@@ -80,7 +81,7 @@ public class PreguntasPorClaveDAO extends IngresoDefaultDataAccess<PreguntasPorC
         }
         try {
             return em.createNamedQuery("PreguntasPorClave.countByClave", Long.class)
-                    .setParameter("idClave", idClave)
+                    .setParameter(PARAM_ID_CLAVE, idClave)
                     .getSingleResult();
         } catch (Exception e) {
             throw new IllegalStateException("Error al contar las preguntas de la clave.", e);

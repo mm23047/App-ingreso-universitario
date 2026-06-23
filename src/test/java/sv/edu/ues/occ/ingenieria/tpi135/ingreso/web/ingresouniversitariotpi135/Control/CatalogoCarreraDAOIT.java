@@ -7,10 +7,10 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class CatalogoCarreraDAOIT extends AbstractBaseIT {
+class CatalogoCarreraDAOIT extends AbstractBaseIT {
 
     @Test
-    public void testCount(){
+    void testCount(){
         System.out.println("CatalogoCarreraDAOIT.count()");
         assertTrue(postgres.isRunning());
 
@@ -26,7 +26,7 @@ public class CatalogoCarreraDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindRange(){
+    void testFindRange(){
         System.out.println("CatalogoCarreraDAOIT.findRange()");
         assertTrue(postgres.isRunning());
 
@@ -44,7 +44,7 @@ public class CatalogoCarreraDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrear(){
+    void testCrear(){
         System.out.println("CatalogoCarreraDAOIT.create()");
         assertTrue(postgres.isRunning());
 
@@ -74,7 +74,7 @@ public class CatalogoCarreraDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testLeer(){
+    void testLeer(){
         System.out.println("CatalogoCarreraDAOIT.leer()");
         assertTrue(postgres.isRunning());
 
@@ -95,7 +95,7 @@ public class CatalogoCarreraDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizar(){
+    void testActualizar(){
         System.out.println("CatalogoCarreraDAOIT.actualizar()");
         assertTrue(postgres.isRunning());
 
@@ -117,7 +117,7 @@ public class CatalogoCarreraDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testEliminar(){
+    void testEliminar(){
         System.out.println("CatalogoCarreraDAOIT.eliminar()");
         assertTrue(postgres.isRunning());
 
@@ -147,7 +147,7 @@ public class CatalogoCarreraDAOIT extends AbstractBaseIT {
     // ===================== NAMED QUERY: findByNombre =====================
 
     @Test
-    public void testFindByNombre() {
+    void testFindByNombre() {
         System.out.println("CatalogoCarreraDAOIT.findByNombre()");
         assertTrue(postgres.isRunning());
 
@@ -165,7 +165,7 @@ public class CatalogoCarreraDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByNombreNoExiste() {
+    void testFindByNombreNoExiste() {
         System.out.println("CatalogoCarreraDAOIT.findByNombre() - no existe");
         assertTrue(postgres.isRunning());
 
@@ -181,7 +181,7 @@ public class CatalogoCarreraDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByNombreInvalido() {
+    void testFindByNombreInvalido() {
         System.out.println("CatalogoCarreraDAOIT.findByNombre() - parametros invalidos");
         assertTrue(postgres.isRunning());
 

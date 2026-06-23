@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class RespuestasExamanDAOIT extends AbstractBaseIT {
+class RespuestasExamanDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     private static final UUID ID_EXAMEN_1    = UUID.fromString("0d000000-0000-0000-0000-000000000001");
@@ -30,7 +30,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
     private static final UUID ID_RESPUESTA_1 = UUID.fromString("0e000000-0000-0000-0000-000000000001");
     private static final UUID ID_EXAMEN_OTRO = UUID.fromString("ffffeee1-1111-1111-1111-111111111111");
 
-    public RespuestasExamanDAOIT() {
+    RespuestasExamanDAOIT() {
     }
 
     @BeforeAll
@@ -40,7 +40,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(1)
-    public void testCount() {
+    void testCount() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -59,7 +59,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(2)
-    public void testFindRange() {
+    void testFindRange() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -79,7 +79,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(3)
-    public void testCrear() {
+    void testCrear() {
         assertTrue(postgres.isRunning());
 
         // Crear una respuesta temporal y verificar dentro de la misma transacción
@@ -116,7 +116,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(4)
-    public void testLeer() {
+    void testLeer() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -136,7 +136,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(5)
-    public void testActualizar() {
+    void testActualizar() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -161,7 +161,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(6)
-    public void testEliminar() {
+    void testEliminar() {
         assertTrue(postgres.isRunning());
 
         // Crear y eliminar una respuesta temporal dentro de una única transacción
@@ -189,7 +189,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(7)
-    public void testFindByExamenId() {
+    void testFindByExamenId() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -223,7 +223,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(8)
-    public void testLeerNoExiste() {
+    void testLeerNoExiste() {
         System.out.println("RespuestasExamanDAOIT.leer() - ID inexistente");
         assertTrue(postgres.isRunning());
 
@@ -241,7 +241,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(9)
-    public void testFindByExamenIdInexistente() {
+    void testFindByExamenIdInexistente() {
         System.out.println("RespuestasExamanDAOIT.findByExamenId() - examen inexistente");
         assertTrue(postgres.isRunning());
 
@@ -258,7 +258,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(10)
-    public void testExistsByExamenAndPreguntaNoExiste() {
+    void testExistsByExamenAndPreguntaNoExiste() {
         System.out.println("RespuestasExamanDAOIT.existsByExamenAndPregunta() - combinacion inexistente");
         assertTrue(postgres.isRunning());
 
@@ -278,7 +278,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(11)
-    public void testExistsByExamenAndPreguntaNulos() {
+    void testExistsByExamenAndPreguntaNulos() {
         System.out.println("RespuestasExamanDAOIT.existsByExamenAndPregunta() - nulos");
         assertTrue(postgres.isRunning());
 
@@ -298,7 +298,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(12)
-    public void testFindByExamenAndPreguntaNoExiste() {
+    void testFindByExamenAndPreguntaNoExiste() {
         System.out.println("RespuestasExamanDAOIT.findByExamenAndPregunta() - sin resultado");
         assertTrue(postgres.isRunning());
 
@@ -320,7 +320,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(13)
-    public void testFindByExamenAndPreguntaNulos() {
+    void testFindByExamenAndPreguntaNulos() {
         System.out.println("RespuestasExamanDAOIT.findByExamenAndPregunta() - nulos");
         assertTrue(postgres.isRunning());
 
@@ -338,7 +338,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(14)
-    public void testCountRespuestasByExamen() {
+    void testCountRespuestasByExamen() {
         System.out.println("RespuestasExamanDAOIT.countRespuestasByExamen()");
         assertTrue(postgres.isRunning());
 
@@ -364,7 +364,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(15)
-    public void testCountRespuestasByExamenNulo() {
+    void testCountRespuestasByExamenNulo() {
         System.out.println("RespuestasExamanDAOIT.countRespuestasByExamen() - null");
         assertTrue(postgres.isRunning());
 

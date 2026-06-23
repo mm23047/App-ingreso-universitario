@@ -14,6 +14,7 @@ import java.util.UUID;
 @LocalBean
 public class AsignacionAulaAspiranteDAO extends IngresoDefaultDataAccess<AsignacionAulaAspirante> implements Serializable {
     private static final long serialVersionUID = 1L;
+    private static final String PARAM_ID_TURNO = "idTurno";
 
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
@@ -65,7 +66,7 @@ public class AsignacionAulaAspiranteDAO extends IngresoDefaultDataAccess<Asignac
         }
         return em.createNamedQuery("AsignacionAulaAspirante.countByAulaAndTurno", Long.class)
                 .setParameter("idAula", idAula)
-                .setParameter("idTurno", idTurno)
+                .setParameter(PARAM_ID_TURNO, idTurno)
                 .getSingleResult();
     }
 
@@ -75,7 +76,7 @@ public class AsignacionAulaAspiranteDAO extends IngresoDefaultDataAccess<Asignac
         }
         Long count = em.createNamedQuery("AsignacionAulaAspirante.countByInscripcionAndTurno", Long.class)
                 .setParameter("idInscripcion", idInscripcion)
-                .setParameter("idTurno", idTurno)
+                .setParameter(PARAM_ID_TURNO, idTurno)
                 .getSingleResult();
         return count > 0;
     }
@@ -118,7 +119,7 @@ public class AsignacionAulaAspiranteDAO extends IngresoDefaultDataAccess<Asignac
         }
         return em.createNamedQuery("AsignacionAulaAspirante.findByAulaAndTurno", AsignacionAulaAspirante.class)
                 .setParameter("idAula", idAula)
-                .setParameter("idTurno", idTurno)
+                .setParameter(PARAM_ID_TURNO, idTurno)
                 .setFirstResult(first) // Delega la paginación a la Base de Datos
                 .setMaxResults(max)
                 .getResultList();

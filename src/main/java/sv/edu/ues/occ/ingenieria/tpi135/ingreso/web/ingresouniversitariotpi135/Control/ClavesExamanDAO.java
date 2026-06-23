@@ -18,6 +18,8 @@ import java.util.UUID;
 @LocalBean
 public class ClavesExamanDAO extends IngresoDefaultDataAccess<ClavesExamen> implements Serializable {
 
+    private static final String PARAM_ID_PRUEBA = "idPrueba";
+
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
 
@@ -55,7 +57,7 @@ public class ClavesExamanDAO extends IngresoDefaultDataAccess<ClavesExamen> impl
         validarCampos(entity);
 
         Long duplicados = em.createNamedQuery("ClavesExaman.countByPruebaAndNombreNotId", Long.class)
-                .setParameter("idPrueba", entity.getPruebaAdmision().getIdPruebaAdmision())
+                .setParameter(PARAM_ID_PRUEBA, entity.getPruebaAdmision().getIdPruebaAdmision())
                 .setParameter("nombreClave", entity.getNombreClave().trim())
                 .setParameter("idClave", entity.getIdClaveExaman())
                 .setFlushMode(jakarta.persistence.FlushModeType.COMMIT)
@@ -83,7 +85,7 @@ public class ClavesExamanDAO extends IngresoDefaultDataAccess<ClavesExamen> impl
             throw new IllegalArgumentException("El idPrueba no puede ser nulo");
         }
         return em.createNamedQuery("ClavesExaman.findByPrueba", ClavesExamen.class)
-                .setParameter("idPrueba", idPrueba)
+                .setParameter(PARAM_ID_PRUEBA, idPrueba)
                 .getResultList();
     }
 
@@ -96,7 +98,7 @@ public class ClavesExamanDAO extends IngresoDefaultDataAccess<ClavesExamen> impl
             throw new IllegalArgumentException("El ID de la prueba no puede ser nulo.");
         }
         return em.createNamedQuery("ClavesExaman.countByPrueba", Long.class)
-                .setParameter("idPrueba", idPrueba)
+                .setParameter(PARAM_ID_PRUEBA, idPrueba)
                 .getSingleResult();
     }
 
@@ -109,7 +111,7 @@ public class ClavesExamanDAO extends IngresoDefaultDataAccess<ClavesExamen> impl
             throw new IllegalArgumentException("El ID de la prueba y el nombre de la clave son requeridos.");
         }
         Long count = em.createNamedQuery("ClavesExaman.countByPruebaAndNombre", Long.class)
-                .setParameter("idPrueba", idPrueba)
+                .setParameter(PARAM_ID_PRUEBA, idPrueba)
                 .setParameter("nombreClave", nombreClave.trim())
                 .getSingleResult();
         return count > 0;

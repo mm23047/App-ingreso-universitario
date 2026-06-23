@@ -15,6 +15,7 @@ import java.util.UUID;
 public class BancoPreguntaDAO extends IngresoDefaultDataAccess<BancoPregunta> implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    private static final String PARAM_ENUNCIADO = "enunciado";
 
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
@@ -41,7 +42,7 @@ public class BancoPreguntaDAO extends IngresoDefaultDataAccess<BancoPregunta> im
 
         // 1. VALIDACIÓN SEMÁNTICA: Si ya existe en otra área, arroja un error descriptivo de negocio
         Long areasEnConflicto = em.createNamedQuery("BancoPregunta.countConflictosArea", Long.class)
-                .setParameter("enunciado", enunciadoSaneado)
+                .setParameter(PARAM_ENUNCIADO, enunciadoSaneado)
                 .setParameter("idAreaActual", entity.getTema().getAreaConocimiento().getIdAreaConocimiento())
                 .getSingleResult();
 
@@ -112,13 +113,13 @@ public class BancoPreguntaDAO extends IngresoDefaultDataAccess<BancoPregunta> im
 
     private boolean existsByEnunciado(String enunciado) {
         Long count = em.createNamedQuery("BancoPregunta.countByEnunciado", Long.class)
-                .setParameter("enunciado", enunciado.trim())
+                .setParameter(PARAM_ENUNCIADO, enunciado.trim())
                 .getSingleResult();
         return count > 0;
     }
     private long countByEnunciadoDiferenteId(String enunciado, UUID id) {
         return em.createNamedQuery("BancoPregunta.countByEnunciadoAndNotId", Long.class)
-                .setParameter("enunciado", enunciado.trim())
+                .setParameter(PARAM_ENUNCIADO, enunciado.trim())
                 .setParameter("idBancoPregunta", id)
                 .setFlushMode(jakarta.persistence.FlushModeType.COMMIT)
                 .getSingleResult();

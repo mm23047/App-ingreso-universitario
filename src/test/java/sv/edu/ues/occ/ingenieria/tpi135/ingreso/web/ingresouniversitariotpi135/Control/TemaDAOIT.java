@@ -9,7 +9,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TemaDAOIT extends AbstractBaseIT {
+class TemaDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     private static final UUID ID_ALGEBRA        = UUID.fromString("f0000001-0000-0000-0000-000000000001");
@@ -23,7 +23,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     // ===================== CRUD =====================
 
     @Test
-    public void testCount() {
+    void testCount() {
         System.out.println("TemaDAOIT.count()");
         assertTrue(postgres.isRunning());
 
@@ -38,7 +38,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindRange() {
+    void testFindRange() {
         System.out.println("TemaDAOIT.findRange()");
         assertTrue(postgres.isRunning());
 
@@ -55,7 +55,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrear() {
+    void testCrear() {
         System.out.println("TemaDAOIT.crear()");
         assertTrue(postgres.isRunning());
 
@@ -86,7 +86,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearConPadre() {
+    void testCrearConPadre() {
         System.out.println("TemaDAOIT.crear() - con tema padre");
         assertTrue(postgres.isRunning());
 
@@ -111,7 +111,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testLeer() {
+    void testLeer() {
         System.out.println("TemaDAOIT.leer()");
         assertTrue(postgres.isRunning());
 
@@ -132,7 +132,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testLeerConPadre() {
+    void testLeerConPadre() {
         System.out.println("TemaDAOIT.leer() - tema con padre");
         assertTrue(postgres.isRunning());
 
@@ -151,7 +151,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testLeerNoExiste() {
+    void testLeerNoExiste() {
         System.out.println("TemaDAOIT.leer() - ID inexistente");
         assertTrue(postgres.isRunning());
 
@@ -166,7 +166,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizar() {
+    void testActualizar() {
         System.out.println("TemaDAOIT.actualizar()");
         assertTrue(postgres.isRunning());
 
@@ -188,7 +188,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testEliminar() {
+    void testEliminar() {
         System.out.println("TemaDAOIT.eliminar()");
         assertTrue(postgres.isRunning());
 
@@ -216,7 +216,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     // ===================== NAMED QUERIES =====================
 
     @Test
-    public void testFindByNombreTema() {
+    void testFindByNombreTema() {
         System.out.println("TemaDAOIT.findByNombreTema()");
         assertTrue(postgres.isRunning());
 
@@ -235,7 +235,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByNombreTemaNoExiste() {
+    void testFindByNombreTemaNoExiste() {
         System.out.println("TemaDAOIT.findByNombreTema() - no existe");
         assertTrue(postgres.isRunning());
 
@@ -250,7 +250,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByNombreTemaInvalido() {
+    void testFindByNombreTemaInvalido() {
         System.out.println("TemaDAOIT.findByNombreTema() - parametros invalidos");
         assertTrue(postgres.isRunning());
 
@@ -266,7 +266,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByArea() {
+    void testFindByArea() {
         System.out.println("TemaDAOIT.findByArea()");
         assertTrue(postgres.isRunning());
 
@@ -295,7 +295,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByAreaInexistente() {
+    void testFindByAreaInexistente() {
         System.out.println("TemaDAOIT.findByArea() - area inexistente");
         assertTrue(postgres.isRunning());
 
@@ -311,7 +311,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByAreaNulo() {
+    void testFindByAreaNulo() {
         System.out.println("TemaDAOIT.findByArea() - null retorna lista vacia");
         assertTrue(postgres.isRunning());
 
@@ -327,7 +327,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindRaicesByArea() {
+    void testFindRaicesByArea() {
         System.out.println("TemaDAOIT.findRaicesByArea()");
         assertTrue(postgres.isRunning());
 
@@ -356,7 +356,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindRaicesByAreaNulo() {
+    void testFindRaicesByAreaNulo() {
         System.out.println("TemaDAOIT.findRaicesByArea() - null retorna lista vacia");
         assertTrue(postgres.isRunning());
 
@@ -372,7 +372,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByTemaPadre() {
+    void testFindByTemaPadre() {
         System.out.println("TemaDAOIT.findByTemaPadre()");
         assertTrue(postgres.isRunning());
 
@@ -401,7 +401,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByTemaPadreNulo() {
+    void testFindByTemaPadreNulo() {
         System.out.println("TemaDAOIT.findByTemaPadre() - null retorna lista vacia");
         assertTrue(postgres.isRunning());
 
@@ -417,7 +417,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByPrueba() {
+    void testFindByPrueba() {
         System.out.println("TemaDAOIT.findByPrueba()");
         assertTrue(postgres.isRunning());
 
@@ -435,7 +435,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByPruebaInexistente() {
+    void testFindByPruebaInexistente() {
         System.out.println("TemaDAOIT.findByPrueba() - prueba inexistente");
         assertTrue(postgres.isRunning());
 
@@ -451,7 +451,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByPruebaNulo() {
+    void testFindByPruebaNulo() {
         System.out.println("TemaDAOIT.findByPrueba() - null retorna lista vacia");
         assertTrue(postgres.isRunning());
 
@@ -469,7 +469,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     // ===================== VALIDACIONES CREAR =====================
 
     @Test
-    public void testCrearNulo() {
+    void testCrearNulo() {
         System.out.println("TemaDAOIT.crear() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -483,7 +483,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearAutoReferencia() {
+    void testCrearAutoReferencia() {
         System.out.println("TemaDAOIT.crear() - tema como su propio padre");
         assertTrue(postgres.isRunning());
 
@@ -505,7 +505,7 @@ public class TemaDAOIT extends AbstractBaseIT {
     // ===================== VALIDACIONES ACTUALIZAR =====================
 
     @Test
-    public void testActualizarNulo() {
+    void testActualizarNulo() {
         System.out.println("TemaDAOIT.actualizar() - entidad nula");
         assertTrue(postgres.isRunning());
 

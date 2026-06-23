@@ -5,18 +5,17 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class EtapasAdmisionDAOIT extends AbstractBaseIT {
+class EtapasAdmisionDAOIT extends AbstractBaseIT {
 
 
-    public EtapasAdmisionDAOIT() {
+    EtapasAdmisionDAOIT() {
     }
 
     @Test
-    public void testCount() {
+    void testCount() {
         System.out.println("TEST DAOIT COUNT");
         assertTrue(postgres.isRunning());
 
@@ -36,7 +35,7 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindRange() {
+    void testFindRange() {
         System.out.println("TEST EtapasAdmision DAOIT FIND RANGE");
         assertTrue(postgres.isRunning());
 
@@ -57,7 +56,7 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
 
 
     @Test
-    public void testCrear() {
+    void testCrear() {
         System.out.println("TEST EtapasAdmision DAOIT CREAR");
         assertTrue(postgres.isRunning());
 
@@ -97,7 +96,7 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testLeer() {
+    void testLeer() {
         System.out.println("TEST EtapasAdmision DAOIT READ");
 
         assertTrue(postgres.isRunning());
@@ -122,7 +121,7 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizar() {
+    void testActualizar() {
         System.out.println("TEST EtapasAdmision DAOIT UPDATE");
         assertTrue(postgres.isRunning());
 
@@ -152,7 +151,7 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testEliminar() {
+    void testEliminar() {
         System.out.println("TEST EtapasAdmision DAOIT DELETE");
         assertTrue(postgres.isRunning());
 
@@ -191,7 +190,7 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
     // ===================== NAMED QUERIES =====================
 
     @Test
-    public void testFindByNombre() {
+    void testFindByNombre() {
         System.out.println("EtapasAdmisionDAOIT.findByNombre()");
         assertTrue(postgres.isRunning());
 
@@ -210,7 +209,7 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByNombreNoExiste() {
+    void testFindByNombreNoExiste() {
         System.out.println("EtapasAdmisionDAOIT.findByNombre() - no existe");
         assertTrue(postgres.isRunning());
 
@@ -225,7 +224,7 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByNombreInvalido() {
+    void testFindByNombreInvalido() {
         System.out.println("EtapasAdmisionDAOIT.findByNombre() - parametros invalidos");
         assertTrue(postgres.isRunning());
 
@@ -241,7 +240,7 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindEtapasAprobadasPorPuntaje() {
+    void testFindEtapasAprobadasPorPuntaje() {
         System.out.println("EtapasAdmisionDAOIT.findEtapasAprobadasPorPuntaje()");
         assertTrue(postgres.isRunning());
 
@@ -274,7 +273,7 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindEtapasAprobadasPorPuntajeNulo() {
+    void testFindEtapasAprobadasPorPuntajeNulo() {
         System.out.println("EtapasAdmisionDAOIT.findEtapasAprobadasPorPuntaje() - null");
         assertTrue(postgres.isRunning());
 
@@ -291,7 +290,7 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
     // ===================== VALIDACIONES CREAR =====================
 
     @Test
-    public void testCrearNulo() {
+    void testCrearNulo() {
         System.out.println("EtapasAdmisionDAOIT.crear() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -305,7 +304,7 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearSinNombre() {
+    void testCrearSinNombre() {
         System.out.println("EtapasAdmisionDAOIT.crear() - sin nombre");
         assertTrue(postgres.isRunning());
 
@@ -324,7 +323,7 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearSinCantidadPreguntas() {
+    void testCrearSinCantidadPreguntas() {
         System.out.println("EtapasAdmisionDAOIT.crear() - sin cantidad de preguntas");
         assertTrue(postgres.isRunning());
 
@@ -352,7 +351,7 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearPuntajeMinMayorQueMax() {
+    void testCrearPuntajeMinMayorQueMax() {
         System.out.println("EtapasAdmisionDAOIT.crear() - puntaje min > max");
         assertTrue(postgres.isRunning());
 
@@ -372,7 +371,7 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearNombreDuplicado() {
+    void testCrearNombreDuplicado() {
         System.out.println("EtapasAdmisionDAOIT.crear() - nombre duplicado");
         assertTrue(postgres.isRunning());
 
@@ -394,7 +393,7 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
     // ===================== VALIDACIONES ACTUALIZAR =====================
 
     @Test
-    public void testActualizarNulo() {
+    void testActualizarNulo() {
         System.out.println("EtapasAdmisionDAOIT.actualizar() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -408,7 +407,7 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizarSinId() {
+    void testActualizarSinId() {
         System.out.println("EtapasAdmisionDAOIT.actualizar() - sin ID");
         assertTrue(postgres.isRunning());
 
@@ -426,7 +425,7 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizarNombreDuplicado() {
+    void testActualizarNombreDuplicado() {
         System.out.println("EtapasAdmisionDAOIT.actualizar() - nombre de otra etapa");
         assertTrue(postgres.isRunning());
 

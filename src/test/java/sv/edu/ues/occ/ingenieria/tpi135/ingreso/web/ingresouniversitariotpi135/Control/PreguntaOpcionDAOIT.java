@@ -10,7 +10,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class PreguntaOpcionDAOIT extends AbstractBaseIT {
+class PreguntaOpcionDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     private static final UUID ID_PREGUNTA_55   = UUID.fromString("55555555-5555-5555-5555-555555555555");
@@ -25,7 +25,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     // ===================== CRUD =====================
 
     @Test
-    public void testCount() {
+    void testCount() {
         System.out.println("PreguntaOpcionDAOIT.count()");
         assertTrue(postgres.isRunning());
 
@@ -40,7 +40,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindRange() {
+    void testFindRange() {
         System.out.println("PreguntaOpcionDAOIT.findRange()");
         assertTrue(postgres.isRunning());
 
@@ -57,7 +57,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrear() {
+    void testCrear() {
         System.out.println("PreguntaOpcionDAOIT.crear()");
         assertTrue(postgres.isRunning());
 
@@ -91,7 +91,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testLeer() {
+    void testLeer() {
         System.out.println("PreguntaOpcionDAOIT.leer()");
         assertTrue(postgres.isRunning());
 
@@ -113,7 +113,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testLeerNoExiste() {
+    void testLeerNoExiste() {
         System.out.println("PreguntaOpcionDAOIT.leer() - ID inexistente");
         assertTrue(postgres.isRunning());
 
@@ -128,7 +128,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizar() {
+    void testActualizar() {
         System.out.println("PreguntaOpcionDAOIT.actualizar()");
         assertTrue(postgres.isRunning());
 
@@ -149,7 +149,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testEliminar() {
+    void testEliminar() {
         System.out.println("PreguntaOpcionDAOIT.eliminar()");
         assertTrue(postgres.isRunning());
 
@@ -179,7 +179,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     // ===================== NAMED QUERIES =====================
 
     @Test
-    public void testFindByPregunta() {
+    void testFindByPregunta() {
         System.out.println("PreguntaOpcionDAOIT.findByPregunta()");
         assertTrue(postgres.isRunning());
 
@@ -207,7 +207,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByPreguntaInexistente() {
+    void testFindByPreguntaInexistente() {
         System.out.println("PreguntaOpcionDAOIT.findByPregunta() - inexistente");
         assertTrue(postgres.isRunning());
 
@@ -223,7 +223,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByPreguntaNulo() {
+    void testFindByPreguntaNulo() {
         System.out.println("PreguntaOpcionDAOIT.findByPregunta() - null");
         assertTrue(postgres.isRunning());
 
@@ -237,7 +237,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testExistsByPreguntaAndRespuesta() {
+    void testExistsByPreguntaAndRespuesta() {
         System.out.println("PreguntaOpcionDAOIT.existsByPreguntaAndRespuesta()");
         assertTrue(postgres.isRunning());
 
@@ -262,7 +262,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testExistsByPreguntaAndRespuestaNulos() {
+    void testExistsByPreguntaAndRespuestaNulos() {
         System.out.println("PreguntaOpcionDAOIT.existsByPreguntaAndRespuesta() - nulos");
         assertTrue(postgres.isRunning());
 
@@ -279,7 +279,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindOpcionesCorrectasByPregunta() {
+    void testFindOpcionesCorrectasByPregunta() {
         System.out.println("PreguntaOpcionDAOIT.findOpcionesCorrectasByPregunta()");
         assertTrue(postgres.isRunning());
 
@@ -308,7 +308,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindOpcionesCorrectasByPreguntaNulo() {
+    void testFindOpcionesCorrectasByPreguntaNulo() {
         System.out.println("PreguntaOpcionDAOIT.findOpcionesCorrectasByPregunta() - null");
         assertTrue(postgres.isRunning());
 
@@ -325,7 +325,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     // ===================== VALIDACIONES CREAR =====================
 
     @Test
-    public void testCrearNulo() {
+    void testCrearNulo() {
         System.out.println("PreguntaOpcionDAOIT.crear() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -339,7 +339,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearSinPregunta() {
+    void testCrearSinPregunta() {
         System.out.println("PreguntaOpcionDAOIT.crear() - sin pregunta");
         assertTrue(postgres.isRunning());
 
@@ -359,7 +359,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearSinRespuesta() {
+    void testCrearSinRespuesta() {
         System.out.println("PreguntaOpcionDAOIT.crear() - sin respuesta global");
         assertTrue(postgres.isRunning());
 
@@ -379,7 +379,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearDuplicadoPreguntaRespuesta() {
+    void testCrearDuplicadoPreguntaRespuesta() {
         System.out.println("PreguntaOpcionDAOIT.crear() - duplicado pregunta+respuesta");
         assertTrue(postgres.isRunning());
 
@@ -402,7 +402,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearSegundaCorrecta() {
+    void testCrearSegundaCorrecta() {
         System.out.println("PreguntaOpcionDAOIT.crear() - segunda correcta en misma pregunta");
         assertTrue(postgres.isRunning());
 
@@ -428,7 +428,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     // ===================== VALIDACIONES ACTUALIZAR =====================
 
     @Test
-    public void testActualizarNulo() {
+    void testActualizarNulo() {
         System.out.println("PreguntaOpcionDAOIT.actualizar() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -442,7 +442,7 @@ public class PreguntaOpcionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizarOtraCorrectaExiste() {
+    void testActualizarOtraCorrectaExiste() {
         System.out.println("PreguntaOpcionDAOIT.actualizar() - marcar correcta cuando ya hay otra");
         assertTrue(postgres.isRunning());
 

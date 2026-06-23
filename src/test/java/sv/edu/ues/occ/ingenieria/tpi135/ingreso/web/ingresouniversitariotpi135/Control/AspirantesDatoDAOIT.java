@@ -9,12 +9,12 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class AspirantesDatoDAOIT extends AbstractBaseIT {
+class AspirantesDatoDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
 
     @Test
-    public void testCount() {
+    void testCount() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -32,7 +32,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindRange() {
+    void testFindRange() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -51,7 +51,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByDui() {
+    void testFindByDui() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -68,7 +68,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrear() {
+    void testCrear() {
         assertTrue(postgres.isRunning());
 
         // Crear y verificar dentro de la misma transacción
@@ -104,7 +104,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizar() {
+    void testActualizar() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -128,7 +128,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testEliminar() {
+    void testEliminar() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -160,7 +160,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     // ===================== CRUD FALTANTE =====================
 
     @Test
-    public void testLeer() {
+    void testLeer() {
         System.out.println("AspirantesDatoDAOIT.leer()");
         assertTrue(postgres.isRunning());
 
@@ -181,7 +181,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     // ===================== NAMED QUERIES =====================
 
     @Test
-    public void testFindByDuiNoExiste() {
+    void testFindByDuiNoExiste() {
         System.out.println("AspirantesDatoDAOIT.findByDui() - no existe");
         assertTrue(postgres.isRunning());
 
@@ -196,7 +196,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByDuiInvalido() {
+    void testFindByDuiInvalido() {
         System.out.println("AspirantesDatoDAOIT.findByDui() - parametros invalidos");
         assertTrue(postgres.isRunning());
 
@@ -212,7 +212,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByCorreo() {
+    void testFindByCorreo() {
         System.out.println("AspirantesDatoDAOIT.findByCorreo()");
         assertTrue(postgres.isRunning());
 
@@ -228,7 +228,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByCorreoNoExiste() {
+    void testFindByCorreoNoExiste() {
         System.out.println("AspirantesDatoDAOIT.findByCorreo() - no existe");
         assertTrue(postgres.isRunning());
 
@@ -243,7 +243,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByCorreoInvalido() {
+    void testFindByCorreoInvalido() {
         System.out.println("AspirantesDatoDAOIT.findByCorreo() - parametros invalidos");
         assertTrue(postgres.isRunning());
 
@@ -259,7 +259,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByRequiereSillaRuedas() {
+    void testFindByRequiereSillaRuedas() {
         System.out.println("AspirantesDatoDAOIT.findByRequiereSillaRuedas()");
         assertTrue(postgres.isRunning());
 
@@ -280,7 +280,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     // ===================== VALIDACIONES CREAR =====================
 
     @Test
-    public void testCrearNulo() {
+    void testCrearNulo() {
         System.out.println("AspirantesDatoDAOIT.crear() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -294,7 +294,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearDuiDuplicado() {
+    void testCrearDuiDuplicado() {
         System.out.println("AspirantesDatoDAOIT.crear() - DUI duplicado");
         assertTrue(postgres.isRunning());
 
@@ -318,7 +318,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearCorreoDuplicado() {
+    void testCrearCorreoDuplicado() {
         System.out.println("AspirantesDatoDAOIT.crear() - correo duplicado");
         assertTrue(postgres.isRunning());
 
@@ -342,7 +342,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearMenorDeEdad() {
+    void testCrearMenorDeEdad() {
         System.out.println("AspirantesDatoDAOIT.crear() - menor de 18");
         assertTrue(postgres.isRunning());
 
@@ -368,7 +368,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     // ===================== VALIDACIONES ACTUALIZAR =====================
 
     @Test
-    public void testActualizarNulo() {
+    void testActualizarNulo() {
         System.out.println("AspirantesDatoDAOIT.actualizar() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -382,7 +382,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizarSinId() {
+    void testActualizarSinId() {
         System.out.println("AspirantesDatoDAOIT.actualizar() - sin ID");
         assertTrue(postgres.isRunning());
 
@@ -404,7 +404,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizarDuiDuplicado() {
+    void testActualizarDuiDuplicado() {
         System.out.println("AspirantesDatoDAOIT.actualizar() - DUI de otro aspirante");
         assertTrue(postgres.isRunning());
 
@@ -426,7 +426,7 @@ public class AspirantesDatoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizarCorreoDuplicado() {
+    void testActualizarCorreoDuplicado() {
         System.out.println("AspirantesDatoDAOIT.actualizar() - correo de otro aspirante");
         assertTrue(postgres.isRunning());
 

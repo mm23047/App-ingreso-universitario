@@ -14,6 +14,8 @@ import java.util.UUID;
 @LocalBean
 public class CarrerasElegidaDAO extends IngresoDefaultDataAccess<CarrerasElegida> implements Serializable {
 
+    private static final String PARAM_ID_INSCRIPCION = "idInscripcion";
+
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
 
@@ -41,7 +43,7 @@ public class CarrerasElegidaDAO extends IngresoDefaultDataAccess<CarrerasElegida
         }
         try {
             Long count = em.createNamedQuery("CarrerasElegida.countByInscripcionAndPrioridad", Long.class)
-                    .setParameter("idInscripcion", idInscripcion)
+                    .setParameter(PARAM_ID_INSCRIPCION, idInscripcion)
                     .setParameter("prioridad", prioridad)
                     .getSingleResult();
             return count > 0;
@@ -65,7 +67,7 @@ public class CarrerasElegidaDAO extends IngresoDefaultDataAccess<CarrerasElegida
         }
         try {
             return em.createNamedQuery("CarrerasElegida.findByInscripcionOrderByPrioridad", CarrerasElegida.class)
-                    .setParameter("idInscripcion", idInscripcion)
+                    .setParameter(PARAM_ID_INSCRIPCION, idInscripcion)
                     .getResultList();
         } catch (Exception e) {
             throw new IllegalStateException("Error al consultar las prioridades en la BD", e);
@@ -87,7 +89,7 @@ public class CarrerasElegidaDAO extends IngresoDefaultDataAccess<CarrerasElegida
         }
         try {
             return em.createNamedQuery("CarrerasElegida.findByInscripcionAndCarrera", CarrerasElegida.class)
-                    .setParameter("idInscripcion", idInscripcion)
+                    .setParameter(PARAM_ID_INSCRIPCION, idInscripcion)
                     .setParameter("idCarrera", idCarrera)
                     .getResultStream()
                     .findFirst()
@@ -113,7 +115,7 @@ public class CarrerasElegidaDAO extends IngresoDefaultDataAccess<CarrerasElegida
         }
         try {
             return !em.createNamedQuery("CarrerasElegida.findByInscripcionAndCarrera", CarrerasElegida.class)
-                    .setParameter("idInscripcion", idInscripcion)
+                    .setParameter(PARAM_ID_INSCRIPCION, idInscripcion)
                     .setParameter("idCarrera", idCarrera)
                     .getResultList().isEmpty();
         } catch (Exception e) {
@@ -130,7 +132,7 @@ public class CarrerasElegidaDAO extends IngresoDefaultDataAccess<CarrerasElegida
         }
         try {
             return em.createNamedQuery("CarrerasElegida.findByInscripcionAndPrioridadLevel", CarrerasElegida.class)
-                    .setParameter("idInscripcion", idInscripcion)
+                    .setParameter(PARAM_ID_INSCRIPCION, idInscripcion)
                     .setParameter("prioridad", prioridad)
                     .getResultStream()
                     .findFirst()

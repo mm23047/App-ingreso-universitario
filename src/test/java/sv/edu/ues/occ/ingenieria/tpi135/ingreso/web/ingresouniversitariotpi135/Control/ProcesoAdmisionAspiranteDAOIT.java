@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
+class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     private static final UUID ID_PROCESO_1   = UUID.fromString("09000000-0000-0000-0000-000000000001");
@@ -33,7 +33,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
     private static final UUID ID_ETAPA_1     = UUID.fromString("c1000000-0000-0000-0000-000000000001");
     private static final UUID ID_ASPIRANTE_CARLOS = UUID.fromString("e1111111-1111-1111-1111-111111111111");
 
-    public ProcesoAdmisionAspiranteDAOIT() {
+    ProcesoAdmisionAspiranteDAOIT() {
     }
 
     @BeforeAll
@@ -43,7 +43,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(1)
-    public void testCount() {
+    void testCount() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -62,7 +62,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(2)
-    public void testFindRange() {
+    void testFindRange() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -82,7 +82,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(3)
-    public void testCrear() {
+    void testCrear() {
         assertTrue(postgres.isRunning());
 
         // Crear un proceso de admisión temporal y verificar dentro de la misma transacción
@@ -130,7 +130,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(4)
-    public void testLeer() {
+    void testLeer() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -150,7 +150,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(5)
-    public void testActualizar() {
+    void testActualizar() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -175,7 +175,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(6)
-    public void testEliminar() {
+    void testEliminar() {
         assertTrue(postgres.isRunning());
 
         // Crear y eliminar un proceso de admisión temporal dentro de una única transacción
@@ -213,7 +213,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(7)
-    public void testAsignarCarreraFinal_PrioridadYCupos_DebeAsignarPrimeraConCupoYDecrementar() {
+    void testAsignarCarreraFinal_PrioridadYCupos_DebeAsignarPrimeraConCupoYDecrementar() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -322,7 +322,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(8)
-    public void testAsignarCarreraFinal_SinCuposDisponibles_DebeMarcarNoAdmitido() {
+    void testAsignarCarreraFinal_SinCuposDisponibles_DebeMarcarNoAdmitido() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -422,7 +422,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(9)
-    public void testLeerNoExiste() {
+    void testLeerNoExiste() {
         System.out.println("ProcesoAdmisionAspiranteDAOIT.leer() - ID inexistente");
         assertTrue(postgres.isRunning());
 
@@ -440,7 +440,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(10)
-    public void testFindByAspiranteId() {
+    void testFindByAspiranteId() {
         System.out.println("ProcesoAdmisionAspiranteDAOIT.findByAspiranteId()");
         assertTrue(postgres.isRunning());
 
@@ -468,7 +468,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(11)
-    public void testFindByAspiranteIdInexistente() {
+    void testFindByAspiranteIdInexistente() {
         System.out.println("ProcesoAdmisionAspiranteDAOIT.findByAspiranteId() - inexistente");
         assertTrue(postgres.isRunning());
 
@@ -485,7 +485,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(12)
-    public void testFindByAspiranteIdNulo() {
+    void testFindByAspiranteIdNulo() {
         System.out.println("ProcesoAdmisionAspiranteDAOIT.findByAspiranteId() - null");
         assertTrue(postgres.isRunning());
 
@@ -502,7 +502,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(13)
-    public void testAsignarCarreraFinalNulo() {
+    void testAsignarCarreraFinalNulo() {
         System.out.println("ProcesoAdmisionAspiranteDAOIT.asignarCarreraFinal() - null");
         assertTrue(postgres.isRunning());
 
@@ -517,7 +517,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(14)
-    public void testAsignarCarreraFinalInexistente() {
+    void testAsignarCarreraFinalInexistente() {
         System.out.println("ProcesoAdmisionAspiranteDAOIT.asignarCarreraFinal() - proceso inexistente");
         assertTrue(postgres.isRunning());
 
@@ -536,7 +536,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(15)
-    public void testProcesarAsignacionMasivaNulo() {
+    void testProcesarAsignacionMasivaNulo() {
         System.out.println("ProcesoAdmisionAspiranteDAOIT.procesarAsignacionMasiva() - null");
         assertTrue(postgres.isRunning());
 
@@ -551,7 +551,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(16)
-    public void testLeerNulo() {
+    void testLeerNulo() {
         System.out.println("ProcesoAdmisionAspiranteDAOIT.leer() - null");
         assertTrue(postgres.isRunning());
 
@@ -566,7 +566,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(17)
-    public void testProcesarAsignacionMasivaEtapaSinPendientes() {
+    void testProcesarAsignacionMasivaEtapaSinPendientes() {
         System.out.println("ProcesoAdmisionAspiranteDAOIT.procesarAsignacionMasiva() - etapa sin pendientes");
         assertTrue(postgres.isRunning());
 
@@ -588,7 +588,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(18)
-    public void testGetCuposCarreraDAO() {
+    void testGetCuposCarreraDAO() {
         System.out.println("ProcesoAdmisionAspiranteDAOIT.getCuposCarreraDAO()");
 
         ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();

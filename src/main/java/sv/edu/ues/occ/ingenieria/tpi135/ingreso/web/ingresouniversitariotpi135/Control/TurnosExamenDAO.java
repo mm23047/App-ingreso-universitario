@@ -18,6 +18,8 @@ import java.util.UUID;
 public class TurnosExamenDAO extends IngresoDefaultDataAccess<TurnosExamen> implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    private static final String PARAM_ID_PRUEBA = "idPrueba";
+    private static final String PARAM_FECHA = "fecha";
 
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
@@ -37,7 +39,7 @@ public class TurnosExamenDAO extends IngresoDefaultDataAccess<TurnosExamen> impl
         }
         try {
             return em.createNamedQuery("TurnosExamen.findByPrueba", TurnosExamen.class)
-                    .setParameter("idPrueba", idPrueba)
+                    .setParameter(PARAM_ID_PRUEBA, idPrueba)
                     .getResultList();
         } catch (Exception e) {
             throw new IllegalStateException("Error al acceder a la base de datos", e);
@@ -50,7 +52,7 @@ public class TurnosExamenDAO extends IngresoDefaultDataAccess<TurnosExamen> impl
         }
         try {
             return em.createNamedQuery("TurnosExamen.findByFecha", TurnosExamen.class)
-                    .setParameter("fecha", fecha)
+                    .setParameter(PARAM_FECHA, fecha)
                     .getResultList();
         } catch (Exception e) {
             throw new IllegalStateException("Error al acceder a la base de datos", e);
@@ -69,15 +71,15 @@ public class TurnosExamenDAO extends IngresoDefaultDataAccess<TurnosExamen> impl
         Long coincidencias;
         if (idIgnorado == null) {
             coincidencias = em.createNamedQuery("TurnosExamen.countTraslapes", Long.class)
-                    .setParameter("idPrueba", idPrueba)
-                    .setParameter("fecha", fecha)
+                    .setParameter(PARAM_ID_PRUEBA, idPrueba)
+                    .setParameter(PARAM_FECHA, fecha)
                     .setParameter("horaInicio", horaInicio)
                     .setParameter("horaFin", horaFin)
                     .getSingleResult();
         } else {
             coincidencias = em.createNamedQuery("TurnosExamen.countTraslapesExcluyendo", Long.class)
-                    .setParameter("idPrueba", idPrueba)
-                    .setParameter("fecha", fecha)
+                    .setParameter(PARAM_ID_PRUEBA, idPrueba)
+                    .setParameter(PARAM_FECHA, fecha)
                     .setParameter("horaInicio", horaInicio)
                     .setParameter("horaFin", horaFin)
                     .setParameter("idIgnorado", idIgnorado)

@@ -16,6 +16,7 @@ import java.util.UUID;
 public class CuposCarreraDAO extends IngresoDefaultDataAccess<CuposCarrera> implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    private static final String PARAM_ID_CARRERA = "idCarrera";
 
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
@@ -55,7 +56,7 @@ public class CuposCarreraDAO extends IngresoDefaultDataAccess<CuposCarrera> impl
             throw new IllegalArgumentException("El ID de la         Carrera no puede ser nulo o estar en blanco");
         }
         return em.createNamedQuery("CuposCarrera.findByCarrera", CuposCarrera.class)
-                .setParameter("idCarrera", idCarrera)
+                .setParameter(PARAM_ID_CARRERA, idCarrera)
                 .getResultList();
     }
 
@@ -71,7 +72,7 @@ public class CuposCarreraDAO extends IngresoDefaultDataAccess<CuposCarrera> impl
         try {
             return em.createNamedQuery("CuposCarrera.findUniqueCupo", Integer.class)
                     .setParameter("idPrueba", idPrueba)
-                    .setParameter("idCarrera", idCarrera.trim())
+                    .setParameter(PARAM_ID_CARRERA, idCarrera.trim())
                     .setParameter("idEtapa", idEtapa)
                     .getSingleResult();
         } catch (NoResultException ex) {
@@ -94,7 +95,7 @@ public class CuposCarreraDAO extends IngresoDefaultDataAccess<CuposCarrera> impl
         try {
             int updated = em.createNamedQuery("CuposCarrera.decrementarCupoAtomico")
                     .setParameter("idPrueba", idPrueba)
-                    .setParameter("idCarrera", idCarrera.trim())
+                    .setParameter(PARAM_ID_CARRERA, idCarrera.trim())
                     .setParameter("idEtapa", idEtapa)
                     .executeUpdate();
 

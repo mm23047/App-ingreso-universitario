@@ -18,9 +18,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class CarrerasElegidaDAOIT extends AbstractBaseIT {
+class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
-    public CarrerasElegidaDAOIT() {
+    CarrerasElegidaDAOIT() {
     }
 
     @BeforeAll
@@ -30,7 +30,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(1)
-    public void testCount() {
+    void testCount() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -49,7 +49,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(2)
-    public void testFindRange() {
+    void testFindRange() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -69,7 +69,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(3)
-    public void testCrear() {
+    void testCrear() {
         assertTrue(postgres.isRunning());
 
         // Crear una carrera elegida temporal y verificar dentro de la misma transacción
@@ -112,7 +112,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(4)
-    public void testLeer() {
+    void testLeer() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -138,7 +138,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(5)
-    public void testActualizar() {
+    void testActualizar() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -168,7 +168,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(6)
-    public void testEliminar() {
+    void testEliminar() {
         assertTrue(postgres.isRunning());
 
         // Crear y eliminar una carrera elegida temporal dentro de una única transacción
@@ -204,7 +204,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(7)
-    public void testExistsByInscripcionAndPrioridad() {
+    void testExistsByInscripcionAndPrioridad() {
         System.out.println("CarrerasElegidaDAOIT.existsByInscripcionAndPrioridad()");
         assertTrue(postgres.isRunning());
 
@@ -227,7 +227,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(8)
-    public void testFindByInscripcionOrderByPrioridad() {
+    void testFindByInscripcionOrderByPrioridad() {
         System.out.println("CarrerasElegidaDAOIT.findByInscripcionOrderByPrioridad()");
         assertTrue(postgres.isRunning());
 
@@ -252,7 +252,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(9)
-    public void testFindByInscripcionOrderByPrioridadInexistente() {
+    void testFindByInscripcionOrderByPrioridadInexistente() {
         System.out.println("CarrerasElegidaDAOIT.findByInscripcionOrderByPrioridad() - inscripcion inexistente");
         assertTrue(postgres.isRunning());
 
@@ -270,7 +270,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(10)
-    public void testFindByInscripcionAndCarrera() {
+    void testFindByInscripcionAndCarrera() {
         System.out.println("CarrerasElegidaDAOIT.findByInscripcionAndCarrera()");
         assertTrue(postgres.isRunning());
 
@@ -296,7 +296,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(11)
-    public void testExistsByInscripcionAndCarrera() {
+    void testExistsByInscripcionAndCarrera() {
         System.out.println("CarrerasElegidaDAOIT.existsByInscripcionAndCarrera()");
         assertTrue(postgres.isRunning());
 
@@ -319,7 +319,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(12)
-    public void testFindByInscripcionAndPrioridadLevel() {
+    void testFindByInscripcionAndPrioridadLevel() {
         System.out.println("CarrerasElegidaDAOIT.findByInscripcionAndPrioridadLevel()");
         assertTrue(postgres.isRunning());
 
@@ -351,7 +351,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(13)
-    public void testExistsByInscripcionAndPrioridadNulos() {
+    void testExistsByInscripcionAndPrioridadNulos() {
         System.out.println("CarrerasElegidaDAOIT.existsByInscripcionAndPrioridad() - parametros nulos");
         assertTrue(postgres.isRunning());
 
@@ -372,7 +372,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(14)
-    public void testFindByInscripcionOrderByPrioridadNulo() {
+    void testFindByInscripcionOrderByPrioridadNulo() {
         System.out.println("CarrerasElegidaDAOIT.findByInscripcionOrderByPrioridad() - null");
         assertTrue(postgres.isRunning());
 
@@ -389,7 +389,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(15)
-    public void testFindByInscripcionAndCarreraNulos() {
+    void testFindByInscripcionAndCarreraNulos() {
         System.out.println("CarrerasElegidaDAOIT.findByInscripcionAndCarrera() - parametros nulos");
         assertTrue(postgres.isRunning());
 
@@ -410,7 +410,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(16)
-    public void testExistsByInscripcionAndCarreraNulos() {
+    void testExistsByInscripcionAndCarreraNulos() {
         System.out.println("CarrerasElegidaDAOIT.existsByInscripcionAndCarrera() - parametros nulos");
         assertTrue(postgres.isRunning());
 
@@ -431,7 +431,7 @@ public class CarrerasElegidaDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(17)
-    public void testFindByInscripcionAndPrioridadLevelNulos() {
+    void testFindByInscripcionAndPrioridadLevelNulos() {
         System.out.println("CarrerasElegidaDAOIT.findByInscripcionAndPrioridadLevel() - parametros nulos");
         assertTrue(postgres.isRunning());
 

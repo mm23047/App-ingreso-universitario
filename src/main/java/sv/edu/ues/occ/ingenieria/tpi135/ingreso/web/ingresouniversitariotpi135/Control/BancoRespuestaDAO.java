@@ -15,6 +15,8 @@ import java.util.UUID;
 public class BancoRespuestaDAO extends IngresoDefaultDataAccess<BancoRespuesta> implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    private static final String PARAM_ID_AREA = "idArea";
+    private static final String PARAM_TEXTO_RESPUESTA = "textoRespuesta";
 
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
@@ -39,15 +41,15 @@ public class BancoRespuestaDAO extends IngresoDefaultDataAccess<BancoRespuesta> 
 
         if (esGlobal) {
             Long conteo = em.createNamedQuery("BancoRespuesta.countGlobalByTexto", Long.class)
-                    .setParameter("textoRespuesta", textoSaneado)
+                    .setParameter(PARAM_TEXTO_RESPUESTA, textoSaneado)
                     .getSingleResult();
             if (conteo > 0) {
                 throw new IllegalArgumentException("La respuesta global '" + textoSaneado + "' ya existe. Úsela en lugar de crear una nueva.");
             }
         } else {
             Long conteo = em.createNamedQuery("BancoRespuesta.countLocalByTexto", Long.class)
-                    .setParameter("textoRespuesta", textoSaneado)
-                    .setParameter("idArea", entity.getAreaConocimiento().getIdAreaConocimiento())
+                    .setParameter(PARAM_TEXTO_RESPUESTA, textoSaneado)
+                    .setParameter(PARAM_ID_AREA, entity.getAreaConocimiento().getIdAreaConocimiento())
                     .getSingleResult();
             if (conteo > 0) {
                 throw new IllegalArgumentException("Esta respuesta ya existe dentro de esta Área de Conocimiento.");
@@ -72,14 +74,14 @@ public class BancoRespuestaDAO extends IngresoDefaultDataAccess<BancoRespuesta> 
 
         if (esGlobal) {
             conteo = em.createNamedQuery("BancoRespuesta.countGlobalByTextoAndNotId", Long.class)
-                    .setParameter("textoRespuesta", textoSaneado)
+                    .setParameter(PARAM_TEXTO_RESPUESTA, textoSaneado)
                     .setParameter("idBancoRespuesta", entity.getIdBancoRespuesta())
                     .setFlushMode(jakarta.persistence.FlushModeType.COMMIT)
                     .getSingleResult();
         } else {
             conteo = em.createNamedQuery("BancoRespuesta.countLocalByTextoAndNotId", Long.class)
-                    .setParameter("textoRespuesta", textoSaneado)
-                    .setParameter("idArea", entity.getAreaConocimiento().getIdAreaConocimiento())
+                    .setParameter(PARAM_TEXTO_RESPUESTA, textoSaneado)
+                    .setParameter(PARAM_ID_AREA, entity.getAreaConocimiento().getIdAreaConocimiento())
                     .setParameter("idBancoRespuesta", entity.getIdBancoRespuesta())
                     .setFlushMode(jakarta.persistence.FlushModeType.COMMIT)
                     .getSingleResult();
@@ -128,7 +130,7 @@ public class BancoRespuestaDAO extends IngresoDefaultDataAccess<BancoRespuesta> 
      */
     public List<BancoRespuesta> obtenerRespuestasParaPregunta(UUID idArea) {
         return em.createNamedQuery("BancoRespuesta.findByAreaYGlobales", BancoRespuesta.class)
-                .setParameter("idArea", idArea)
+                .setParameter(PARAM_ID_AREA, idArea)
                 .getResultList();
     }
 
