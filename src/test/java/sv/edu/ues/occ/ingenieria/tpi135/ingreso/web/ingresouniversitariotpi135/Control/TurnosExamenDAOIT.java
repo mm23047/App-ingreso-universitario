@@ -10,7 +10,7 @@ import java.time.Month;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-public class TurnosExamenDAOIT extends AbstractBaseIT {
+class TurnosExamenDAOIT extends AbstractBaseIT {
 
     // Fecha y horario fijos y determinísticos para los turnos de prueba.
     // No se usa el reloj del sistema (LocalDate.now() / LocalTime.now()):
@@ -21,7 +21,7 @@ public class TurnosExamenDAOIT extends AbstractBaseIT {
     private static final LocalTime HORA_INICIO_PRUEBA = LocalTime.of(8, 0);
     private static final LocalTime HORA_FIN_PRUEBA = LocalTime.of(10, 0);
 
-    public TurnosExamenDAOIT() {
+    TurnosExamenDAOIT() {
     }
 
     private static TurnosExamen construirTurnoValido(PruebasAdmision pruebaAdmision, String nombreTurno) {
@@ -35,7 +35,7 @@ public class TurnosExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCount() {
+    void testCount() {
         System.out.println("TEST TurnosExaman DAOIT COUNT");
         assertTrue(postgres.isRunning());
 
@@ -53,7 +53,7 @@ public class TurnosExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindRange() {
+    void testFindRange() {
         System.out.println("TEST TurnosExaman DAOIT FIND RANGE");
         assertTrue(postgres.isRunning());
 
@@ -71,7 +71,7 @@ public class TurnosExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrear() {
+    void testCrear() {
         System.out.println("TEST TurnosExaman DAOIT CREAR");
         assertTrue(postgres.isRunning());
 
@@ -108,7 +108,7 @@ public class TurnosExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testLeer() {
+    void testLeer() {
         System.out.println("TEST TurnosExaman DAOIT LEER");
         assertTrue(postgres.isRunning());
 
@@ -130,7 +130,7 @@ public class TurnosExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizar() {
+    void testActualizar() {
         System.out.println("TEST TurnosExaman DAOIT ACTUALIZAR");
         assertTrue(postgres.isRunning());
 
@@ -155,7 +155,7 @@ public class TurnosExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testEliminar() {
+    void testEliminar() {
         System.out.println("TEST TurnosExaman DAOIT ELIMINAR");
         assertTrue(postgres.isRunning());
 

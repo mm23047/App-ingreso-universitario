@@ -15,6 +15,7 @@ import java.util.UUID;
 public class PreguntaOpcionDAO extends IngresoDefaultDataAccess<PreguntaOpcion> implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    private static final String PARAM_ID_PREGUNTA = "idPregunta";
 
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
@@ -79,7 +80,7 @@ public class PreguntaOpcionDAO extends IngresoDefaultDataAccess<PreguntaOpcion> 
         }
         try {
             return em.createNamedQuery("PreguntaOpcion.findByPregunta", PreguntaOpcion.class)
-                    .setParameter("idPregunta", idPregunta)
+                    .setParameter(PARAM_ID_PREGUNTA, idPregunta)
                     .getResultList();
         } catch (Exception e) {
             throw new IllegalStateException("Error al recuperar las opciones de la pregunta.", e);
@@ -92,7 +93,7 @@ public class PreguntaOpcionDAO extends IngresoDefaultDataAccess<PreguntaOpcion> 
         }
         try {
             Long count = em.createNamedQuery("PreguntaOpcion.countByPreguntaAndRespuesta", Long.class)
-                    .setParameter("idPregunta", idPregunta)
+                    .setParameter(PARAM_ID_PREGUNTA, idPregunta)
                     .setParameter("idRespuestaGlobal", idRespuestaGlobal)
                     .getSingleResult();
             return count > 0;
@@ -111,7 +112,7 @@ public class PreguntaOpcionDAO extends IngresoDefaultDataAccess<PreguntaOpcion> 
         }
         try {
             return em.createNamedQuery("PreguntaOpcion.findOpcionesCorrectasByPregunta", PreguntaOpcion.class)
-                    .setParameter("idPregunta", idPregunta)
+                    .setParameter(PARAM_ID_PREGUNTA, idPregunta)
                     .setFlushMode(jakarta.persistence.FlushModeType.COMMIT)
                     .getResultList();
         } catch (Exception e) {

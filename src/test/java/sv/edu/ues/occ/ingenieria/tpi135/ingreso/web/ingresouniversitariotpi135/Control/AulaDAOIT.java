@@ -4,16 +4,15 @@ import org.junit.jupiter.api.Test;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.Aula;
 
 import java.util.List;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class AulaDAOIT extends AbstractBaseIT {
+class AulaDAOIT extends AbstractBaseIT {
 
     // ===================== CRUD HEREDADO =====================
 
     @Test
-    public void testCount() {
+    void testCount() {
         System.out.println("AulaDAOIT.count()");
         assertTrue(postgres.isRunning());
 
@@ -29,7 +28,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindRange() {
+    void testFindRange() {
         System.out.println("AulaDAOIT.findRange()");
         assertTrue(postgres.isRunning());
 
@@ -47,7 +46,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrear() {
+    void testCrear() {
         System.out.println("AulaDAOIT.crear()");
         assertTrue(postgres.isRunning());
 
@@ -81,7 +80,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testLeer() {
+    void testLeer() {
         System.out.println("AulaDAOIT.leer()");
         assertTrue(postgres.isRunning());
 
@@ -101,7 +100,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizar() {
+    void testActualizar() {
         System.out.println("AulaDAOIT.actualizar()");
         assertTrue(postgres.isRunning());
 
@@ -124,7 +123,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testEliminar() {
+    void testEliminar() {
         System.out.println("AulaDAOIT.eliminar()");
         assertTrue(postgres.isRunning());
 
@@ -154,7 +153,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     // ===================== NAMED QUERIES =====================
 
     @Test
-    public void testFindByCodigoAulaApi() {
+    void testFindByCodigoAulaApi() {
         System.out.println("AulaDAOIT.findByCodigoAulaApi()");
         assertTrue(postgres.isRunning());
 
@@ -173,7 +172,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByCodigoAulaApiNoExiste() {
+    void testFindByCodigoAulaApiNoExiste() {
         System.out.println("AulaDAOIT.findByCodigoAulaApi() - no existe");
         assertTrue(postgres.isRunning());
 
@@ -189,7 +188,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindAulasAccesibles() {
+    void testFindAulasAccesibles() {
         System.out.println("AulaDAOIT.findAulasAccesibles()");
         assertTrue(postgres.isRunning());
 
@@ -209,7 +208,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByCapacidadMinima() {
+    void testFindByCapacidadMinima() {
         System.out.println("AulaDAOIT.findByCapacidadMinima()");
         assertTrue(postgres.isRunning());
 
@@ -240,7 +239,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     // ===================== VALIDACIONES DE NEGOCIO =====================
 
     @Test
-    public void testCrearAulaNula() {
+    void testCrearAulaNula() {
         System.out.println("AulaDAOIT.crear() - aula nula");
         assertTrue(postgres.isRunning());
 
@@ -254,7 +253,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearSinCodigoApi() {
+    void testCrearSinCodigoApi() {
         System.out.println("AulaDAOIT.crear() - sin codigo API");
         assertTrue(postgres.isRunning());
 
@@ -273,7 +272,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearSinCapacidad() {
+    void testCrearSinCapacidad() {
         System.out.println("AulaDAOIT.crear() - sin capacidad");
         assertTrue(postgres.isRunning());
 
@@ -292,7 +291,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearConCapacidadCero() {
+    void testCrearConCapacidadCero() {
         System.out.println("AulaDAOIT.crear() - capacidad cero");
         assertTrue(postgres.isRunning());
 
@@ -312,7 +311,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearSinNombreSede() {
+    void testCrearSinNombreSede() {
         System.out.println("AulaDAOIT.crear() - sin nombre sede");
         assertTrue(postgres.isRunning());
 
@@ -331,7 +330,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearSinDepartamento() {
+    void testCrearSinDepartamento() {
         System.out.println("AulaDAOIT.crear() - sin departamento");
         assertTrue(postgres.isRunning());
 
@@ -350,7 +349,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearCodigoDuplicado() {
+    void testCrearCodigoDuplicado() {
         System.out.println("AulaDAOIT.crear() - codigo duplicado");
         assertTrue(postgres.isRunning());
 
@@ -372,7 +371,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizarNulo() {
+    void testActualizarNulo() {
         System.out.println("AulaDAOIT.actualizar() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -386,7 +385,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizarSinId() {
+    void testActualizarSinId() {
         System.out.println("AulaDAOIT.actualizar() - sin ID");
         assertTrue(postgres.isRunning());
 
@@ -406,7 +405,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizarCodigoDuplicado() {
+    void testActualizarCodigoDuplicado() {
         System.out.println("AulaDAOIT.actualizar() - codigo duplicado de otra aula");
         assertTrue(postgres.isRunning());
 
@@ -426,7 +425,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByCapacidadMinimaInvalida() {
+    void testFindByCapacidadMinimaInvalida() {
         System.out.println("AulaDAOIT.findByCapacidadMinima() - parametro invalido");
         assertTrue(postgres.isRunning());
 
@@ -442,7 +441,7 @@ public class AulaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByCodigoAulaApiInvalido() {
+    void testFindByCodigoAulaApiInvalido() {
         System.out.println("AulaDAOIT.findByCodigoAulaApi() - parametro invalido");
         assertTrue(postgres.isRunning());
 

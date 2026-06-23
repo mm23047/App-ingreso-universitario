@@ -18,6 +18,7 @@ import java.util.UUID;
 public class DisponibilidadAulaTurnoDAO extends IngresoDefaultDataAccess<DisponibilidadAulaTurno> implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    private static final String PARAM_ID_TURNO = "idTurno";
 
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
@@ -45,7 +46,7 @@ public class DisponibilidadAulaTurnoDAO extends IngresoDefaultDataAccess<Disponi
         try {
             return em.createNamedQuery("DisponibilidadAulaTurno.findByIdConRelaciones", DisponibilidadAulaTurno.class)
                     .setParameter("idAula", idCompuesto.getIdAula())
-                    .setParameter("idTurno", idCompuesto.getIdTurno())
+                    .setParameter(PARAM_ID_TURNO, idCompuesto.getIdTurno())
                     .getSingleResult();
         } catch (jakarta.persistence.NoResultException e) {
             return null;
@@ -58,7 +59,7 @@ public class DisponibilidadAulaTurnoDAO extends IngresoDefaultDataAccess<Disponi
         }
         Long count = em.createNamedQuery("DisponibilidadAulaTurno.countByAulaAndTurno", Long.class)
                 .setParameter("idAula", idAula)
-                .setParameter("idTurno", idTurno)
+                .setParameter(PARAM_ID_TURNO, idTurno)
                 .getSingleResult();
         return count > 0;
     }
@@ -75,7 +76,7 @@ public class DisponibilidadAulaTurnoDAO extends IngresoDefaultDataAccess<Disponi
         try {
             // Este método NO necesita cambiar, automáticamente usa el NamedQuery actualizado con los JOIN FETCH
             return em.createNamedQuery("DisponibilidadAulaTurno.findByTurno", DisponibilidadAulaTurno.class)
-                    .setParameter("idTurno", idTurno)
+                    .setParameter(PARAM_ID_TURNO, idTurno)
                     .getResultList();
         } catch (Exception e) {
             throw new IllegalStateException("Error al recuperar las aulas configuradas para el turno especificado.", e);

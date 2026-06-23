@@ -19,14 +19,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class CuposCarreraDAOIT extends AbstractBaseIT {
+class CuposCarreraDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     private static final UUID ID_PRUEBA_2026  = UUID.fromString("d1000000-0000-0000-0000-000000000001");
     private static final UUID ID_ETAPA_FINAL  = UUID.fromString("c1000000-0000-0000-0000-000000000003");
     private static final UUID ID_ETAPA_1      = UUID.fromString("c1000000-0000-0000-0000-000000000001");
 
-    public CuposCarreraDAOIT() {
+    CuposCarreraDAOIT() {
     }
 
     @BeforeAll
@@ -36,7 +36,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(1)
-    public void testCount() {
+    void testCount() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -55,7 +55,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(2)
-    public void testFindRange() {
+    void testFindRange() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -75,7 +75,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(3)
-    public void testCrear() {
+    void testCrear() {
         assertTrue(postgres.isRunning());
 
         // Crear un cupo temporal y verificarlo dentro de la misma transacción
@@ -120,7 +120,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(4)
-    public void testLeer() {
+    void testLeer() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -147,7 +147,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(5)
-    public void testActualizar() {
+    void testActualizar() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -178,7 +178,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(6)
-    public void testEliminar() {
+    void testEliminar() {
         assertTrue(postgres.isRunning());
 
         // Crear y eliminar un cupo temporal dentro de una única transacción
@@ -218,7 +218,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(7)
-    public void testFindByCarrera() {
+    void testFindByCarrera() {
         System.out.println("CuposCarreraDAOIT.findByCarrera()");
         assertTrue(postgres.isRunning());
 
@@ -244,7 +244,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(8)
-    public void testFindByCarreraInexistente() {
+    void testFindByCarreraInexistente() {
         System.out.println("CuposCarreraDAOIT.findByCarrera() - carrera sin cupos");
         assertTrue(postgres.isRunning());
 
@@ -261,7 +261,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(9)
-    public void testFindByCarreraInvalido() {
+    void testFindByCarreraInvalido() {
         System.out.println("CuposCarreraDAOIT.findByCarrera() - parametros invalidos");
         assertTrue(postgres.isRunning());
 
@@ -278,7 +278,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(10)
-    public void testFindCuposConfigurados() {
+    void testFindCuposConfigurados() {
         System.out.println("CuposCarreraDAOIT.findCuposConfigurados()");
         assertTrue(postgres.isRunning());
 
@@ -304,7 +304,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(11)
-    public void testFindCuposConfiguradosNoExiste() {
+    void testFindCuposConfiguradosNoExiste() {
         System.out.println("CuposCarreraDAOIT.findCuposConfigurados() - combinacion inexistente");
         assertTrue(postgres.isRunning());
 
@@ -321,7 +321,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(12)
-    public void testFindCuposConfiguradosInvalido() {
+    void testFindCuposConfiguradosInvalido() {
         System.out.println("CuposCarreraDAOIT.findCuposConfigurados() - parametros invalidos");
         assertTrue(postgres.isRunning());
 
@@ -343,7 +343,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(13)
-    public void testDecrementarCupo() {
+    void testDecrementarCupo() {
         System.out.println("CuposCarreraDAOIT.decrementarCupo()");
         assertTrue(postgres.isRunning());
 
@@ -366,7 +366,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(14)
-    public void testDecrementarCupoInexistente() {
+    void testDecrementarCupoInexistente() {
         System.out.println("CuposCarreraDAOIT.decrementarCupo() - combinacion inexistente");
         assertTrue(postgres.isRunning());
 
@@ -383,7 +383,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(15)
-    public void testDecrementarCupoInvalido() {
+    void testDecrementarCupoInvalido() {
         System.out.println("CuposCarreraDAOIT.decrementarCupo() - parametros invalidos");
         assertTrue(postgres.isRunning());
 
@@ -405,7 +405,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(16)
-    public void testLeerNoExiste() {
+    void testLeerNoExiste() {
         System.out.println("CuposCarreraDAOIT.leer() - PK inexistente");
         assertTrue(postgres.isRunning());
 
@@ -428,7 +428,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(17)
-    public void testCrearNulo() {
+    void testCrearNulo() {
         System.out.println("CuposCarreraDAOIT.crear() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -443,7 +443,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(18)
-    public void testCrearCuposNull() {
+    void testCrearCuposNull() {
         System.out.println("CuposCarreraDAOIT.crear() - cupos null");
         assertTrue(postgres.isRunning());
 
@@ -474,7 +474,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(19)
-    public void testCrearCuposNegativo() {
+    void testCrearCuposNegativo() {
         System.out.println("CuposCarreraDAOIT.crear() - cupos negativo");
         assertTrue(postgres.isRunning());
 
@@ -507,7 +507,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(20)
-    public void testActualizarNulo() {
+    void testActualizarNulo() {
         System.out.println("CuposCarreraDAOIT.actualizar() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -522,7 +522,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(21)
-    public void testActualizarCuposNull() {
+    void testActualizarCuposNull() {
         System.out.println("CuposCarreraDAOIT.actualizar() - cupos null");
         assertTrue(postgres.isRunning());
 
@@ -546,7 +546,7 @@ public class CuposCarreraDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(22)
-    public void testActualizarCuposNegativo() {
+    void testActualizarCuposNegativo() {
         System.out.println("CuposCarreraDAOIT.actualizar() - cupos negativo");
         assertTrue(postgres.isRunning());
 

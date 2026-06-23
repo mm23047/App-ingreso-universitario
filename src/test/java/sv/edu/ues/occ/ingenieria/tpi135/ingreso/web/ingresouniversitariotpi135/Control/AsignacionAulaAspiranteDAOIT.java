@@ -11,7 +11,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.DisponibilidadAulaTurno;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.DisponibilidadAulaTurnoId;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
-import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.TurnosExamen;
+
 
 import java.util.List;
 import java.util.UUID;
@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
+class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     private static final UUID ID_INSCRIPCION_1  = UUID.fromString("ffff1001-1001-1001-1001-000000001001");
@@ -30,9 +30,8 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
     private static final UUID ID_AULA_1         = UUID.fromString("ffffff11-1111-1111-1111-111111111111");
     private static final UUID ID_AULA_2         = UUID.fromString("ffffff22-2222-2222-2222-222222222222");
     private static final UUID ID_ASIGNACION_1   = UUID.fromString("fa000001-0000-0000-0000-000000000001");
-    private static final UUID ID_ASIGNACION_2   = UUID.fromString("fa000001-0000-0000-0000-000000000002");
 
-    public AsignacionAulaAspiranteDAOIT() {
+    AsignacionAulaAspiranteDAOIT() {
     }
 
     @BeforeAll
@@ -42,7 +41,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(1)
-    public void testCount() {
+    void testCount() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -61,7 +60,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(2)
-    public void testFindRange() {
+    void testFindRange() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -80,7 +79,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(3)
-    public void testCrear() {
+    void testCrear() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -119,7 +118,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(4)
-    public void testViolacionUniqueConstraintInscripcionTurno() {
+    void testViolacionUniqueConstraintInscripcionTurno() {
         assertTrue(postgres.isRunning());
 
         // Intenta crear dos asignaciones para la misma inscripción y turno
@@ -175,7 +174,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(5)
-    public void testValidacionNoExcederCapacidadAula() {
+    void testValidacionNoExcederCapacidadAula() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -208,7 +207,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(6)
-    public void testLeer() {
+    void testLeer() {
         System.out.println("AsignacionAulaAspiranteDAOIT.leer()");
         assertTrue(postgres.isRunning());
 
@@ -231,7 +230,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(7)
-    public void testLeerNoExiste() {
+    void testLeerNoExiste() {
         System.out.println("AsignacionAulaAspiranteDAOIT.leer() - ID inexistente");
         assertTrue(postgres.isRunning());
 
@@ -247,7 +246,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(8)
-    public void testActualizar() {
+    void testActualizar() {
         System.out.println("AsignacionAulaAspiranteDAOIT.actualizar()");
         assertTrue(postgres.isRunning());
 
@@ -268,7 +267,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(9)
-    public void testEliminar() {
+    void testEliminar() {
         System.out.println("AsignacionAulaAspiranteDAOIT.eliminar()");
         assertTrue(postgres.isRunning());
 
@@ -301,7 +300,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(10)
-    public void testCountByAulaAndTurno() {
+    void testCountByAulaAndTurno() {
         System.out.println("AsignacionAulaAspiranteDAOIT.countByAulaAndTurno()");
         assertTrue(postgres.isRunning());
 
@@ -327,7 +326,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(11)
-    public void testCountByAulaAndTurnoNulos() {
+    void testCountByAulaAndTurnoNulos() {
         System.out.println("AsignacionAulaAspiranteDAOIT.countByAulaAndTurno() - nulos");
         assertTrue(postgres.isRunning());
 
@@ -345,7 +344,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(12)
-    public void testExistsByInscripcionAndTurno() {
+    void testExistsByInscripcionAndTurno() {
         System.out.println("AsignacionAulaAspiranteDAOIT.existsByInscripcionAndTurno()");
         assertTrue(postgres.isRunning());
 
@@ -368,7 +367,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(13)
-    public void testExistsByInscripcionAndTurnoNulos() {
+    void testExistsByInscripcionAndTurnoNulos() {
         System.out.println("AsignacionAulaAspiranteDAOIT.existsByInscripcionAndTurno() - nulos");
         assertTrue(postgres.isRunning());
 
@@ -386,7 +385,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(14)
-    public void testFindByInscripcion() {
+    void testFindByInscripcion() {
         System.out.println("AsignacionAulaAspiranteDAOIT.findByInscripcion()");
         assertTrue(postgres.isRunning());
 
@@ -410,7 +409,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(15)
-    public void testFindByInscripcionInexistente() {
+    void testFindByInscripcionInexistente() {
         System.out.println("AsignacionAulaAspiranteDAOIT.findByInscripcion() - inexistente");
         assertTrue(postgres.isRunning());
 
@@ -427,7 +426,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(16)
-    public void testFindByInscripcionNulo() {
+    void testFindByInscripcionNulo() {
         System.out.println("AsignacionAulaAspiranteDAOIT.findByInscripcion() - null");
         assertTrue(postgres.isRunning());
 
@@ -442,7 +441,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(17)
-    public void testFindByAulaAndTurno() {
+    void testFindByAulaAndTurno() {
         System.out.println("AsignacionAulaAspiranteDAOIT.findByAulaAndTurno()");
         assertTrue(postgres.isRunning());
 
@@ -466,7 +465,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(18)
-    public void testFindByAulaAndTurnoInexistente() {
+    void testFindByAulaAndTurnoInexistente() {
         System.out.println("AsignacionAulaAspiranteDAOIT.findByAulaAndTurno() - sin asignaciones");
         assertTrue(postgres.isRunning());
 
@@ -484,7 +483,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(19)
-    public void testFindByAulaAndTurnoNulos() {
+    void testFindByAulaAndTurnoNulos() {
         System.out.println("AsignacionAulaAspiranteDAOIT.findByAulaAndTurno() - nulos");
         assertTrue(postgres.isRunning());
 
@@ -504,7 +503,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(20)
-    public void testCrearNulo() {
+    void testCrearNulo() {
         System.out.println("AsignacionAulaAspiranteDAOIT.crear() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -519,7 +518,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(21)
-    public void testCrearSinInscripcion() {
+    void testCrearSinInscripcion() {
         System.out.println("AsignacionAulaAspiranteDAOIT.crear() - sin inscripcion");
         assertTrue(postgres.isRunning());
 
@@ -542,7 +541,7 @@ public class AsignacionAulaAspiranteDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(22)
-    public void testCrearSinDisponibilidad() {
+    void testCrearSinDisponibilidad() {
         System.out.println("AsignacionAulaAspiranteDAOIT.crear() - sin disponibilidad");
         assertTrue(postgres.isRunning());
 

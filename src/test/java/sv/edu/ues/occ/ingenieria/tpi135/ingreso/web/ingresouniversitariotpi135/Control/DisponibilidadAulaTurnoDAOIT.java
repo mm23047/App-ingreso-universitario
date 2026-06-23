@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
+class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     private static final UUID ID_AULA_1   = UUID.fromString("ffffff11-1111-1111-1111-111111111111");
@@ -26,7 +26,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
     private static final UUID ID_TURNO_1  = UUID.fromString("ffff0001-0001-0001-0001-000000000001");
     private static final UUID ID_TURNO_2  = UUID.fromString("ffff0002-0002-0002-0002-000000000002");
 
-    public DisponibilidadAulaTurnoDAOIT() {
+    DisponibilidadAulaTurnoDAOIT() {
     }
 
     @BeforeAll
@@ -36,7 +36,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(1)
-    public void testCount() {
+    void testCount() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -56,7 +56,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(2)
-    public void testFindRange() {
+    void testFindRange() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -75,7 +75,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(3)
-    public void testCrear() {
+    void testCrear() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -113,7 +113,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(4)
-    public void testViolacionPrimaryKeyComputestaBulkInsert() {
+    void testViolacionPrimaryKeyComputestaBulkInsert() {
         assertTrue(postgres.isRunning());
 
         // Intenta insertar duplicado usando EntityManager directo para capturar exception
@@ -169,7 +169,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(5)
-    public void testLeer() {
+    void testLeer() {
         System.out.println("DisponibilidadAulaTurnoDAOIT.leer()");
         assertTrue(postgres.isRunning());
 
@@ -192,7 +192,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(6)
-    public void testLeerNoExiste() {
+    void testLeerNoExiste() {
         System.out.println("DisponibilidadAulaTurnoDAOIT.leer() - PK inexistente");
         assertTrue(postgres.isRunning());
 
@@ -212,7 +212,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(7)
-    public void testLeerTipoInvalido() {
+    void testLeerTipoInvalido() {
         System.out.println("DisponibilidadAulaTurnoDAOIT.leer() - tipo de ID invalido");
         assertTrue(postgres.isRunning());
 
@@ -228,7 +228,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(8)
-    public void testEliminar() {
+    void testEliminar() {
         System.out.println("DisponibilidadAulaTurnoDAOIT.eliminar()");
         assertTrue(postgres.isRunning());
 
@@ -263,7 +263,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(9)
-    public void testExistsByAulaAndTurno() {
+    void testExistsByAulaAndTurno() {
         System.out.println("DisponibilidadAulaTurnoDAOIT.existsByAulaAndTurno()");
         assertTrue(postgres.isRunning());
 
@@ -284,7 +284,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(10)
-    public void testExistsByAulaAndTurnoNulos() {
+    void testExistsByAulaAndTurnoNulos() {
         System.out.println("DisponibilidadAulaTurnoDAOIT.existsByAulaAndTurno() - parametros nulos");
         assertTrue(postgres.isRunning());
 
@@ -304,7 +304,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(11)
-    public void testFindByTurno() {
+    void testFindByTurno() {
         System.out.println("DisponibilidadAulaTurnoDAOIT.findByTurno()");
         assertTrue(postgres.isRunning());
 
@@ -328,7 +328,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(12)
-    public void testFindByTurnoInexistente() {
+    void testFindByTurnoInexistente() {
         System.out.println("DisponibilidadAulaTurnoDAOIT.findByTurno() - turno inexistente");
         assertTrue(postgres.isRunning());
 
@@ -345,7 +345,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(13)
-    public void testFindByTurnoNulo() {
+    void testFindByTurnoNulo() {
         System.out.println("DisponibilidadAulaTurnoDAOIT.findByTurno() - null");
         assertTrue(postgres.isRunning());
 
@@ -362,7 +362,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(14)
-    public void testFindFiltradoSinFiltros() {
+    void testFindFiltradoSinFiltros() {
         System.out.println("DisponibilidadAulaTurnoDAOIT.findFiltrado() - sin filtros");
         assertTrue(postgres.isRunning());
 
@@ -380,7 +380,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(15)
-    public void testFindFiltradoPorAula() {
+    void testFindFiltradoPorAula() {
         System.out.println("DisponibilidadAulaTurnoDAOIT.findFiltrado() - por aula");
         assertTrue(postgres.isRunning());
 
@@ -404,7 +404,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(16)
-    public void testFindFiltradoPorTurno() {
+    void testFindFiltradoPorTurno() {
         System.out.println("DisponibilidadAulaTurnoDAOIT.findFiltrado() - por turno");
         assertTrue(postgres.isRunning());
 
@@ -428,7 +428,7 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(17)
-    public void testFindFiltradoPorAulaYTurno() {
+    void testFindFiltradoPorAulaYTurno() {
         System.out.println("DisponibilidadAulaTurnoDAOIT.findFiltrado() - por aula y turno");
         assertTrue(postgres.isRunning());
 

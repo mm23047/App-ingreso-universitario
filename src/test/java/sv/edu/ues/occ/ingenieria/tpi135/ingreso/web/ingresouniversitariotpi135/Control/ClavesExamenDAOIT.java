@@ -10,7 +10,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ClavesExamenDAOIT extends AbstractBaseIT {
+class ClavesExamenDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     private static final UUID ID_PRUEBA_1  = UUID.fromString("d1000000-0000-0000-0000-000000000001");
@@ -19,7 +19,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     private static final UUID ID_CLAVE_B   = UUID.fromString("aaaabbbb-cccc-dddd-eeee-ffffffffffff");
 
     @Test
-    public void testCount() {
+    void testCount() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -37,7 +37,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindRange() {
+    void testFindRange() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -56,7 +56,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrear() {
+    void testCrear() {
         assertTrue(postgres.isRunning());
 
         // Crear y verificar dentro de la misma transacción
@@ -95,7 +95,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizar() {
+    void testActualizar() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -119,7 +119,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testEliminar() {
+    void testEliminar() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -151,7 +151,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     // ===================== CRUD FALTANTE =====================
 
     @Test
-    public void testLeer() {
+    void testLeer() {
         System.out.println("ClavesExamenDAOIT.leer()");
         assertTrue(postgres.isRunning());
 
@@ -171,7 +171,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     // ===================== NAMED QUERIES =====================
 
     @Test
-    public void testFindByPrueba() {
+    void testFindByPrueba() {
         System.out.println("ClavesExamenDAOIT.findByPrueba()");
         assertTrue(postgres.isRunning());
 
@@ -188,7 +188,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByPruebaInexistente() {
+    void testFindByPruebaInexistente() {
         System.out.println("ClavesExamenDAOIT.findByPrueba() - prueba inexistente");
         assertTrue(postgres.isRunning());
 
@@ -204,7 +204,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByPruebaNulo() {
+    void testFindByPruebaNulo() {
         System.out.println("ClavesExamenDAOIT.findByPrueba() - null");
         assertTrue(postgres.isRunning());
 
@@ -218,7 +218,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCountByPrueba() {
+    void testCountByPrueba() {
         System.out.println("ClavesExamenDAOIT.countByPrueba()");
         assertTrue(postgres.isRunning());
 
@@ -238,7 +238,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCountByPruebaNulo() {
+    void testCountByPruebaNulo() {
         System.out.println("ClavesExamenDAOIT.countByPrueba() - null");
         assertTrue(postgres.isRunning());
 
@@ -252,7 +252,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testExistsByPruebaAndNombre() {
+    void testExistsByPruebaAndNombre() {
         System.out.println("ClavesExamenDAOIT.existsByPruebaAndNombre()");
         assertTrue(postgres.isRunning());
 
@@ -268,7 +268,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testExistsByPruebaAndNombreInvalido() {
+    void testExistsByPruebaAndNombreInvalido() {
         System.out.println("ClavesExamenDAOIT.existsByPruebaAndNombre() - parametros invalidos");
         assertTrue(postgres.isRunning());
 
@@ -287,7 +287,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByIdWithEtapa() {
+    void testFindByIdWithEtapa() {
         System.out.println("ClavesExamenDAOIT.findByIdWithEtapa()");
         assertTrue(postgres.isRunning());
 
@@ -306,7 +306,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByIdWithEtapaNoExiste() {
+    void testFindByIdWithEtapaNoExiste() {
         System.out.println("ClavesExamenDAOIT.findByIdWithEtapa() - ID inexistente");
         assertTrue(postgres.isRunning());
 
@@ -323,7 +323,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     // ===================== VALIDACIONES CREAR =====================
 
     @Test
-    public void testCrearNulo() {
+    void testCrearNulo() {
         System.out.println("ClavesExamenDAOIT.crear() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -337,7 +337,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearSinNombre() {
+    void testCrearSinNombre() {
         System.out.println("ClavesExamenDAOIT.crear() - sin nombre");
         assertTrue(postgres.isRunning());
 
@@ -359,7 +359,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearSinEtapa() {
+    void testCrearSinEtapa() {
         System.out.println("ClavesExamenDAOIT.crear() - sin etapa");
         assertTrue(postgres.isRunning());
 
@@ -380,7 +380,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearNombreDuplicadoEnPrueba() {
+    void testCrearNombreDuplicadoEnPrueba() {
         System.out.println("ClavesExamenDAOIT.crear() - nombre duplicado en misma prueba");
         assertTrue(postgres.isRunning());
 
@@ -405,7 +405,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     // ===================== VALIDACIONES ACTUALIZAR =====================
 
     @Test
-    public void testActualizarNulo() {
+    void testActualizarNulo() {
         System.out.println("ClavesExamenDAOIT.actualizar() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -419,7 +419,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizarSinId() {
+    void testActualizarSinId() {
         System.out.println("ClavesExamenDAOIT.actualizar() - sin ID");
         assertTrue(postgres.isRunning());
 
@@ -439,7 +439,7 @@ public class ClavesExamenDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizarNombreDuplicadoEnPrueba() {
+    void testActualizarNombreDuplicadoEnPrueba() {
         System.out.println("ClavesExamenDAOIT.actualizar() - nombre de otra clave en misma prueba");
         assertTrue(postgres.isRunning());
 

@@ -15,6 +15,8 @@ import java.util.UUID;
 public class InscripcionesPruebaDAO extends IngresoDefaultDataAccess<InscripcionesPrueba> implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    private static final String PARAM_ID_ASPIRANTE = "idAspirante";
+    private static final String PARAM_ID_PRUEBA = "idPrueba";
 
     @PersistenceContext(unitName = "ingresoPU")
     EntityManager em;
@@ -71,7 +73,7 @@ public class InscripcionesPruebaDAO extends IngresoDefaultDataAccess<Inscripcion
         }
         try {
             return em.createNamedQuery("InscripcionesPrueba.findByAspiranteId", InscripcionesPrueba.class)
-                    .setParameter("idAspirante", aspiranteId)
+                    .setParameter(PARAM_ID_ASPIRANTE, aspiranteId)
                     .getResultList();
         } catch (Exception e) {
             throw new IllegalStateException("Error de infraestructura al obtener inscripciones por aspirante.", e);
@@ -84,7 +86,7 @@ public class InscripcionesPruebaDAO extends IngresoDefaultDataAccess<Inscripcion
         }
         try {
             return em.createNamedQuery("InscripcionesPrueba.findByPruebaId", InscripcionesPrueba.class)
-                    .setParameter("idPrueba", pruebaId)
+                    .setParameter(PARAM_ID_PRUEBA, pruebaId)
                     .getResultList();
         } catch (Exception e) {
             throw new IllegalStateException("Error de infraestructura al obtener inscripciones por prueba.", e);
@@ -97,8 +99,8 @@ public class InscripcionesPruebaDAO extends IngresoDefaultDataAccess<Inscripcion
         }
         try {
             Long count = em.createNamedQuery("InscripcionesPrueba.countByAspiranteAndPrueba", Long.class)
-                    .setParameter("idAspirante", aspiranteId)
-                    .setParameter("idPrueba", pruebaId)
+                    .setParameter(PARAM_ID_ASPIRANTE, aspiranteId)
+                    .setParameter(PARAM_ID_PRUEBA, pruebaId)
                     .getSingleResult();
             return count > 0;
         } catch (Exception e) {
@@ -112,8 +114,8 @@ public class InscripcionesPruebaDAO extends IngresoDefaultDataAccess<Inscripcion
         }
         try {
             Long count = em.createNamedQuery("InscripcionesPrueba.countByAspiranteAndPruebaExcludingId", Long.class)
-                    .setParameter("idAspirante", aspiranteId)
-                    .setParameter("idPrueba", pruebaId)
+                    .setParameter(PARAM_ID_ASPIRANTE, aspiranteId)
+                    .setParameter(PARAM_ID_PRUEBA, pruebaId)
                     .setParameter("excludeId", excludeId)
                     .getSingleResult();
             return count > 0;
@@ -135,7 +137,7 @@ public class InscripcionesPruebaDAO extends IngresoDefaultDataAccess<Inscripcion
         }
         try {
             return em.createNamedQuery("InscripcionesPrueba.findByPruebaAndEstado", InscripcionesPrueba.class)
-                    .setParameter("idPrueba", idPrueba)
+                    .setParameter(PARAM_ID_PRUEBA, idPrueba)
                     .setParameter("estado", estado)
                     .getResultList();
         } catch (Exception e) {

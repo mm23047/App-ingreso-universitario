@@ -8,14 +8,14 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class PruebasAdmisionDAOIT extends AbstractBaseIT {
+class PruebasAdmisionDAOIT extends AbstractBaseIT {
 
 
-    public PruebasAdmisionDAOIT() {
+    PruebasAdmisionDAOIT() {
     }
 
     @Test
-    public void testCount() {
+    void testCount() {
         System.out.println("TEST PruebasAdmision DAOIT COUNT");
         assertTrue(postgres.isRunning());
 
@@ -32,7 +32,7 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindRange() {
+    void testFindRange() {
         System.out.println("TEST PruebasAdmision DAOIT FIND RANGE");
         assertTrue(postgres.isRunning());
 
@@ -51,7 +51,7 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrear() {
+    void testCrear() {
         System.out.println("TEST PruebasAdmision DAOIT CREAR");
         assertTrue(postgres.isRunning());
 
@@ -83,7 +83,7 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testLeer() {
+    void testLeer() {
         System.out.println("TEST PruebasAdmision DAOIT LEER");
         assertTrue(postgres.isRunning());
 
@@ -106,7 +106,7 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizar() {
+    void testActualizar() {
         System.out.println("TEST PruebasAdmision DAOIT ACTUALIZAR");
         assertTrue(postgres.isRunning());
 
@@ -137,7 +137,7 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testEliminar() {
+    void testEliminar() {
         System.out.println("TEST PruebasAdmision DAOIT ELIMINAR");
         assertTrue(postgres.isRunning());
 
@@ -171,7 +171,7 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
     // ===================== NAMED QUERIES =====================
 
     @Test
-    public void testFindActivas() {
+    void testFindActivas() {
         System.out.println("PruebasAdmisionDAOIT.findActivas()");
         assertTrue(postgres.isRunning());
 
@@ -189,7 +189,7 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByNombreAndAnio() {
+    void testFindByNombreAndAnio() {
         System.out.println("PruebasAdmisionDAOIT.findByNombreAndAnio()");
         assertTrue(postgres.isRunning());
 
@@ -208,7 +208,7 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByNombreAndAnioNoExiste() {
+    void testFindByNombreAndAnioNoExiste() {
         System.out.println("PruebasAdmisionDAOIT.findByNombreAndAnio() - no existe");
         assertTrue(postgres.isRunning());
 
@@ -229,7 +229,7 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByNombreAndAnioInvalido() {
+    void testFindByNombreAndAnioInvalido() {
         System.out.println("PruebasAdmisionDAOIT.findByNombreAndAnio() - parametros invalidos");
         assertTrue(postgres.isRunning());
 
@@ -250,7 +250,7 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindAllOrdenado() {
+    void testFindAllOrdenado() {
         System.out.println("PruebasAdmisionDAOIT.findAllOrdenado()");
         assertTrue(postgres.isRunning());
 
@@ -276,7 +276,7 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testBuscarPorTermino() {
+    void testBuscarPorTermino() {
         System.out.println("PruebasAdmisionDAOIT.buscarPorTermino()");
         assertTrue(postgres.isRunning());
 
@@ -300,7 +300,7 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testBuscarPorTerminoSinResultados() {
+    void testBuscarPorTerminoSinResultados() {
         System.out.println("PruebasAdmisionDAOIT.buscarPorTermino() - sin coincidencia");
         assertTrue(postgres.isRunning());
 
@@ -318,7 +318,7 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
     // ===================== REGLA DE NEGOCIO =====================
 
     @Test
-    public void testSetPruebaActivaExclusiva() {
+    void testSetPruebaActivaExclusiva() {
         System.out.println("PruebasAdmisionDAOIT.setPruebaActivaExclusiva()");
         assertTrue(postgres.isRunning());
 
@@ -351,7 +351,7 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testSetPruebaActivaExclusivaNulo() {
+    void testSetPruebaActivaExclusivaNulo() {
         System.out.println("PruebasAdmisionDAOIT.setPruebaActivaExclusiva() - null");
         assertTrue(postgres.isRunning());
 
@@ -366,7 +366,7 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testSetPruebaActivaExclusivaInexistente() {
+    void testSetPruebaActivaExclusivaInexistente() {
         System.out.println("PruebasAdmisionDAOIT.setPruebaActivaExclusiva() - ID inexistente");
         assertTrue(postgres.isRunning());
 

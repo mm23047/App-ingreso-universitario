@@ -8,10 +8,10 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class AreasConocimientoDAOIT extends AbstractBaseIT {
+class AreasConocimientoDAOIT extends AbstractBaseIT {
 
     @Test
-    public void testCount() {
+    void testCount() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -28,7 +28,7 @@ public class AreasConocimientoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindRange() {
+    void testFindRange() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -46,7 +46,7 @@ public class AreasConocimientoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrear() {
+    void testCrear() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -76,7 +76,7 @@ public class AreasConocimientoDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizar() {
+    void testActualizar() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -95,8 +95,8 @@ public class AreasConocimientoDAOIT extends AbstractBaseIT {
         });
     }
 
-   @Test
-public void testEliminar() {
+    @Test
+    void testEliminar() {
     assertTrue(postgres.isRunning());
 
     ejecutarEnTransaccion(em -> {
@@ -123,7 +123,7 @@ public void testEliminar() {
     // ===================== CRUD FALTANTE =====================
 
     @Test
-    public void testLeer() {
+    void testLeer() {
         System.out.println("AreasConocimientoDAOIT.leer()");
         assertTrue(postgres.isRunning());
 
@@ -145,7 +145,7 @@ public void testEliminar() {
     // ===================== NAMED QUERIES =====================
 
     @Test
-    public void testExistePorNombre() {
+    void testExistePorNombre() {
         System.out.println("AreasConocimientoDAOIT.existePorNombre()");
         assertTrue(postgres.isRunning());
 
@@ -161,7 +161,7 @@ public void testEliminar() {
     }
 
     @Test
-    public void testExistePorNombreInvalido() {
+    void testExistePorNombreInvalido() {
         System.out.println("AreasConocimientoDAOIT.existePorNombre() - parametros invalidos");
         assertTrue(postgres.isRunning());
 
@@ -177,7 +177,7 @@ public void testEliminar() {
     }
 
     @Test
-    public void testBuscarPorNombreSimilar() {
+    void testBuscarPorNombreSimilar() {
         System.out.println("AreasConocimientoDAOIT.buscarPorNombreSimilar()");
         assertTrue(postgres.isRunning());
 
@@ -206,7 +206,7 @@ public void testEliminar() {
     }
 
     @Test
-    public void testBuscarPorNombreSimilarInvalido() {
+    void testBuscarPorNombreSimilarInvalido() {
         System.out.println("AreasConocimientoDAOIT.buscarPorNombreSimilar() - parametros invalidos");
         assertTrue(postgres.isRunning());
 
@@ -231,7 +231,7 @@ public void testEliminar() {
     }
 
     @Test
-    public void testVerificarDependencias() {
+    void testVerificarDependencias() {
         System.out.println("AreasConocimientoDAOIT.verificarDependencias()");
         assertTrue(postgres.isRunning());
 
@@ -252,7 +252,7 @@ public void testEliminar() {
     }
 
     @Test
-    public void testFindAreasConPreguntasDisponibles() {
+    void testFindAreasConPreguntasDisponibles() {
         System.out.println("AreasConocimientoDAOIT.findAreasConPreguntasDisponibles()");
         assertTrue(postgres.isRunning());
 
@@ -275,7 +275,7 @@ public void testEliminar() {
     // ===================== VALIDACIONES CREAR =====================
 
     @Test
-    public void testCrearNulo() {
+    void testCrearNulo() {
         System.out.println("AreasConocimientoDAOIT.crear() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -289,7 +289,7 @@ public void testEliminar() {
     }
 
     @Test
-    public void testCrearSinNombre() {
+    void testCrearSinNombre() {
         System.out.println("AreasConocimientoDAOIT.crear() - sin nombre");
         assertTrue(postgres.isRunning());
 
@@ -305,7 +305,7 @@ public void testEliminar() {
     }
 
     @Test
-    public void testCrearNombreDuplicado() {
+    void testCrearNombreDuplicado() {
         System.out.println("AreasConocimientoDAOIT.crear() - nombre duplicado");
         assertTrue(postgres.isRunning());
 
@@ -324,7 +324,7 @@ public void testEliminar() {
     // ===================== VALIDACIONES ACTUALIZAR =====================
 
     @Test
-    public void testActualizarNulo() {
+    void testActualizarNulo() {
         System.out.println("AreasConocimientoDAOIT.actualizar() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -338,7 +338,7 @@ public void testEliminar() {
     }
 
     @Test
-    public void testActualizarSinId() {
+    void testActualizarSinId() {
         System.out.println("AreasConocimientoDAOIT.actualizar() - sin ID");
         assertTrue(postgres.isRunning());
 
@@ -355,7 +355,7 @@ public void testEliminar() {
     }
 
     @Test
-    public void testActualizarNombreDuplicado() {
+    void testActualizarNombreDuplicado() {
         System.out.println("AreasConocimientoDAOIT.actualizar() - nombre de otra area");
         assertTrue(postgres.isRunning());
 
@@ -379,7 +379,7 @@ public void testEliminar() {
     // ===================== VALIDACIONES ELIMINAR =====================
 
     @Test
-    public void testEliminarNulo() {
+    void testEliminarNulo() {
         System.out.println("AreasConocimientoDAOIT.eliminar() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -393,7 +393,7 @@ public void testEliminar() {
     }
 
     @Test
-    public void testEliminarConDependencias() {
+    void testEliminarConDependencias() {
         System.out.println("AreasConocimientoDAOIT.eliminar() - area con temas asociados");
         assertTrue(postgres.isRunning());
 

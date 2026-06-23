@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
+class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     private static final UUID ID_CLAVE_A    = UUID.fromString("08000000-0000-0000-0000-000000000001");
@@ -27,7 +27,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
     private static final UUID ID_PREGUNTA_3 = UUID.fromString("f1000000-0000-0000-0000-000000000003");
     private static final UUID ID_PREGUNTA_55 = UUID.fromString("55555555-5555-5555-5555-555555555555");
 
-    public PreguntasPorClaveDAOIT() {
+    PreguntasPorClaveDAOIT() {
     }
 
     @BeforeAll
@@ -37,7 +37,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(1)
-    public void testCount() {
+    void testCount() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -56,7 +56,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(2)
-    public void testFindRange() {
+    void testFindRange() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -76,7 +76,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(3)
-    public void testCrear() {
+    void testCrear() {
         assertTrue(postgres.isRunning());
 
         // Crear un registro temporal de PreguntasPorClave y verificar dentro de la misma transacción
@@ -117,7 +117,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(4)
-    public void testLeer() {
+    void testLeer() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -141,7 +141,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(5)
-    public void testActualizar() {
+    void testActualizar() {
         assertTrue(postgres.isRunning());
 
         ejecutarEnTransaccion(em -> {
@@ -174,7 +174,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(6)
-    public void testEliminar() {
+    void testEliminar() {
         assertTrue(postgres.isRunning());
 
         // Crear y eliminar un registro temporal de PreguntasPorClave dentro de una única transacción
@@ -208,7 +208,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(7)
-    public void testLeerNoExiste() {
+    void testLeerNoExiste() {
         System.out.println("PreguntasPorClaveDAOIT.leer() - PK inexistente");
         assertTrue(postgres.isRunning());
 
@@ -230,7 +230,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(8)
-    public void testExistsByClaveAndPregunta() {
+    void testExistsByClaveAndPregunta() {
         System.out.println("PreguntasPorClaveDAOIT.existsByClaveAndPregunta()");
         assertTrue(postgres.isRunning());
 
@@ -259,7 +259,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(9)
-    public void testExistsByClaveAndPreguntaNulos() {
+    void testExistsByClaveAndPreguntaNulos() {
         System.out.println("PreguntasPorClaveDAOIT.existsByClaveAndPregunta() - nulos");
         assertTrue(postgres.isRunning());
 
@@ -279,7 +279,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(10)
-    public void testFindPreguntasByClave() {
+    void testFindPreguntasByClave() {
         System.out.println("PreguntasPorClaveDAOIT.findPreguntasByClave()");
         assertTrue(postgres.isRunning());
 
@@ -303,7 +303,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(11)
-    public void testFindPreguntasByClaveInexistente() {
+    void testFindPreguntasByClaveInexistente() {
         System.out.println("PreguntasPorClaveDAOIT.findPreguntasByClave() - clave inexistente");
         assertTrue(postgres.isRunning());
 
@@ -320,7 +320,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(12)
-    public void testFindPreguntasByClaveNulo() {
+    void testFindPreguntasByClaveNulo() {
         System.out.println("PreguntasPorClaveDAOIT.findPreguntasByClave() - null retorna lista vacia");
         assertTrue(postgres.isRunning());
 
@@ -338,7 +338,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(13)
-    public void testCountPreguntasByClave() {
+    void testCountPreguntasByClave() {
         System.out.println("PreguntasPorClaveDAOIT.countPreguntasByClave()");
         assertTrue(postgres.isRunning());
 
@@ -361,7 +361,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
 
     @Test
     @Order(14)
-    public void testCountPreguntasByClaveNulo() {
+    void testCountPreguntasByClaveNulo() {
         System.out.println("PreguntasPorClaveDAOIT.countPreguntasByClave() - null");
         assertTrue(postgres.isRunning());
 

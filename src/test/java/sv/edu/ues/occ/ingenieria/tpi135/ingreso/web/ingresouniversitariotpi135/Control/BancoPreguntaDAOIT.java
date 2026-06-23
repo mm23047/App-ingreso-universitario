@@ -12,15 +12,15 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class BancoPreguntaDAOIT extends AbstractBaseIT {
+class BancoPreguntaDAOIT extends AbstractBaseIT {
 
 
 
-    public BancoPreguntaDAOIT() {
+    BancoPreguntaDAOIT() {
     }
 
     @Test
-    public void testCount() {
+    void testCount() {
         System.out.println("INICIANDO TEST COUNT");
         assertTrue(postgres.isRunning());
 
@@ -37,7 +37,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindRange() {
+    void testFindRange() {
         System.out.println("INICIANDO TEST FIND RANGE");
         assertTrue(postgres.isRunning());
 
@@ -57,7 +57,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrear() {
+    void testCrear() {
         System.out.println("INICIANDO TEST CREAR ");
         assertTrue(postgres.isRunning());
 
@@ -110,7 +110,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
 
 
     @Test
-    public void testLeer() {
+    void testLeer() {
         System.out.println("INICIANDO TEST LEER ");
         assertTrue(postgres.isRunning());
 
@@ -133,7 +133,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizar() {
+    void testActualizar() {
         System.out.println("INICIANDO TEST ACTUALIZAR ");
         assertTrue(postgres.isRunning());
 
@@ -160,7 +160,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testEliminar() {
+    void testEliminar() {
         System.out.println("INICIANDO TEST ELIMINAR ");
         assertTrue(postgres.isRunning());
 
@@ -209,7 +209,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
     // ===================== NAMED QUERIES =====================
 
     @Test
-    public void testFindByTema() {
+    void testFindByTema() {
         System.out.println("BancoPreguntaDAOIT.findByTema()");
         assertTrue(postgres.isRunning());
 
@@ -234,7 +234,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByTemaInexistente() {
+    void testFindByTemaInexistente() {
         System.out.println("BancoPreguntaDAOIT.findByTema() - tema inexistente");
         assertTrue(postgres.isRunning());
 
@@ -250,7 +250,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindByTemaNulo() {
+    void testFindByTemaNulo() {
         System.out.println("BancoPreguntaDAOIT.findByTema() - id nulo");
         assertTrue(postgres.isRunning());
 
@@ -264,7 +264,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testLeerNoExiste() {
+    void testLeerNoExiste() {
         System.out.println("BancoPreguntaDAOIT.leer() - ID inexistente");
         assertTrue(postgres.isRunning());
 
@@ -281,7 +281,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
     // ===================== VALIDACIONES CREAR =====================
 
     @Test
-    public void testCrearNulo() {
+    void testCrearNulo() {
         System.out.println("BancoPreguntaDAOIT.crear() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -295,7 +295,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearSinEnunciado() {
+    void testCrearSinEnunciado() {
         System.out.println("BancoPreguntaDAOIT.crear() - enunciado null");
         assertTrue(postgres.isRunning());
 
@@ -312,7 +312,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearEnunciadoBlank() {
+    void testCrearEnunciadoBlank() {
         System.out.println("BancoPreguntaDAOIT.crear() - enunciado en blanco");
         assertTrue(postgres.isRunning());
 
@@ -329,7 +329,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearSinTema() {
+    void testCrearSinTema() {
         System.out.println("BancoPreguntaDAOIT.crear() - sin tema");
         assertTrue(postgres.isRunning());
 
@@ -346,7 +346,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearEnunciadoDuplicado() {
+    void testCrearEnunciadoDuplicado() {
         System.out.println("BancoPreguntaDAOIT.crear() - enunciado duplicado en mismo tema");
         assertTrue(postgres.isRunning());
 
@@ -369,7 +369,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearConflictoArea() {
+    void testCrearConflictoArea() {
         System.out.println("BancoPreguntaDAOIT.crear() - enunciado existe en otra area");
         assertTrue(postgres.isRunning());
 
@@ -394,7 +394,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
     // ===================== VALIDACIONES ACTUALIZAR =====================
 
     @Test
-    public void testActualizarNulo() {
+    void testActualizarNulo() {
         System.out.println("BancoPreguntaDAOIT.actualizar() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -408,7 +408,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizarSinId() {
+    void testActualizarSinId() {
         System.out.println("BancoPreguntaDAOIT.actualizar() - sin ID");
         assertTrue(postgres.isRunning());
 
@@ -425,7 +425,7 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizarEnunciadoDuplicado() {
+    void testActualizarEnunciadoDuplicado() {
         System.out.println("BancoPreguntaDAOIT.actualizar() - enunciado de otra pregunta");
         assertTrue(postgres.isRunning());
 

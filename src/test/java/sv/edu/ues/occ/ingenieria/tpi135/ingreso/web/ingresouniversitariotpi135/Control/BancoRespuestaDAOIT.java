@@ -9,11 +9,10 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class BancoRespuestaDAOIT extends AbstractBaseIT {
+class BancoRespuestaDAOIT extends AbstractBaseIT {
 
     // UUIDs del init.sql
     private static final UUID ID_RESP_BA_001    = UUID.fromString("ba000001-0000-0000-0000-000000000001");
-    private static final UUID ID_RESP_BA_002    = UUID.fromString("ba000001-0000-0000-0000-000000000002");
     private static final UUID ID_AREA_MATE      = UUID.fromString("11111111-1111-1111-1111-111111111111");
     private static final UUID ID_AREA_LENGUAJE  = UUID.fromString("22222222-2222-2222-2222-222222222222");
     private static final UUID ID_AREA_CIENCIAS  = UUID.fromString("33333333-3333-3333-3333-333333333333");
@@ -21,7 +20,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     // ===================== CRUD =====================
 
     @Test
-    public void testCount() {
+    void testCount() {
         System.out.println("BancoRespuestaDAOIT.count()");
         assertTrue(postgres.isRunning());
 
@@ -36,7 +35,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindRange() {
+    void testFindRange() {
         System.out.println("BancoRespuestaDAOIT.findRange()");
         assertTrue(postgres.isRunning());
 
@@ -53,7 +52,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrear() {
+    void testCrear() {
         System.out.println("BancoRespuestaDAOIT.crear() - respuesta local");
         assertTrue(postgres.isRunning());
 
@@ -84,7 +83,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearGlobal() {
+    void testCrearGlobal() {
         System.out.println("BancoRespuestaDAOIT.crear() - respuesta global (sin area)");
         assertTrue(postgres.isRunning());
 
@@ -105,7 +104,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testLeer() {
+    void testLeer() {
         System.out.println("BancoRespuestaDAOIT.leer()");
         assertTrue(postgres.isRunning());
 
@@ -126,7 +125,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testLeerNoExiste() {
+    void testLeerNoExiste() {
         System.out.println("BancoRespuestaDAOIT.leer() - ID inexistente");
         assertTrue(postgres.isRunning());
 
@@ -141,7 +140,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizar() {
+    void testActualizar() {
         System.out.println("BancoRespuestaDAOIT.actualizar()");
         assertTrue(postgres.isRunning());
 
@@ -163,7 +162,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testEliminar() {
+    void testEliminar() {
         System.out.println("BancoRespuestaDAOIT.eliminar()");
         assertTrue(postgres.isRunning());
 
@@ -190,7 +189,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     // ===================== NAMED QUERIES =====================
 
     @Test
-    public void testObtenerRespuestasGlobales() {
+    void testObtenerRespuestasGlobales() {
         System.out.println("BancoRespuestaDAOIT.obtenerRespuestasGlobales()");
         assertTrue(postgres.isRunning());
 
@@ -207,7 +206,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testObtenerRespuestasParaPregunta() {
+    void testObtenerRespuestasParaPregunta() {
         System.out.println("BancoRespuestaDAOIT.obtenerRespuestasParaPregunta()");
         assertTrue(postgres.isRunning());
 
@@ -230,7 +229,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindRandomDistractoresByArea() {
+    void testFindRandomDistractoresByArea() {
         System.out.println("BancoRespuestaDAOIT.findRandomDistractoresByArea()");
         assertTrue(postgres.isRunning());
 
@@ -249,7 +248,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindRandomDistractoresByAreaConExclusion() {
+    void testFindRandomDistractoresByAreaConExclusion() {
         System.out.println("BancoRespuestaDAOIT.findRandomDistractoresByArea() - con exclusion");
         assertTrue(postgres.isRunning());
 
@@ -271,7 +270,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testFindRandomDistractoresByAreaInvalido() {
+    void testFindRandomDistractoresByAreaInvalido() {
         System.out.println("BancoRespuestaDAOIT.findRandomDistractoresByArea() - parametros invalidos");
         assertTrue(postgres.isRunning());
 
@@ -292,7 +291,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     // ===================== VALIDACIONES CREAR =====================
 
     @Test
-    public void testCrearNulo() {
+    void testCrearNulo() {
         System.out.println("BancoRespuestaDAOIT.crear() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -306,7 +305,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearSinTexto() {
+    void testCrearSinTexto() {
         System.out.println("BancoRespuestaDAOIT.crear() - texto null/blank");
         assertTrue(postgres.isRunning());
 
@@ -326,7 +325,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearDuplicadoLocal() {
+    void testCrearDuplicadoLocal() {
         System.out.println("BancoRespuestaDAOIT.crear() - texto duplicado en misma area");
         assertTrue(postgres.isRunning());
 
@@ -347,7 +346,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testCrearDuplicadoGlobal() {
+    void testCrearDuplicadoGlobal() {
         System.out.println("BancoRespuestaDAOIT.crear() - duplicado global");
         assertTrue(postgres.isRunning());
 
@@ -372,7 +371,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     // ===================== VALIDACIONES ACTUALIZAR =====================
 
     @Test
-    public void testActualizarNulo() {
+    void testActualizarNulo() {
         System.out.println("BancoRespuestaDAOIT.actualizar() - entidad nula");
         assertTrue(postgres.isRunning());
 
@@ -386,7 +385,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizarSinId() {
+    void testActualizarSinId() {
         System.out.println("BancoRespuestaDAOIT.actualizar() - sin ID");
         assertTrue(postgres.isRunning());
 
@@ -403,7 +402,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizarTextoVacio() {
+    void testActualizarTextoVacio() {
         System.out.println("BancoRespuestaDAOIT.actualizar() - texto vacio");
         assertTrue(postgres.isRunning());
 
@@ -422,7 +421,7 @@ public class BancoRespuestaDAOIT extends AbstractBaseIT {
     }
 
     @Test
-    public void testActualizarDuplicadoLocal() {
+    void testActualizarDuplicadoLocal() {
         System.out.println("BancoRespuestaDAOIT.actualizar() - texto de otra respuesta en misma area");
         assertTrue(postgres.isRunning());
 
