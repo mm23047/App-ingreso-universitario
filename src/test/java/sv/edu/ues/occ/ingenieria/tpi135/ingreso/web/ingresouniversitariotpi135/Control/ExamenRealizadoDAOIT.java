@@ -11,6 +11,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.ExamenRealizado;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.InscripcionesPrueba;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,6 +28,12 @@ public class ExamenRealizadoDAOIT extends AbstractBaseIT {
     private static final UUID ID_ETAPA_2        = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
     private static final UUID ID_ETAPA_3        = UUID.fromString("cccccccc-cccc-cccc-cccc-cccccccccccc");
     private static final UUID ID_CLAVE_1        = UUID.fromString("aaaabbbb-cccc-dddd-eeee-ffffffffffff");
+    private static final UUID ID_CLAVE_A       = UUID.fromString("08000000-0000-0000-0000-000000000001");
+    private static final UUID ID_EXAMEN_1      = UUID.fromString("ffffeee1-1111-1111-1111-111111111111");
+    private static final UUID ID_EXAMEN_2      = UUID.fromString("0d000000-0000-0000-0000-000000000001");
+    private static final UUID ID_PRUEBA_TEST   = UUID.fromString("d1000000-0000-0000-0000-000000000001");
+    private static final UUID ID_ASPIRANTE_2   = UUID.fromString("e2222222-2222-2222-2222-222222222222");
+    private static final UUID ID_ASPIRANTE_TEST = UUID.fromString("e1000000-0000-0000-0000-000000000001");
 
     public ExamenRealizadoDAOIT() {
     }
@@ -155,5 +162,442 @@ public class ExamenRealizadoDAOIT extends AbstractBaseIT {
 
         assertNotNull(exception);
         assertTrue(exception.getMessage().contains("Error al ingresar el registro"));
+    }
+
+    // ===================== CRUD FALTANTE =====================
+
+    @Test
+    @Order(5)
+    public void testLeer() {
+        System.out.println("ExamenRealizadoDAOIT.leer()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            ExamenRealizado resultado = cut.leer(ID_EXAMEN_1);
+
+            assertNotNull(resultado);
+            assertEquals(ID_EXAMEN_1, resultado.getIdExamenRealizado());
+            assertEquals(new BigDecimal("70.00"), resultado.getPuntajeFinal());
+            assertNotNull(resultado.getInscripcionesPrueba());
+            assertNotNull(resultado.getClaveExamen());
+            assertNotNull(resultado.getEtapaAdmision());
+            return null;
+        });
+    }
+
+    @Test
+    @Order(6)
+    public void testLeerNoExiste() {
+        System.out.println("ExamenRealizadoDAOIT.leer() - ID inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            ExamenRealizado resultado = cut.leer(UUID.randomUUID());
+            assertNull(resultado, "Debe retornar null si el ID no existe");
+            return null;
+        });
+    }
+
+    @Test
+    @Order(7)
+    public void testActualizar() {
+        System.out.println("ExamenRealizadoDAOIT.actualizar()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            ExamenRealizado examen = cut.leer(ID_EXAMEN_2);
+            assertNotNull(examen);
+
+            examen.setPuntajeFinal(new BigDecimal("85.50"));
+            ExamenRealizado resultado = cut.actualizar(examen);
+
+            assertNotNull(resultado);
+            assertEquals(new BigDecimal("85.50"), resultado.getPuntajeFinal());
+            return null;
+        });
+    }
+
+    @Test
+    @Order(8)
+    public void testEliminar() {
+        System.out.println("ExamenRealizadoDAOIT.eliminar()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            // Crear temporal
+            InscripcionesPrueba inscripcion = em.find(InscripcionesPrueba.class, ID_INSCRIPCION_2);
+            EtapasAdmision etapa = em.find(EtapasAdmision.class, ID_ETAPA_3);
+            ClavesExamen clave = em.find(ClavesExamen.class, ID_CLAVE_1);
+
+            ExamenRealizado temporal = new ExamenRealizado();
+            temporal.setInscripcionesPrueba(inscripcion);
+            temporal.setEtapaAdmision(etapa);
+            temporal.setClaveExamen(clave);
+
+            cut.crear(temporal);
+            assertEquals(3, cut.count());
+
+            cut.eliminar(temporal);
+            assertEquals(2, cut.count());
+
+            return null;
+        });
+    }
+
+    // ===================== NAMED QUERIES =====================
+
+    @Test
+    @Order(9)
+    public void testCountByClaveExamen() {
+        System.out.println("ExamenRealizadoDAOIT.countByClaveExamen()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            // Clave A (08...001) tiene 2 exámenes
+            long resultado = cut.countByClaveExamen(ID_CLAVE_A);
+            assertEquals(2, resultado);
+
+            // Clave inexistente → 0
+            long vacio = cut.countByClaveExamen(UUID.randomUUID());
+            assertEquals(0, vacio);
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(10)
+    public void testCountByClaveExamenNulo() {
+        System.out.println("ExamenRealizadoDAOIT.countByClaveExamen() - null");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.countByClaveExamen(null));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(11)
+    public void testFindByAspiranteId() {
+        System.out.println("ExamenRealizadoDAOIT.findByAspiranteId()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            // Aspirante e2222222 (María Fernanda) tiene 1 examen vía inscripción ffff1001
+            List<ExamenRealizado> resultado = cut.findByAspiranteId(ID_ASPIRANTE_2);
+            assertNotNull(resultado);
+            assertEquals(1, resultado.size());
+            assertEquals(new BigDecimal("65.00"), resultado.get(0).getPuntajeFinal());
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(12)
+    public void testFindByAspiranteIdInexistente() {
+        System.out.println("ExamenRealizadoDAOIT.findByAspiranteId() - inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            List<ExamenRealizado> resultado = cut.findByAspiranteId(UUID.randomUUID());
+            assertNotNull(resultado);
+            assertTrue(resultado.isEmpty());
+            return null;
+        });
+    }
+
+    @Test
+    @Order(13)
+    public void testFindByAspiranteIdNulo() {
+        System.out.println("ExamenRealizadoDAOIT.findByAspiranteId() - null");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.findByAspiranteId(null));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(14)
+    public void testFindByPruebaId() {
+        System.out.println("ExamenRealizadoDAOIT.findByPruebaId()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            // Ambos exámenes usan clave 08...001 que pertenece a prueba d1...001
+            List<ExamenRealizado> resultado = cut.findByPruebaId(ID_PRUEBA_TEST);
+            assertNotNull(resultado);
+            assertEquals(2, resultado.size());
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(15)
+    public void testFindByPruebaIdInexistente() {
+        System.out.println("ExamenRealizadoDAOIT.findByPruebaId() - inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            List<ExamenRealizado> resultado = cut.findByPruebaId(UUID.randomUUID());
+            assertNotNull(resultado);
+            assertTrue(resultado.isEmpty());
+            return null;
+        });
+    }
+
+    @Test
+    @Order(16)
+    public void testFindByPruebaIdNulo() {
+        System.out.println("ExamenRealizadoDAOIT.findByPruebaId() - null");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.findByPruebaId(null));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(17)
+    public void testFindRankingByPruebaAndEtapa() {
+        System.out.println("ExamenRealizadoDAOIT.findRankingByPruebaAndEtapa()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            // Prueba d1...001 + Etapa aaaa (Primera Etapa) → 2 exámenes, orden DESC por puntaje
+            List<ExamenRealizado> resultado = cut.findRankingByPruebaAndEtapa(
+                    ID_PRUEBA_TEST, ID_ETAPA_1, 0, 10);
+
+            assertNotNull(resultado);
+            assertEquals(2, resultado.size());
+            // Orden DESC: 70.00 primero, 65.00 después
+            assertEquals(new BigDecimal("70.00"), resultado.get(0).getPuntajeFinal());
+            assertEquals(new BigDecimal("65.00"), resultado.get(1).getPuntajeFinal());
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(18)
+    public void testFindRankingByPruebaAndEtapaNulos() {
+        System.out.println("ExamenRealizadoDAOIT.findRankingByPruebaAndEtapa() - nulos");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.findRankingByPruebaAndEtapa(null, ID_ETAPA_1, 0, 10));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.findRankingByPruebaAndEtapa(ID_PRUEBA_TEST, null, 0, 10));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(19)
+    public void testFindByAspiranteDui() {
+        System.out.println("ExamenRealizadoDAOIT.findByAspiranteDui()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            // María Fernanda DUI 02234567-8 → 1 examen
+            List<ExamenRealizado> resultado = cut.findByAspiranteDui("02234567-8");
+            assertNotNull(resultado);
+            assertEquals(1, resultado.size());
+
+            // DUI inexistente → vacío
+            List<ExamenRealizado> vacio = cut.findByAspiranteDui("00000000-0");
+            assertNotNull(vacio);
+            assertTrue(vacio.isEmpty());
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(20)
+    public void testFindByAspiranteDuiInvalido() {
+        System.out.println("ExamenRealizadoDAOIT.findByAspiranteDui() - invalido");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.findByAspiranteDui(null));
+            assertThrows(IllegalArgumentException.class, () -> cut.findByAspiranteDui(""));
+            assertThrows(IllegalArgumentException.class, () -> cut.findByAspiranteDui("   "));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(21)
+    public void testFindByAspiranteCorreo() {
+        System.out.println("ExamenRealizadoDAOIT.findByAspiranteCorreo()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            // María Fernanda correo → 1 examen
+            List<ExamenRealizado> resultado = cut.findByAspiranteCorreo("maria.castillo@gmail.com");
+            assertNotNull(resultado);
+            assertEquals(1, resultado.size());
+
+            // Correo inexistente → vacío
+            List<ExamenRealizado> vacio = cut.findByAspiranteCorreo("noexiste@test.com");
+            assertNotNull(vacio);
+            assertTrue(vacio.isEmpty());
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(22)
+    public void testFindByAspiranteCorreoInvalido() {
+        System.out.println("ExamenRealizadoDAOIT.findByAspiranteCorreo() - invalido");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.findByAspiranteCorreo(null));
+            assertThrows(IllegalArgumentException.class, () -> cut.findByAspiranteCorreo(""));
+            assertThrows(IllegalArgumentException.class, () -> cut.findByAspiranteCorreo("   "));
+            return null;
+        });
+    }
+
+    // ===================== VALIDACIONES CREAR =====================
+
+    @Test
+    @Order(23)
+    public void testCrearNulo() {
+        System.out.println("ExamenRealizadoDAOIT.crear() - entidad nula");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.crear(null));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(24)
+    public void testCrearPuntajeNegativo() {
+        System.out.println("ExamenRealizadoDAOIT.crear() - puntaje negativo");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            InscripcionesPrueba inscripcion = em.find(InscripcionesPrueba.class, ID_INSCRIPCION_2);
+            EtapasAdmision etapa = em.find(EtapasAdmision.class, ID_ETAPA_3);
+            ClavesExamen clave = em.find(ClavesExamen.class, ID_CLAVE_1);
+
+            ExamenRealizado invalido = new ExamenRealizado();
+            invalido.setInscripcionesPrueba(inscripcion);
+            invalido.setEtapaAdmision(etapa);
+            invalido.setClaveExamen(clave);
+            invalido.setPuntajeFinal(new BigDecimal("-5"));
+
+            assertThrows(IllegalArgumentException.class, () -> cut.crear(invalido));
+            return null;
+        });
+    }
+
+    // ===================== VALIDACIONES ACTUALIZAR =====================
+
+    @Test
+    @Order(25)
+    public void testActualizarNulo() {
+        System.out.println("ExamenRealizadoDAOIT.actualizar() - entidad nula");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.actualizar(null));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(26)
+    public void testActualizarPuntajeNegativo() {
+        System.out.println("ExamenRealizadoDAOIT.actualizar() - puntaje negativo");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ExamenRealizadoDAO cut = new ExamenRealizadoDAO();
+            cut.em = em;
+
+            ExamenRealizado examen = cut.leer(ID_EXAMEN_1);
+            assertNotNull(examen);
+
+            examen.setPuntajeFinal(new BigDecimal("-10"));
+
+            assertThrows(IllegalArgumentException.class, () -> cut.actualizar(examen));
+            return null;
+        });
     }
 }

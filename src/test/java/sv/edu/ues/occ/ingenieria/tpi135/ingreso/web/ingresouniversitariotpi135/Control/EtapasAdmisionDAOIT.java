@@ -5,6 +5,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -185,5 +186,262 @@ public class EtapasAdmisionDAOIT extends AbstractBaseIT {
             return null;
         });
 
+    }
+
+    // ===================== NAMED QUERIES =====================
+
+    @Test
+    public void testFindByNombre() {
+        System.out.println("EtapasAdmisionDAOIT.findByNombre()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            EtapasAdmisionDAO cut = new EtapasAdmisionDAO();
+            cut.em = em;
+
+            EtapasAdmision resultado = cut.findByNombre("Primera Etapa");
+
+            assertNotNull(resultado);
+            assertEquals("Primera Etapa", resultado.getNombre());
+            assertEquals(new BigDecimal("0.00"), resultado.getPuntajeMinimo());
+            assertEquals(20, resultado.getCantidadPreguntasRequeridas());
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindByNombreNoExiste() {
+        System.out.println("EtapasAdmisionDAOIT.findByNombre() - no existe");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            EtapasAdmisionDAO cut = new EtapasAdmisionDAO();
+            cut.em = em;
+
+            EtapasAdmision resultado = cut.findByNombre("Etapa Inexistente");
+            assertNull(resultado, "Debe retornar null si el nombre no existe");
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindByNombreInvalido() {
+        System.out.println("EtapasAdmisionDAOIT.findByNombre() - parametros invalidos");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            EtapasAdmisionDAO cut = new EtapasAdmisionDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.findByNombre(null));
+            assertThrows(IllegalArgumentException.class, () -> cut.findByNombre(""));
+            assertThrows(IllegalArgumentException.class, () -> cut.findByNombre("   "));
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindEtapasAprobadasPorPuntaje() {
+        System.out.println("EtapasAdmisionDAOIT.findEtapasAprobadasPorPuntaje()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            EtapasAdmisionDAO cut = new EtapasAdmisionDAO();
+            cut.em = em;
+
+            // Puntaje 50 → Primera Etapa (0-59.99) + Inscripcion (0-100) + Asignacion (0-100) = 3
+            List<EtapasAdmision> resultado50 = cut.findEtapasAprobadasPorPuntaje(new BigDecimal("50"));
+            assertNotNull(resultado50);
+            assertEquals(3, resultado50.size());
+
+            // Puntaje 70 → Segunda Etapa (60-79.99) + Inscripcion + Asignacion = 3
+            List<EtapasAdmision> resultado70 = cut.findEtapasAprobadasPorPuntaje(new BigDecimal("70"));
+            assertNotNull(resultado70);
+            assertEquals(3, resultado70.size());
+
+            // Puntaje 90 → Etapa Final (80-100) + Inscripcion + Asignacion = 3
+            List<EtapasAdmision> resultado90 = cut.findEtapasAprobadasPorPuntaje(new BigDecimal("90"));
+            assertNotNull(resultado90);
+            assertEquals(3, resultado90.size());
+
+            // Puntaje 150 → fuera de rango de todas → 0
+            List<EtapasAdmision> resultadoFuera = cut.findEtapasAprobadasPorPuntaje(new BigDecimal("150"));
+            assertNotNull(resultadoFuera);
+            assertTrue(resultadoFuera.isEmpty());
+
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindEtapasAprobadasPorPuntajeNulo() {
+        System.out.println("EtapasAdmisionDAOIT.findEtapasAprobadasPorPuntaje() - null");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            EtapasAdmisionDAO cut = new EtapasAdmisionDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.findEtapasAprobadasPorPuntaje(null));
+            return null;
+        });
+    }
+
+    // ===================== VALIDACIONES CREAR =====================
+
+    @Test
+    public void testCrearNulo() {
+        System.out.println("EtapasAdmisionDAOIT.crear() - entidad nula");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            EtapasAdmisionDAO cut = new EtapasAdmisionDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.crear(null));
+            return null;
+        });
+    }
+
+    @Test
+    public void testCrearSinNombre() {
+        System.out.println("EtapasAdmisionDAOIT.crear() - sin nombre");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            EtapasAdmisionDAO cut = new EtapasAdmisionDAO();
+            cut.em = em;
+
+            EtapasAdmision sinNombre = new EtapasAdmision();
+            sinNombre.setCantidadPreguntasRequeridas(10);
+            sinNombre.setPuntajeMinimo(new BigDecimal("0"));
+            sinNombre.setPuntajeMaximo(new BigDecimal("100"));
+
+            assertThrows(IllegalArgumentException.class, () -> cut.crear(sinNombre));
+            return null;
+        });
+    }
+
+    @Test
+    public void testCrearSinCantidadPreguntas() {
+        System.out.println("EtapasAdmisionDAOIT.crear() - sin cantidad de preguntas");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            EtapasAdmisionDAO cut = new EtapasAdmisionDAO();
+            cut.em = em;
+
+            // cantidadPreguntasRequeridas null
+            EtapasAdmision sinPreguntas = new EtapasAdmision();
+            sinPreguntas.setNombre("Etapa sin preguntas");
+            sinPreguntas.setPuntajeMinimo(new BigDecimal("0"));
+            sinPreguntas.setPuntajeMaximo(new BigDecimal("100"));
+
+            assertThrows(IllegalArgumentException.class, () -> cut.crear(sinPreguntas));
+
+            // cantidadPreguntasRequeridas = 0
+            EtapasAdmision ceroPreguntas = new EtapasAdmision();
+            ceroPreguntas.setNombre("Etapa cero preguntas");
+            ceroPreguntas.setCantidadPreguntasRequeridas(0);
+
+            assertThrows(IllegalArgumentException.class, () -> cut.crear(ceroPreguntas));
+
+            return null;
+        });
+    }
+
+    @Test
+    public void testCrearPuntajeMinMayorQueMax() {
+        System.out.println("EtapasAdmisionDAOIT.crear() - puntaje min > max");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            EtapasAdmisionDAO cut = new EtapasAdmisionDAO();
+            cut.em = em;
+
+            EtapasAdmision invalida = new EtapasAdmision();
+            invalida.setNombre("Etapa puntaje invertido");
+            invalida.setCantidadPreguntasRequeridas(10);
+            invalida.setPuntajeMinimo(new BigDecimal("80"));
+            invalida.setPuntajeMaximo(new BigDecimal("50"));
+
+            assertThrows(IllegalArgumentException.class, () -> cut.crear(invalida));
+            return null;
+        });
+    }
+
+    @Test
+    public void testCrearNombreDuplicado() {
+        System.out.println("EtapasAdmisionDAOIT.crear() - nombre duplicado");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            EtapasAdmisionDAO cut = new EtapasAdmisionDAO();
+            cut.em = em;
+
+            EtapasAdmision duplicada = new EtapasAdmision();
+            duplicada.setNombre("Primera Etapa");
+            duplicada.setCantidadPreguntasRequeridas(5);
+            duplicada.setPuntajeMinimo(new BigDecimal("0"));
+            duplicada.setPuntajeMaximo(new BigDecimal("100"));
+
+            assertThrows(IllegalArgumentException.class, () -> cut.crear(duplicada));
+            return null;
+        });
+    }
+
+    // ===================== VALIDACIONES ACTUALIZAR =====================
+
+    @Test
+    public void testActualizarNulo() {
+        System.out.println("EtapasAdmisionDAOIT.actualizar() - entidad nula");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            EtapasAdmisionDAO cut = new EtapasAdmisionDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.actualizar(null));
+            return null;
+        });
+    }
+
+    @Test
+    public void testActualizarSinId() {
+        System.out.println("EtapasAdmisionDAOIT.actualizar() - sin ID");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            EtapasAdmisionDAO cut = new EtapasAdmisionDAO();
+            cut.em = em;
+
+            EtapasAdmision sinId = new EtapasAdmision();
+            sinId.setNombre("Sin ID");
+            sinId.setCantidadPreguntasRequeridas(5);
+
+            assertThrows(IllegalArgumentException.class, () -> cut.actualizar(sinId));
+            return null;
+        });
+    }
+
+    @Test
+    public void testActualizarNombreDuplicado() {
+        System.out.println("EtapasAdmisionDAOIT.actualizar() - nombre de otra etapa");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            EtapasAdmisionDAO cut = new EtapasAdmisionDAO();
+            cut.em = em;
+
+            // Obtener "Segunda Etapa" e intentar cambiarle el nombre a "Primera Etapa"
+            EtapasAdmision segunda = cut.findByNombre("Segunda Etapa");
+            assertNotNull(segunda);
+
+            segunda.setNombre("Primera Etapa");
+
+            assertThrows(IllegalArgumentException.class, () -> cut.actualizar(segunda));
+            return null;
+        });
     }
 }

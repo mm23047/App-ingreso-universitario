@@ -164,4 +164,289 @@ public class DisponibilidadAulaTurnoDAOIT extends AbstractBaseIT {
                 exception.getMessage().contains("PRIMARY KEY")
         );
     }
+
+    // ===================== CRUD FALTANTE =====================
+
+    @Test
+    @Order(5)
+    public void testLeer() {
+        System.out.println("DisponibilidadAulaTurnoDAOIT.leer()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            DisponibilidadAulaTurnoDAO cut = new DisponibilidadAulaTurnoDAO();
+            cut.em = em;
+
+            DisponibilidadAulaTurnoId id = new DisponibilidadAulaTurnoId();
+            id.setIdAula(ID_AULA_1);
+            id.setIdTurno(ID_TURNO_1);
+
+            DisponibilidadAulaTurno resultado = cut.leer(id);
+
+            assertNotNull(resultado);
+            assertEquals(ID_AULA_1, resultado.getAula().getIdAula());
+            assertEquals(ID_TURNO_1, resultado.getTurnoExamen().getIdTurnoExamen());
+            return null;
+        });
+    }
+
+    @Test
+    @Order(6)
+    public void testLeerNoExiste() {
+        System.out.println("DisponibilidadAulaTurnoDAOIT.leer() - PK inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            DisponibilidadAulaTurnoDAO cut = new DisponibilidadAulaTurnoDAO();
+            cut.em = em;
+
+            DisponibilidadAulaTurnoId idInexistente = new DisponibilidadAulaTurnoId();
+            idInexistente.setIdAula(UUID.randomUUID());
+            idInexistente.setIdTurno(UUID.randomUUID());
+
+            DisponibilidadAulaTurno resultado = cut.leer(idInexistente);
+            assertNull(resultado, "Debe retornar null si la PK no existe");
+            return null;
+        });
+    }
+
+    @Test
+    @Order(7)
+    public void testLeerTipoInvalido() {
+        System.out.println("DisponibilidadAulaTurnoDAOIT.leer() - tipo de ID invalido");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            DisponibilidadAulaTurnoDAO cut = new DisponibilidadAulaTurnoDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.leer(UUID.randomUUID()));
+            assertThrows(IllegalArgumentException.class, () -> cut.leer("id-invalido"));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(8)
+    public void testEliminar() {
+        System.out.println("DisponibilidadAulaTurnoDAOIT.eliminar()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            DisponibilidadAulaTurnoDAO cut = new DisponibilidadAulaTurnoDAO();
+            cut.em = em;
+
+            // Crear temporal: Aula1 + Turno2 (no existe en init.sql)
+            Aula aula = em.find(Aula.class, ID_AULA_1);
+            TurnosExamen turno = em.find(TurnosExamen.class, ID_TURNO_2);
+
+            DisponibilidadAulaTurnoId dispId = new DisponibilidadAulaTurnoId();
+            dispId.setIdAula(ID_AULA_1);
+            dispId.setIdTurno(ID_TURNO_2);
+
+            DisponibilidadAulaTurno temporal = new DisponibilidadAulaTurno();
+            temporal.setIdDisponibilidadAulaTurno(dispId);
+            temporal.setAula(aula);
+            temporal.setTurnoExamen(turno);
+
+            cut.crear(temporal);
+            assertEquals(4, cut.count());
+
+            cut.eliminar(temporal);
+            assertEquals(3, cut.count());
+
+            return null;
+        });
+    }
+
+    // ===================== NAMED QUERIES =====================
+
+    @Test
+    @Order(9)
+    public void testExistsByAulaAndTurno() {
+        System.out.println("DisponibilidadAulaTurnoDAOIT.existsByAulaAndTurno()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            DisponibilidadAulaTurnoDAO cut = new DisponibilidadAulaTurnoDAO();
+            cut.em = em;
+
+            // Aula1 + Turno1 existe → true
+            assertTrue(cut.existsByAulaAndTurno(ID_AULA_1, ID_TURNO_1));
+            // Aula2 + Turno2 existe → true
+            assertTrue(cut.existsByAulaAndTurno(ID_AULA_2, ID_TURNO_2));
+            // Aula1 + Turno2 NO existe → false
+            assertFalse(cut.existsByAulaAndTurno(ID_AULA_1, ID_TURNO_2));
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(10)
+    public void testExistsByAulaAndTurnoNulos() {
+        System.out.println("DisponibilidadAulaTurnoDAOIT.existsByAulaAndTurno() - parametros nulos");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            DisponibilidadAulaTurnoDAO cut = new DisponibilidadAulaTurnoDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.existsByAulaAndTurno(null, ID_TURNO_1));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.existsByAulaAndTurno(ID_AULA_1, null));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.existsByAulaAndTurno(null, null));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(11)
+    public void testFindByTurno() {
+        System.out.println("DisponibilidadAulaTurnoDAOIT.findByTurno()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            DisponibilidadAulaTurnoDAO cut = new DisponibilidadAulaTurnoDAO();
+            cut.em = em;
+
+            // Turno1 tiene 2 disponibilidades (Aula1+Turno1, Aula2+Turno1)
+            List<DisponibilidadAulaTurno> resultadoT1 = cut.findByTurno(ID_TURNO_1);
+            assertNotNull(resultadoT1);
+            assertEquals(2, resultadoT1.size());
+
+            // Turno2 tiene 1 disponibilidad (Aula2+Turno2)
+            List<DisponibilidadAulaTurno> resultadoT2 = cut.findByTurno(ID_TURNO_2);
+            assertNotNull(resultadoT2);
+            assertEquals(1, resultadoT2.size());
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(12)
+    public void testFindByTurnoInexistente() {
+        System.out.println("DisponibilidadAulaTurnoDAOIT.findByTurno() - turno inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            DisponibilidadAulaTurnoDAO cut = new DisponibilidadAulaTurnoDAO();
+            cut.em = em;
+
+            List<DisponibilidadAulaTurno> resultado = cut.findByTurno(UUID.randomUUID());
+            assertNotNull(resultado);
+            assertTrue(resultado.isEmpty());
+            return null;
+        });
+    }
+
+    @Test
+    @Order(13)
+    public void testFindByTurnoNulo() {
+        System.out.println("DisponibilidadAulaTurnoDAOIT.findByTurno() - null");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            DisponibilidadAulaTurnoDAO cut = new DisponibilidadAulaTurnoDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.findByTurno(null));
+            return null;
+        });
+    }
+
+    // ===================== CRITERIA API: findFiltrado =====================
+
+    @Test
+    @Order(14)
+    public void testFindFiltradoSinFiltros() {
+        System.out.println("DisponibilidadAulaTurnoDAOIT.findFiltrado() - sin filtros");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            DisponibilidadAulaTurnoDAO cut = new DisponibilidadAulaTurnoDAO();
+            cut.em = em;
+
+            // Sin filtros → retorna las 3 disponibilidades
+            List<DisponibilidadAulaTurno> resultado = cut.findFiltrado(null, null, 0, 10);
+            assertNotNull(resultado);
+            assertEquals(3, resultado.size());
+            return null;
+        });
+    }
+
+    @Test
+    @Order(15)
+    public void testFindFiltradoPorAula() {
+        System.out.println("DisponibilidadAulaTurnoDAOIT.findFiltrado() - por aula");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            DisponibilidadAulaTurnoDAO cut = new DisponibilidadAulaTurnoDAO();
+            cut.em = em;
+
+            // Aula1 tiene 1 disponibilidad (Turno1)
+            List<DisponibilidadAulaTurno> resultadoA1 = cut.findFiltrado(ID_AULA_1, null, 0, 10);
+            assertNotNull(resultadoA1);
+            assertEquals(1, resultadoA1.size());
+
+            // Aula2 tiene 2 disponibilidades (Turno1, Turno2)
+            List<DisponibilidadAulaTurno> resultadoA2 = cut.findFiltrado(ID_AULA_2, null, 0, 10);
+            assertNotNull(resultadoA2);
+            assertEquals(2, resultadoA2.size());
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(16)
+    public void testFindFiltradoPorTurno() {
+        System.out.println("DisponibilidadAulaTurnoDAOIT.findFiltrado() - por turno");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            DisponibilidadAulaTurnoDAO cut = new DisponibilidadAulaTurnoDAO();
+            cut.em = em;
+
+            // Turno1 tiene 2 disponibilidades
+            List<DisponibilidadAulaTurno> resultadoT1 = cut.findFiltrado(null, ID_TURNO_1, 0, 10);
+            assertNotNull(resultadoT1);
+            assertEquals(2, resultadoT1.size());
+
+            // Turno2 tiene 1 disponibilidad
+            List<DisponibilidadAulaTurno> resultadoT2 = cut.findFiltrado(null, ID_TURNO_2, 0, 10);
+            assertNotNull(resultadoT2);
+            assertEquals(1, resultadoT2.size());
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(17)
+    public void testFindFiltradoPorAulaYTurno() {
+        System.out.println("DisponibilidadAulaTurnoDAOIT.findFiltrado() - por aula y turno");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            DisponibilidadAulaTurnoDAO cut = new DisponibilidadAulaTurnoDAO();
+            cut.em = em;
+
+            // Aula2 + Turno1 → 1 resultado exacto
+            List<DisponibilidadAulaTurno> resultado = cut.findFiltrado(ID_AULA_2, ID_TURNO_1, 0, 10);
+            assertNotNull(resultado);
+            assertEquals(1, resultado.size());
+
+            // Aula1 + Turno2 → 0 (no existe)
+            List<DisponibilidadAulaTurno> vacio = cut.findFiltrado(ID_AULA_1, ID_TURNO_2, 0, 10);
+            assertNotNull(vacio);
+            assertTrue(vacio.isEmpty());
+
+            return null;
+        });
+    }
 }

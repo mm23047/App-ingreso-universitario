@@ -112,6 +112,7 @@ public class PreguntaOpcionDAO extends IngresoDefaultDataAccess<PreguntaOpcion> 
         try {
             return em.createNamedQuery("PreguntaOpcion.findOpcionesCorrectasByPregunta", PreguntaOpcion.class)
                     .setParameter("idPregunta", idPregunta)
+                    .setFlushMode(jakarta.persistence.FlushModeType.COMMIT)
                     .getResultList();
         } catch (Exception e) {
             throw new IllegalStateException("Error de infraestructura al consultar la opción correcta.", e);

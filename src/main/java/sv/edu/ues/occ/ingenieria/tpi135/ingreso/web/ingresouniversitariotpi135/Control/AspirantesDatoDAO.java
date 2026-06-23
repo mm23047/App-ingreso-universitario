@@ -126,12 +126,14 @@ public class AspirantesDatoDAO extends IngresoDefaultDataAccess<AspirantesDato> 
         return em.createNamedQuery("AspirantesDato.countByDuiAndNotId", Long.class)
                 .setParameter("dui", dui.trim())
                 .setParameter("id", id)
+                .setFlushMode(jakarta.persistence.FlushModeType.COMMIT)
                 .getSingleResult();
     }
     private long countByCorreoDiferenteId(String correo, UUID id) {
         return em.createNamedQuery("AspirantesDato.countByCorreoAndNotId", Long.class)
                 .setParameter("correo", correo.trim().toLowerCase())
                 .setParameter("id", id)
+                .setFlushMode(jakarta.persistence.FlushModeType.COMMIT)
                 .getSingleResult();
     }
 

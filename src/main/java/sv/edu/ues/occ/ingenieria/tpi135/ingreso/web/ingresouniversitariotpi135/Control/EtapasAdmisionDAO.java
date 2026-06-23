@@ -49,6 +49,7 @@ public class EtapasAdmisionDAO extends IngresoDefaultDataAccess<EtapasAdmision> 
         Long duplicados = em.createNamedQuery("EtapasAdmision.countByNombreNotId", Long.class)
                 .setParameter("nombre", entity.getNombre().trim())
                 .setParameter("idEtapa", entity.getIdEtapaAdmision())
+                .setFlushMode(jakarta.persistence.FlushModeType.COMMIT)
                 .getSingleResult();
 
         if (duplicados > 0) {

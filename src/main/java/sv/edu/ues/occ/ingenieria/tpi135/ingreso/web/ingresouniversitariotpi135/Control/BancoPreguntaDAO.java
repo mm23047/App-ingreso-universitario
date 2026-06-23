@@ -120,6 +120,7 @@ public class BancoPreguntaDAO extends IngresoDefaultDataAccess<BancoPregunta> im
         return em.createNamedQuery("BancoPregunta.countByEnunciadoAndNotId", Long.class)
                 .setParameter("enunciado", enunciado.trim())
                 .setParameter("idBancoPregunta", id)
+                .setFlushMode(jakarta.persistence.FlushModeType.COMMIT)
                 .getSingleResult();
     }
 }

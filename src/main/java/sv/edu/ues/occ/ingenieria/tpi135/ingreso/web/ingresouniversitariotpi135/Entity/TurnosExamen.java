@@ -31,7 +31,11 @@ import java.util.UUID;
         // 4. INTACTA: Las consultas de tipo COUNT no llevan JOIN FETCH porque no devuelven entidades
         @NamedQuery(
                 name = "TurnosExamen.countTraslapes",
-                query = "SELECT COUNT(t) FROM TurnosExamen t WHERE t.pruebaAdmision.idPruebaAdmision = :idPrueba AND t.fecha = :fecha AND (t.horaInicio < :horaFin AND t.horaFin > :horaInicio) AND (:idIgnorado IS NULL OR t.idTurnoExamen <> :idIgnorado)"
+                query = "SELECT COUNT(t) FROM TurnosExamen t WHERE t.pruebaAdmision.idPruebaAdmision = :idPrueba AND t.fecha = :fecha AND (t.horaInicio < :horaFin AND t.horaFin > :horaInicio)"
+        ),
+        @NamedQuery(
+                name = "TurnosExamen.countTraslapesExcluyendo",
+                query = "SELECT COUNT(t) FROM TurnosExamen t WHERE t.pruebaAdmision.idPruebaAdmision = :idPrueba AND t.fecha = :fecha AND (t.horaInicio < :horaFin AND t.horaFin > :horaInicio) AND t.idTurnoExamen <> :idIgnorado"
         ),
         // 5. MODIFICADA: Se agrega JOIN FETCH
         @NamedQuery(

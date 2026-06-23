@@ -31,6 +31,7 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
     private static final UUID ID_ASPIRANTE_1 = UUID.fromString("e1000000-0000-0000-0000-000000000001");
     private static final UUID ID_PRUEBA_2025 = UUID.fromString("d1000000-0000-0000-0000-000000000002");
     private static final UUID ID_ETAPA_1     = UUID.fromString("c1000000-0000-0000-0000-000000000001");
+    private static final UUID ID_ASPIRANTE_CARLOS = UUID.fromString("e1111111-1111-1111-1111-111111111111");
 
     public ProcesoAdmisionAspiranteDAOIT() {
     }
@@ -413,6 +414,137 @@ public class ProcesoAdmisionAspiranteDAOIT extends AbstractBaseIT {
             assertNotNull(cuposICSDesdeBd);
             assertEquals(0, cuposICSDesdeBd.getCupos());
 
+            return null;
+        });
+    }
+
+    // ===================== CRUD FALTANTE =====================
+
+    @Test
+    @Order(9)
+    public void testLeerNoExiste() {
+        System.out.println("ProcesoAdmisionAspiranteDAOIT.leer() - ID inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
+            cut.em = em;
+
+            ProcesoAdmisionAspirante resultado = cut.leer(UUID.randomUUID());
+            assertNull(resultado, "Debe retornar null si el ID no existe");
+            return null;
+        });
+    }
+
+    // ===================== NAMED QUERIES =====================
+
+    @Test
+    @Order(10)
+    public void testFindByAspiranteId() {
+        System.out.println("ProcesoAdmisionAspiranteDAOIT.findByAspiranteId()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
+            cut.em = em;
+
+            // Aspirante e1000000 tiene 1 proceso (09...001, EN_PROCESO)
+            List<ProcesoAdmisionAspirante> resultado = cut.findByAspiranteId(ID_ASPIRANTE_1);
+            assertNotNull(resultado);
+            assertEquals(1, resultado.size());
+            assertEquals("EN_PROCESO", resultado.get(0).getEstado());
+
+            // Aspirante e1111111 (Carlos) tiene 1 proceso (09...002, ADMITIDO en ISI)
+            List<ProcesoAdmisionAspirante> resultadoCarlos = cut.findByAspiranteId(ID_ASPIRANTE_CARLOS);
+            assertNotNull(resultadoCarlos);
+            assertEquals(1, resultadoCarlos.size());
+            assertEquals("ADMITIDO", resultadoCarlos.get(0).getEstado());
+            assertNotNull(resultadoCarlos.get(0).getCarreraAsignada());
+            assertEquals("ISI", resultadoCarlos.get(0).getCarreraAsignada().getIdCarrera());
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(11)
+    public void testFindByAspiranteIdInexistente() {
+        System.out.println("ProcesoAdmisionAspiranteDAOIT.findByAspiranteId() - inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
+            cut.em = em;
+
+            List<ProcesoAdmisionAspirante> resultado = cut.findByAspiranteId(UUID.randomUUID());
+            assertNotNull(resultado);
+            assertTrue(resultado.isEmpty());
+            return null;
+        });
+    }
+
+    @Test
+    @Order(12)
+    public void testFindByAspiranteIdNulo() {
+        System.out.println("ProcesoAdmisionAspiranteDAOIT.findByAspiranteId() - null");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.findByAspiranteId(null));
+            return null;
+        });
+    }
+
+    // ===================== VALIDACIONES NEGOCIO =====================
+
+    @Test
+    @Order(13)
+    public void testAsignarCarreraFinalNulo() {
+        System.out.println("ProcesoAdmisionAspiranteDAOIT.asignarCarreraFinal() - null");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.asignarCarreraFinal(null));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(14)
+    public void testAsignarCarreraFinalInexistente() {
+        System.out.println("ProcesoAdmisionAspiranteDAOIT.asignarCarreraFinal() - proceso inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
+            cut.em = em;
+            CuposCarreraDAO cuposDAO = new CuposCarreraDAO();
+            cuposDAO.em = em;
+            cut.setCuposCarreraDAO(cuposDAO);
+
+            ProcesoAdmisionAspirante resultado = cut.asignarCarreraFinal(UUID.randomUUID());
+            assertNull(resultado, "Debe retornar null si el proceso no existe");
+            return null;
+        });
+    }
+
+    @Test
+    @Order(15)
+    public void testProcesarAsignacionMasivaNulo() {
+        System.out.println("ProcesoAdmisionAspiranteDAOIT.procesarAsignacionMasiva() - null");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            ProcesoAdmisionAspiranteDAO cut = new ProcesoAdmisionAspiranteDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.procesarAsignacionMasiva(null));
             return null;
         });
     }

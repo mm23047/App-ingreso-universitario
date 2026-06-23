@@ -94,6 +94,7 @@ public class AreasConocimientoDAO extends IngresoDefaultDataAccess<AreasConocimi
             Long count = em.createNamedQuery("AreasConocimiento.countByNombreAndNotId", Long.class)
                     .setParameter("nombreArea", nombreArea.trim())
                     .setParameter("idArea", idArea)
+                    .setFlushMode(jakarta.persistence.FlushModeType.COMMIT)
                     .getSingleResult();
             return count > 0;
         } catch (Exception e) {

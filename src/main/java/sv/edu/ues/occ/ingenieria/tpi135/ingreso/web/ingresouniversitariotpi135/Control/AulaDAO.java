@@ -91,6 +91,7 @@ public class AulaDAO extends IngresoDefaultDataAccess<Aula> implements Serializa
         return em.createNamedQuery("Aula.countByCodigoAndNotId", Long.class)
                 .setParameter("codigoAulaApi", codigo.trim())
                 .setParameter("idAula", id)
+                .setFlushMode(jakarta.persistence.FlushModeType.COMMIT)
                 .getSingleResult();
     }
 

@@ -8,6 +8,7 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.Tema;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -201,6 +202,245 @@ public class BancoPreguntaDAOIT extends AbstractBaseIT {
             System.out.println("Intentando leer el ID borrado. Resultado obtenido: " + resultadoLectura);
             assertNull(resultadoLectura, "La pregunta debería retornar null tras ser eliminada");
 
+            return null;
+        });
+    }
+
+    // ===================== NAMED QUERIES =====================
+
+    @Test
+    public void testFindByTema() {
+        System.out.println("BancoPreguntaDAOIT.findByTema()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
+
+            // Tema Comprensión Lectora tiene 2 preguntas
+            UUID idComprensionLectora = UUID.fromString("f0000003-0000-0000-0000-000000000003");
+            List<BancoPregunta> resultado = cut.findByTema(idComprensionLectora);
+            assertNotNull(resultado);
+            assertEquals(2, resultado.size());
+
+            // Tema Álgebra tiene 1 pregunta
+            UUID idAlgebra = UUID.fromString("f0000001-0000-0000-0000-000000000001");
+            List<BancoPregunta> resultadoAlgebra = cut.findByTema(idAlgebra);
+            assertNotNull(resultadoAlgebra);
+            assertEquals(1, resultadoAlgebra.size());
+
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindByTemaInexistente() {
+        System.out.println("BancoPreguntaDAOIT.findByTema() - tema inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
+
+            List<BancoPregunta> resultado = cut.findByTema(UUID.randomUUID());
+            assertNotNull(resultado);
+            assertTrue(resultado.isEmpty());
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindByTemaNulo() {
+        System.out.println("BancoPreguntaDAOIT.findByTema() - id nulo");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.findByTema(null));
+            return null;
+        });
+    }
+
+    @Test
+    public void testLeerNoExiste() {
+        System.out.println("BancoPreguntaDAOIT.leer() - ID inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
+
+            BancoPregunta resultado = cut.leer(UUID.randomUUID());
+            assertNull(resultado, "Debe retornar null si el ID no existe");
+            return null;
+        });
+    }
+
+    // ===================== VALIDACIONES CREAR =====================
+
+    @Test
+    public void testCrearNulo() {
+        System.out.println("BancoPreguntaDAOIT.crear() - entidad nula");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.crear(null));
+            return null;
+        });
+    }
+
+    @Test
+    public void testCrearSinEnunciado() {
+        System.out.println("BancoPreguntaDAOIT.crear() - enunciado null");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
+
+            BancoPregunta sinEnunciado = new BancoPregunta();
+            // No seteamos enunciado (queda null)
+
+            assertThrows(IllegalArgumentException.class, () -> cut.crear(sinEnunciado));
+            return null;
+        });
+    }
+
+    @Test
+    public void testCrearEnunciadoBlank() {
+        System.out.println("BancoPreguntaDAOIT.crear() - enunciado en blanco");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
+
+            BancoPregunta enunciadoBlank = new BancoPregunta();
+            enunciadoBlank.setEnunciado("   ");
+
+            assertThrows(IllegalArgumentException.class, () -> cut.crear(enunciadoBlank));
+            return null;
+        });
+    }
+
+    @Test
+    public void testCrearSinTema() {
+        System.out.println("BancoPreguntaDAOIT.crear() - sin tema");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
+
+            BancoPregunta sinTema = new BancoPregunta();
+            sinTema.setEnunciado("Pregunta sin tema asociado");
+
+            assertThrows(IllegalArgumentException.class, () -> cut.crear(sinTema));
+            return null;
+        });
+    }
+
+    @Test
+    public void testCrearEnunciadoDuplicado() {
+        System.out.println("BancoPreguntaDAOIT.crear() - enunciado duplicado en mismo tema");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
+
+            // Obtener el tema de una pregunta existente
+            Tema temaAlgebra = em.find(Tema.class,
+                    UUID.fromString("f0000001-0000-0000-0000-000000000001"));
+
+            // Intentar crear con enunciado que ya existe en BD
+            BancoPregunta duplicada = new BancoPregunta();
+            duplicada.setEnunciado("¿Cuánto es la raíz cuadrada de 16?");
+            duplicada.setTema(temaAlgebra);
+
+            assertThrows(IllegalArgumentException.class, () -> cut.crear(duplicada));
+            return null;
+        });
+    }
+
+    @Test
+    public void testCrearConflictoArea() {
+        System.out.println("BancoPreguntaDAOIT.crear() - enunciado existe en otra area");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
+
+            // "¿Cuánto es la raíz cuadrada de 16?" existe en Álgebra (Área Matemática)
+            // Intentar crearla bajo Comprensión Lectora (Área Lenguaje)
+            Tema temaLenguaje = em.find(Tema.class,
+                    UUID.fromString("f0000003-0000-0000-0000-000000000003"));
+
+            BancoPregunta conflicto = new BancoPregunta();
+            conflicto.setEnunciado("¿Cuánto es la raíz cuadrada de 16?");
+            conflicto.setTema(temaLenguaje);
+
+            assertThrows(IllegalArgumentException.class, () -> cut.crear(conflicto));
+            return null;
+        });
+    }
+
+    // ===================== VALIDACIONES ACTUALIZAR =====================
+
+    @Test
+    public void testActualizarNulo() {
+        System.out.println("BancoPreguntaDAOIT.actualizar() - entidad nula");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.actualizar(null));
+            return null;
+        });
+    }
+
+    @Test
+    public void testActualizarSinId() {
+        System.out.println("BancoPreguntaDAOIT.actualizar() - sin ID");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
+
+            BancoPregunta sinId = new BancoPregunta();
+            sinId.setEnunciado("Pregunta sin ID");
+
+            assertThrows(IllegalArgumentException.class, () -> cut.actualizar(sinId));
+            return null;
+        });
+    }
+
+    @Test
+    public void testActualizarEnunciadoDuplicado() {
+        System.out.println("BancoPreguntaDAOIT.actualizar() - enunciado de otra pregunta");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            BancoPreguntaDAO cut = new BancoPreguntaDAO();
+            cut.em = em;
+
+            // Obtener la pregunta de Álgebra e intentar cambiarle el enunciado a uno de Comprensión Lectora
+            BancoPregunta pregunta = cut.leer(
+                    UUID.fromString("f1000000-0000-0000-0000-000000000001"));
+            assertNotNull(pregunta);
+
+            pregunta.setEnunciado("¿Cuál es la idea principal de un texto?");
+
+            assertThrows(IllegalArgumentException.class, () -> cut.actualizar(pregunta));
             return null;
         });
     }

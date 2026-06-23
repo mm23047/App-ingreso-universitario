@@ -66,13 +66,23 @@ public class TurnosExamenDAO extends IngresoDefaultDataAccess<TurnosExamen> impl
             throw new IllegalArgumentException("Ningún parámetro de tiempo puede ser nulo");
         }
 
-        Long coincidencias = em.createNamedQuery("TurnosExamen.countTraslapes", Long.class)
-                .setParameter("idPrueba", idPrueba)
-                .setParameter("fecha", fecha)
-                .setParameter("horaInicio", horaInicio)
-                .setParameter("horaFin", horaFin)
-                .setParameter("idIgnorado", idIgnorado)
-                .getSingleResult();
+        Long coincidencias;
+        if (idIgnorado == null) {
+            coincidencias = em.createNamedQuery("TurnosExamen.countTraslapes", Long.class)
+                    .setParameter("idPrueba", idPrueba)
+                    .setParameter("fecha", fecha)
+                    .setParameter("horaInicio", horaInicio)
+                    .setParameter("horaFin", horaFin)
+                    .getSingleResult();
+        } else {
+            coincidencias = em.createNamedQuery("TurnosExamen.countTraslapesExcluyendo", Long.class)
+                    .setParameter("idPrueba", idPrueba)
+                    .setParameter("fecha", fecha)
+                    .setParameter("horaInicio", horaInicio)
+                    .setParameter("horaFin", horaFin)
+                    .setParameter("idIgnorado", idIgnorado)
+                    .getSingleResult();
+        }
 
         return coincidencias > 0;
     }

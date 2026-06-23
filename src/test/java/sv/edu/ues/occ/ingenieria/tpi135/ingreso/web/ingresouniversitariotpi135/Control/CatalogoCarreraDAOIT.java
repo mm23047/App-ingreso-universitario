@@ -143,4 +143,56 @@ public class CatalogoCarreraDAOIT extends AbstractBaseIT {
             return null;
         });
     }
+
+    // ===================== NAMED QUERY: findByNombre =====================
+
+    @Test
+    public void testFindByNombre() {
+        System.out.println("CatalogoCarreraDAOIT.findByNombre()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            CatalogoCarreraDAO cut = new CatalogoCarreraDAO();
+            cut.em = em;
+
+            CatalogoCarrera resultado = cut.findByNombre("Ingeniería en Sistemas Informáticos");
+
+            assertNotNull(resultado);
+            assertEquals("ISI", resultado.getIdCarrera());
+            assertEquals("Ingeniería en Sistemas Informáticos", resultado.getNombreCatalogoCarrera());
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindByNombreNoExiste() {
+        System.out.println("CatalogoCarreraDAOIT.findByNombre() - no existe");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            CatalogoCarreraDAO cut = new CatalogoCarreraDAO();
+            cut.em = em;
+
+            CatalogoCarrera resultado = cut.findByNombre("Carrera Inexistente");
+
+            assertNull(resultado, "Debe retornar null si el nombre no existe");
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindByNombreInvalido() {
+        System.out.println("CatalogoCarreraDAOIT.findByNombre() - parametros invalidos");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            CatalogoCarreraDAO cut = new CatalogoCarreraDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.findByNombre(null));
+            assertThrows(IllegalArgumentException.class, () -> cut.findByNombre(""));
+            assertThrows(IllegalArgumentException.class, () -> cut.findByNombre("   "));
+            return null;
+        });
+    }
 }

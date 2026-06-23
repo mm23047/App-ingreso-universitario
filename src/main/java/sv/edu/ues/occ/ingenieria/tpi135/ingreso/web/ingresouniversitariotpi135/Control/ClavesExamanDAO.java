@@ -58,6 +58,7 @@ public class ClavesExamanDAO extends IngresoDefaultDataAccess<ClavesExamen> impl
                 .setParameter("idPrueba", entity.getPruebaAdmision().getIdPruebaAdmision())
                 .setParameter("nombreClave", entity.getNombreClave().trim())
                 .setParameter("idClave", entity.getIdClaveExaman())
+                .setFlushMode(jakarta.persistence.FlushModeType.COMMIT)
                 .getSingleResult();
 
         if (duplicados > 0) {

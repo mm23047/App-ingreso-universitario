@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.Entity.PruebasAdmision;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -167,4 +168,215 @@ public class PruebasAdmisionDAOIT extends AbstractBaseIT {
         });
     }
 
+    // ===================== NAMED QUERIES =====================
+
+    @Test
+    public void testFindActivas() {
+        System.out.println("PruebasAdmisionDAOIT.findActivas()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
+            cut.em = em;
+
+            // Las 3 pruebas del init.sql tienen activa=true
+            List<PruebasAdmision> resultado = cut.findActivas();
+            assertNotNull(resultado);
+            assertEquals(3, resultado.size());
+            resultado.forEach(p -> assertTrue(p.getActiva()));
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindByNombreAndAnio() {
+        System.out.println("PruebasAdmisionDAOIT.findByNombreAndAnio()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
+            cut.em = em;
+
+            PruebasAdmision resultado = cut.findByNombreAndAnio("Prueba Nacional UES", 2026);
+
+            assertNotNull(resultado);
+            assertEquals("Prueba Nacional UES", resultado.getNombrePrueba());
+            assertEquals(2026, resultado.getAnio());
+            assertTrue(resultado.getActiva());
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindByNombreAndAnioNoExiste() {
+        System.out.println("PruebasAdmisionDAOIT.findByNombreAndAnio() - no existe");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
+            cut.em = em;
+
+            // Nombre correcto pero año incorrecto
+            PruebasAdmision resultado = cut.findByNombreAndAnio("Prueba Nacional UES", 9999);
+            assertNull(resultado, "Debe retornar null si la combinacion no existe");
+
+            // Nombre incorrecto
+            PruebasAdmision resultado2 = cut.findByNombreAndAnio("Inexistente", 2026);
+            assertNull(resultado2);
+
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindByNombreAndAnioInvalido() {
+        System.out.println("PruebasAdmisionDAOIT.findByNombreAndAnio() - parametros invalidos");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.findByNombreAndAnio(null, 2026));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.findByNombreAndAnio("", 2026));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.findByNombreAndAnio("   ", 2026));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.findByNombreAndAnio("Prueba Nacional UES", null));
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindAllOrdenado() {
+        System.out.println("PruebasAdmisionDAOIT.findAllOrdenado()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
+            cut.em = em;
+
+            // Orden: anio DESC → 2026, 2024, 2023
+            List<PruebasAdmision> resultado = cut.findAllOrdenado(0, 10);
+            assertNotNull(resultado);
+            assertEquals(3, resultado.size());
+            assertEquals(2026, resultado.get(0).getAnio());
+            assertEquals(2024, resultado.get(1).getAnio());
+            assertEquals(2023, resultado.get(2).getAnio());
+
+            // Paginacion: solo 2 primeros
+            List<PruebasAdmision> paginado = cut.findAllOrdenado(0, 2);
+            assertEquals(2, paginado.size());
+            assertEquals(2026, paginado.get(0).getAnio());
+
+            return null;
+        });
+    }
+
+    @Test
+    public void testBuscarPorTermino() {
+        System.out.println("PruebasAdmisionDAOIT.buscarPorTermino()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
+            cut.em = em;
+
+            // "Test" coincide con "Prueba Test A" y "Prueba Test B"
+            List<PruebasAdmision> resultado = cut.buscarPorTermino("Test", 0, 10);
+            assertNotNull(resultado);
+            assertEquals(2, resultado.size());
+
+            // "Nacional" coincide solo con "Prueba Nacional UES"
+            List<PruebasAdmision> resultadoNacional = cut.buscarPorTermino("Nacional", 0, 10);
+            assertNotNull(resultadoNacional);
+            assertEquals(1, resultadoNacional.size());
+            assertEquals("Prueba Nacional UES", resultadoNacional.get(0).getNombrePrueba());
+
+            return null;
+        });
+    }
+
+    @Test
+    public void testBuscarPorTerminoSinResultados() {
+        System.out.println("PruebasAdmisionDAOIT.buscarPorTermino() - sin coincidencia");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
+            cut.em = em;
+
+            List<PruebasAdmision> resultado = cut.buscarPorTermino("XYZNOEXISTE", 0, 10);
+            assertNotNull(resultado);
+            assertTrue(resultado.isEmpty());
+            return null;
+        });
+    }
+
+    // ===================== REGLA DE NEGOCIO =====================
+
+    @Test
+    public void testSetPruebaActivaExclusiva() {
+        System.out.println("PruebasAdmisionDAOIT.setPruebaActivaExclusiva()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
+            cut.em = em;
+
+            UUID idPruebaNacional = UUID.fromString("dddddddd-dddd-dddd-dddd-dddddddddddd");
+
+            // Activar exclusivamente la Prueba Nacional UES
+            cut.setPruebaActivaExclusiva(idPruebaNacional);
+            em.flush();
+            em.clear();
+
+            // Verificar que solo la prueba objetivo queda activa
+            PruebasAdmision pruebaActiva = em.find(PruebasAdmision.class, idPruebaNacional);
+            assertTrue(pruebaActiva.getActiva());
+
+            // Las demas deben estar desactivadas
+            PruebasAdmision testA = em.find(PruebasAdmision.class,
+                    UUID.fromString("d1000000-0000-0000-0000-000000000001"));
+            assertFalse(testA.getActiva());
+
+            PruebasAdmision testB = em.find(PruebasAdmision.class,
+                    UUID.fromString("d1000000-0000-0000-0000-000000000002"));
+            assertFalse(testB.getActiva());
+
+            return null;
+        });
+    }
+
+    @Test
+    public void testSetPruebaActivaExclusivaNulo() {
+        System.out.println("PruebasAdmisionDAOIT.setPruebaActivaExclusiva() - null");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.setPruebaActivaExclusiva(null));
+            return null;
+        });
+    }
+
+    @Test
+    public void testSetPruebaActivaExclusivaInexistente() {
+        System.out.println("PruebasAdmisionDAOIT.setPruebaActivaExclusiva() - ID inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            PruebasAdmisionDAO cut = new PruebasAdmisionDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.setPruebaActivaExclusiva(UUID.randomUUID()));
+            return null;
+        });
+    }
 }

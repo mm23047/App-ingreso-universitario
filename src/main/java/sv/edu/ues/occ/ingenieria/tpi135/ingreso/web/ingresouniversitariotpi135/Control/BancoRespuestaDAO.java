@@ -74,12 +74,14 @@ public class BancoRespuestaDAO extends IngresoDefaultDataAccess<BancoRespuesta> 
             conteo = em.createNamedQuery("BancoRespuesta.countGlobalByTextoAndNotId", Long.class)
                     .setParameter("textoRespuesta", textoSaneado)
                     .setParameter("idBancoRespuesta", entity.getIdBancoRespuesta())
+                    .setFlushMode(jakarta.persistence.FlushModeType.COMMIT)
                     .getSingleResult();
         } else {
             conteo = em.createNamedQuery("BancoRespuesta.countLocalByTextoAndNotId", Long.class)
                     .setParameter("textoRespuesta", textoSaneado)
                     .setParameter("idArea", entity.getAreaConocimiento().getIdAreaConocimiento())
                     .setParameter("idBancoRespuesta", entity.getIdBancoRespuesta())
+                    .setFlushMode(jakarta.persistence.FlushModeType.COMMIT)
                     .getSingleResult();
         }
 

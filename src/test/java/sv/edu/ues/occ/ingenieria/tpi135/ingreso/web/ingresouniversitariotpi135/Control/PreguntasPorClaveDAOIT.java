@@ -25,6 +25,7 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
     private static final UUID ID_CLAVE_B    = UUID.fromString("aaaabbbb-cccc-dddd-eeee-ffffffffffff");
     private static final UUID ID_PREGUNTA_1 = UUID.fromString("f1000000-0000-0000-0000-000000000001");
     private static final UUID ID_PREGUNTA_3 = UUID.fromString("f1000000-0000-0000-0000-000000000003");
+    private static final UUID ID_PREGUNTA_55 = UUID.fromString("55555555-5555-5555-5555-555555555555");
 
     public PreguntasPorClaveDAOIT() {
     }
@@ -199,6 +200,177 @@ public class PreguntasPorClaveDAOIT extends AbstractBaseIT {
             cut.eliminar(nuevo);
             assertEquals(4, cut.count());
 
+            return null;
+        });
+    }
+
+    // ===================== CRUD FALTANTE =====================
+
+    @Test
+    @Order(7)
+    public void testLeerNoExiste() {
+        System.out.println("PreguntasPorClaveDAOIT.leer() - PK inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
+            cut.em = em;
+
+            PreguntasPorClaveId idInexistente = new PreguntasPorClaveId();
+            idInexistente.setIdClave(UUID.randomUUID());
+            idInexistente.setIdPregunta(UUID.randomUUID());
+
+            PreguntasPorClave resultado = cut.leer(idInexistente);
+            assertNull(resultado, "Debe retornar null si la PK no existe");
+            return null;
+        });
+    }
+
+    // ===================== NAMED QUERIES =====================
+
+    @Test
+    @Order(8)
+    public void testExistsByClaveAndPregunta() {
+        System.out.println("PreguntasPorClaveDAOIT.existsByClaveAndPregunta()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
+            cut.em = em;
+
+            // Clave A + pregunta1 existe → true
+            assertTrue(cut.existsByClaveAndPregunta(ID_CLAVE_A, ID_PREGUNTA_1));
+
+            // Clave A + pregunta 55555555 existe → true
+            assertTrue(cut.existsByClaveAndPregunta(ID_CLAVE_A, ID_PREGUNTA_55));
+
+            // Clave A + pregunta3 NO existe → false
+            assertFalse(cut.existsByClaveAndPregunta(ID_CLAVE_A, ID_PREGUNTA_3));
+
+            // Clave B + pregunta3 existe → true
+            assertTrue(cut.existsByClaveAndPregunta(ID_CLAVE_B, ID_PREGUNTA_3));
+
+            // Clave B + pregunta1 NO existe → false
+            assertFalse(cut.existsByClaveAndPregunta(ID_CLAVE_B, ID_PREGUNTA_1));
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(9)
+    public void testExistsByClaveAndPreguntaNulos() {
+        System.out.println("PreguntasPorClaveDAOIT.existsByClaveAndPregunta() - nulos");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.existsByClaveAndPregunta(null, ID_PREGUNTA_1));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.existsByClaveAndPregunta(ID_CLAVE_A, null));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.existsByClaveAndPregunta(null, null));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(10)
+    public void testFindPreguntasByClave() {
+        System.out.println("PreguntasPorClaveDAOIT.findPreguntasByClave()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
+            cut.em = em;
+
+            // Clave A tiene 2 preguntas
+            List<PreguntasPorClave> resultadoA = cut.findPreguntasByClave(ID_CLAVE_A);
+            assertNotNull(resultadoA);
+            assertEquals(2, resultadoA.size());
+
+            // Clave B tiene 2 preguntas
+            List<PreguntasPorClave> resultadoB = cut.findPreguntasByClave(ID_CLAVE_B);
+            assertNotNull(resultadoB);
+            assertEquals(2, resultadoB.size());
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(11)
+    public void testFindPreguntasByClaveInexistente() {
+        System.out.println("PreguntasPorClaveDAOIT.findPreguntasByClave() - clave inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
+            cut.em = em;
+
+            List<PreguntasPorClave> resultado = cut.findPreguntasByClave(UUID.randomUUID());
+            assertNotNull(resultado);
+            assertTrue(resultado.isEmpty());
+            return null;
+        });
+    }
+
+    @Test
+    @Order(12)
+    public void testFindPreguntasByClaveNulo() {
+        System.out.println("PreguntasPorClaveDAOIT.findPreguntasByClave() - null retorna lista vacia");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
+            cut.em = em;
+
+            // El metodo retorna Collections.emptyList() si idClave es null
+            List<PreguntasPorClave> resultado = cut.findPreguntasByClave(null);
+            assertNotNull(resultado);
+            assertTrue(resultado.isEmpty());
+            return null;
+        });
+    }
+
+    @Test
+    @Order(13)
+    public void testCountPreguntasByClave() {
+        System.out.println("PreguntasPorClaveDAOIT.countPreguntasByClave()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
+            cut.em = em;
+
+            // Clave A tiene 2 preguntas
+            assertEquals(2, cut.countPreguntasByClave(ID_CLAVE_A));
+
+            // Clave B tiene 2 preguntas
+            assertEquals(2, cut.countPreguntasByClave(ID_CLAVE_B));
+
+            // Clave inexistente → 0
+            assertEquals(0, cut.countPreguntasByClave(UUID.randomUUID()));
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(14)
+    public void testCountPreguntasByClaveNulo() {
+        System.out.println("PreguntasPorClaveDAOIT.countPreguntasByClave() - null");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            PreguntasPorClaveDAO cut = new PreguntasPorClaveDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.countPreguntasByClave(null));
             return null;
         });
     }

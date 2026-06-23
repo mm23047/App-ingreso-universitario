@@ -94,6 +94,9 @@ public class PruebasAdmisionDAO extends IngresoDefaultDataAccess<PruebasAdmision
                 .setParameter("idExcluido", idPruebaAdmision)
                 .executeUpdate();
 
+        // Bulk UPDATE bypasa el caché L2 — evictar entradas obsoletas
+        em.getEntityManagerFactory().getCache().evict(PruebasAdmision.class);
+
         // 2. Encender la prueba objetivo
         PruebasAdmision pruebaObjetivo = em.find(PruebasAdmision.class, idPruebaAdmision);
         if (pruebaObjetivo != null) {

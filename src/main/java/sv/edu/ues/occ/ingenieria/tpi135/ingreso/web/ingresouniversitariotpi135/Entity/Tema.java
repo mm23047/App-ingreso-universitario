@@ -34,7 +34,7 @@ import java.util.UUID;
         ),
         @NamedQuery(
                 name = "Tema.findRaicesByArea",
-                query = "SELECT t FROM Tema t JOIN FETCH t.areaConocimiento LEFT JOIN FETCH t.idTemaPadre WHERE t.areaConocimiento.idAreaConocimiento = :idArea AND t.idTemaPadre IS NULL ORDER BY t.nombreTema ASC"
+                query = "SELECT t FROM Tema t JOIN FETCH t.areaConocimiento WHERE t.areaConocimiento.idAreaConocimiento = :idArea AND t.idTemaPadre IS NULL ORDER BY t.nombreTema ASC"
         ),
         @NamedQuery(
                 name = "Tema.findByPrueba",

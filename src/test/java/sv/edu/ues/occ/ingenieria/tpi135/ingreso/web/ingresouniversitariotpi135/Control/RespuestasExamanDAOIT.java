@@ -28,6 +28,7 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
     private static final UUID ID_OPCION_2    = UUID.fromString("0b000000-0000-0000-0000-000000000002");
     private static final UUID ID_OPCION_7    = UUID.fromString("0b000000-0000-0000-0000-000000000007");
     private static final UUID ID_RESPUESTA_1 = UUID.fromString("0e000000-0000-0000-0000-000000000001");
+    private static final UUID ID_EXAMEN_OTRO = UUID.fromString("ffffeee1-1111-1111-1111-111111111111");
 
     public RespuestasExamanDAOIT() {
     }
@@ -214,6 +215,165 @@ public class RespuestasExamanDAOIT extends AbstractBaseIT {
                 () -> cut.findByExamenId(ID_EXAMEN_1));
             assertEquals("Cannot access db", ise.getMessage());
 
+            return null;
+        });
+    }
+
+    // ===================== CRUD FALTANTE =====================
+
+    @Test
+    @Order(8)
+    public void testLeerNoExiste() {
+        System.out.println("RespuestasExamanDAOIT.leer() - ID inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
+            cut.em = em;
+
+            RespuestaExamen resultado = cut.leer(UUID.randomUUID());
+            assertNull(resultado, "Debe retornar null si el ID no existe");
+            return null;
+        });
+    }
+
+    // ===================== NAMED QUERIES - COMPLEMENTO =====================
+
+    @Test
+    @Order(9)
+    public void testFindByExamenIdInexistente() {
+        System.out.println("RespuestasExamanDAOIT.findByExamenId() - examen inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
+            cut.em = em;
+
+            List<RespuestaExamen> resultado = cut.findByExamenId(UUID.randomUUID());
+            assertNotNull(resultado);
+            assertTrue(resultado.isEmpty());
+            return null;
+        });
+    }
+
+    @Test
+    @Order(10)
+    public void testExistsByExamenAndPreguntaNoExiste() {
+        System.out.println("RespuestasExamanDAOIT.existsByExamenAndPregunta() - combinacion inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
+            cut.em = em;
+
+            // Examen 0d000000 no tiene respuesta para pregunta f1...003
+            assertFalse(cut.existsByExamenAndPregunta(ID_EXAMEN_1, ID_PREGUNTA_3));
+
+            // Examen inexistente
+            assertFalse(cut.existsByExamenAndPregunta(UUID.randomUUID(), ID_PREGUNTA_1));
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(11)
+    public void testExistsByExamenAndPreguntaNulos() {
+        System.out.println("RespuestasExamanDAOIT.existsByExamenAndPregunta() - nulos");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.existsByExamenAndPregunta(null, ID_PREGUNTA_1));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.existsByExamenAndPregunta(ID_EXAMEN_1, null));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.existsByExamenAndPregunta(null, null));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(12)
+    public void testFindByExamenAndPreguntaNoExiste() {
+        System.out.println("RespuestasExamanDAOIT.findByExamenAndPregunta() - sin resultado");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
+            cut.em = em;
+
+            // Examen 0d000000 no tiene respuesta para pregunta f1...003 → null
+            RespuestaExamen resultado = cut.findByExamenAndPregunta(ID_EXAMEN_1, ID_PREGUNTA_3);
+            assertNull(resultado, "Debe retornar null si no hay respuesta para esa pregunta");
+
+            // Examen inexistente → null
+            RespuestaExamen resultado2 = cut.findByExamenAndPregunta(UUID.randomUUID(), ID_PREGUNTA_1);
+            assertNull(resultado2);
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(13)
+    public void testFindByExamenAndPreguntaNulos() {
+        System.out.println("RespuestasExamanDAOIT.findByExamenAndPregunta() - nulos");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.findByExamenAndPregunta(null, ID_PREGUNTA_1));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.findByExamenAndPregunta(ID_EXAMEN_1, null));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(14)
+    public void testCountRespuestasByExamen() {
+        System.out.println("RespuestasExamanDAOIT.countRespuestasByExamen()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
+            cut.em = em;
+
+            // Examen 0d000000 tiene 2 respuestas
+            Long count1 = cut.countRespuestasByExamen(ID_EXAMEN_1);
+            assertEquals(2L, count1);
+
+            // Examen ffffeee1 tiene 2 respuestas
+            Long count2 = cut.countRespuestasByExamen(ID_EXAMEN_OTRO);
+            assertEquals(2L, count2);
+
+            // Examen inexistente → 0
+            Long countInexistente = cut.countRespuestasByExamen(UUID.randomUUID());
+            assertEquals(0L, countInexistente);
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(15)
+    public void testCountRespuestasByExamenNulo() {
+        System.out.println("RespuestasExamanDAOIT.countRespuestasByExamen() - null");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            RespuestaExamenDAO cut = new RespuestaExamenDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.countRespuestasByExamen(null));
             return null;
         });
     }

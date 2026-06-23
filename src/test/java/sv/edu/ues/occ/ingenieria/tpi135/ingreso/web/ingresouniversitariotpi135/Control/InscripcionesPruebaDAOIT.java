@@ -307,4 +307,318 @@ public class InscripcionesPruebaDAOIT extends AbstractBaseIT {
         });
     }
 
+    // ===================== CRUD FALTANTE =====================
+
+    @Test
+    @Order(10)
+    public void testLeerNoExiste() {
+        System.out.println("InscripcionesPruebaDAOIT.leer() - ID inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
+
+            InscripcionesPrueba resultado = cut.leer(UUID.randomUUID());
+            assertNull(resultado, "Debe retornar null si el ID no existe");
+            return null;
+        });
+    }
+
+    // ===================== NAMED QUERIES - COMPLEMENTO =====================
+
+    @Test
+    @Order(11)
+    public void testFindByAspiranteIdConResultados() {
+        System.out.println("InscripcionesPruebaDAOIT.findByAspiranteId() - verificar conteo");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
+
+            // Aspirante e1000000 tiene 1 inscripcion en prueba d1...001
+            UUID idAspirante = UUID.fromString("e1000000-0000-0000-0000-000000000001");
+            List<InscripcionesPrueba> resultado = cut.findByAspiranteId(idAspirante);
+            assertNotNull(resultado);
+            assertEquals(1, resultado.size());
+            assertEquals("INSCRITO", resultado.get(0).getEstado());
+
+            // Aspirante inexistente -> vacio
+            List<InscripcionesPrueba> vacio = cut.findByAspiranteId(UUID.randomUUID());
+            assertNotNull(vacio);
+            assertTrue(vacio.isEmpty());
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(12)
+    public void testFindByPruebaIdConResultados() {
+        System.out.println("InscripcionesPruebaDAOIT.findByPruebaId() - verificar conteo");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
+
+            // Prueba d1...001 (Prueba Test A) tiene 2 inscripciones
+            UUID idPruebaA = UUID.fromString("d1000000-0000-0000-0000-000000000001");
+            List<InscripcionesPrueba> resultadoA = cut.findByPruebaId(idPruebaA);
+            assertNotNull(resultadoA);
+            assertEquals(2, resultadoA.size());
+
+            // Prueba dddd (Prueba Nacional UES) tiene 2 inscripciones
+            UUID idPruebaNacional = UUID.fromString("dddddddd-dddd-dddd-dddd-dddddddddddd");
+            List<InscripcionesPrueba> resultadoN = cut.findByPruebaId(idPruebaNacional);
+            assertNotNull(resultadoN);
+            assertEquals(2, resultadoN.size());
+
+            // Prueba inexistente -> vacio
+            List<InscripcionesPrueba> vacio = cut.findByPruebaId(UUID.randomUUID());
+            assertNotNull(vacio);
+            assertTrue(vacio.isEmpty());
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(13)
+    public void testExistsByAspiranteAndPruebaExcludingId() {
+        System.out.println("InscripcionesPruebaDAOIT.existsByAspiranteAndPruebaExcludingId()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
+
+            UUID idAspirante = UUID.fromString("e1000000-0000-0000-0000-000000000001");
+            UUID idPrueba = UUID.fromString("d1000000-0000-0000-0000-000000000001");
+            UUID idInscripcion = UUID.fromString("09000000-0000-0000-0000-000000000001");
+
+            // Excluyendo su propio ID -> false (no hay otro duplicado)
+            assertFalse(cut.existsByAspiranteAndPruebaExcludingId(idAspirante, idPrueba, idInscripcion));
+
+            // Excluyendo un ID diferente -> true (la inscripcion 09...001 aparece como duplicado)
+            assertTrue(cut.existsByAspiranteAndPruebaExcludingId(idAspirante, idPrueba, UUID.randomUUID()));
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(14)
+    public void testExistsByAspiranteAndPruebaExcludingIdNulos() {
+        System.out.println("InscripcionesPruebaDAOIT.existsByAspiranteAndPruebaExcludingId() - nulos");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
+
+            UUID id = UUID.randomUUID();
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.existsByAspiranteAndPruebaExcludingId(null, id, id));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.existsByAspiranteAndPruebaExcludingId(id, null, id));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.existsByAspiranteAndPruebaExcludingId(id, id, null));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(15)
+    public void testFindByPruebaAndEstado() {
+        System.out.println("InscripcionesPruebaDAOIT.findByPruebaAndEstado()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
+
+            // Prueba d1...001 con estado INSCRITO -> 2 resultados
+            UUID idPrueba = UUID.fromString("d1000000-0000-0000-0000-000000000001");
+            List<InscripcionesPrueba> resultado = cut.findByPruebaAndEstado(idPrueba, "INSCRITO");
+            assertNotNull(resultado);
+            assertEquals(2, resultado.size());
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(16)
+    public void testFindByPruebaAndEstadoSinResultados() {
+        System.out.println("InscripcionesPruebaDAOIT.findByPruebaAndEstado() - estado sin match");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
+
+            UUID idPrueba = UUID.fromString("d1000000-0000-0000-0000-000000000001");
+            List<InscripcionesPrueba> resultado = cut.findByPruebaAndEstado(idPrueba, "RECHAZADO");
+            assertNotNull(resultado);
+            assertTrue(resultado.isEmpty());
+
+            return null;
+        });
+    }
+
+    @Test
+    @Order(17)
+    public void testFindByPruebaAndEstadoInvalido() {
+        System.out.println("InscripcionesPruebaDAOIT.findByPruebaAndEstado() - parametros invalidos");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
+
+            UUID idPrueba = UUID.fromString("d1000000-0000-0000-0000-000000000001");
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.findByPruebaAndEstado(null, "INSCRITO"));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.findByPruebaAndEstado(idPrueba, null));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.findByPruebaAndEstado(idPrueba, ""));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.findByPruebaAndEstado(idPrueba, "   "));
+            return null;
+        });
+    }
+
+    // ===================== VALIDACIONES CREAR =====================
+
+    @Test
+    @Order(18)
+    public void testCrearNulo() {
+        System.out.println("InscripcionesPruebaDAOIT.crear() - entidad nula");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.crear(null));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(19)
+    public void testCrearSinAspirante() {
+        System.out.println("InscripcionesPruebaDAOIT.crear() - sin aspirante");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
+
+            PruebasAdmision prueba = em.find(PruebasAdmision.class,
+                    UUID.fromString("d1000000-0000-0000-0000-000000000002"));
+
+            InscripcionesPrueba sinAspirante = new InscripcionesPrueba();
+            sinAspirante.setPruebaAdmision(prueba);
+            sinAspirante.setEstado("INSCRITO");
+
+            assertThrows(IllegalArgumentException.class, () -> cut.crear(sinAspirante));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(20)
+    public void testCrearSinPrueba() {
+        System.out.println("InscripcionesPruebaDAOIT.crear() - sin prueba");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
+
+            AspirantesDato aspirante = em.find(AspirantesDato.class,
+                    UUID.fromString("e1000000-0000-0000-0000-000000000001"));
+
+            InscripcionesPrueba sinPrueba = new InscripcionesPrueba();
+            sinPrueba.setAspiranteDato(aspirante);
+            sinPrueba.setEstado("INSCRITO");
+
+            assertThrows(IllegalArgumentException.class, () -> cut.crear(sinPrueba));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(21)
+    public void testCrearDuplicadoAspirantePrueba() {
+        System.out.println("InscripcionesPruebaDAOIT.crear() - duplicado aspirante+prueba");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
+
+            // e1000000 ya esta inscrito en d1...001 -> duplicado
+            AspirantesDato aspirante = em.find(AspirantesDato.class,
+                    UUID.fromString("e1000000-0000-0000-0000-000000000001"));
+            PruebasAdmision prueba = em.find(PruebasAdmision.class,
+                    UUID.fromString("d1000000-0000-0000-0000-000000000001"));
+
+            InscripcionesPrueba duplicada = new InscripcionesPrueba();
+            duplicada.setAspiranteDato(aspirante);
+            duplicada.setPruebaAdmision(prueba);
+            duplicada.setEstado("INSCRITO");
+
+            assertThrows(IllegalArgumentException.class, () -> cut.crear(duplicada));
+            return null;
+        });
+    }
+
+    // ===================== VALIDACIONES ACTUALIZAR =====================
+
+    @Test
+    @Order(22)
+    public void testActualizarNulo() {
+        System.out.println("InscripcionesPruebaDAOIT.actualizar() - entidad nula");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.actualizar(null));
+            return null;
+        });
+    }
+
+    @Test
+    @Order(23)
+    public void testActualizarSinId() {
+        System.out.println("InscripcionesPruebaDAOIT.actualizar() - sin ID");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            InscripcionesPruebaDAO cut = new InscripcionesPruebaDAO();
+            cut.em = em;
+
+            AspirantesDato aspirante = em.find(AspirantesDato.class,
+                    UUID.fromString("e1000000-0000-0000-0000-000000000001"));
+            PruebasAdmision prueba = em.find(PruebasAdmision.class,
+                    UUID.fromString("d1000000-0000-0000-0000-000000000002"));
+
+            InscripcionesPrueba sinId = new InscripcionesPrueba();
+            sinId.setAspiranteDato(aspirante);
+            sinId.setPruebaAdmision(prueba);
+            sinId.setEstado("INSCRITO");
+
+            assertThrows(IllegalArgumentException.class, () -> cut.actualizar(sinId));
+            return null;
+        });
+    }
 }

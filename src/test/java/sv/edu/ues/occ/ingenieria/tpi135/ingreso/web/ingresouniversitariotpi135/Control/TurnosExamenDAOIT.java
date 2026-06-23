@@ -7,10 +7,13 @@ import sv.edu.ues.occ.ingenieria.tpi135.ingreso.web.ingresouniversitariotpi135.E
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 public class TurnosExamenDAOIT extends AbstractBaseIT {
 
+    private static final UUID ID_PRUEBA_NACIONAL = UUID.fromString("dddddddd-dddd-dddd-dddd-dddddddddddd");
+    private static final LocalDate FECHA_TURNOS = LocalDate.of(2026, 7, 15);
 
     public TurnosExamenDAOIT() {
     }
@@ -70,9 +73,9 @@ public class TurnosExamenDAOIT extends AbstractBaseIT {
             nuevoTurno.setNombreTurno("Turno Matutino");
             nuevoTurno.setPruebaAdmision(pruebasAdmision);
             nuevoTurno.setFecha(LocalDate.now());
-            nuevoTurno.setHoraInicio(LocalTime.now());
-            nuevoTurno.setHoraFin(LocalTime.now().plusHours(2));
-
+            // En lugar de LocalTime.now(), definimos horas estáticas de la mañana
+            nuevoTurno.setHoraInicio(LocalTime.of(8, 0));  // 08:00 AM
+            nuevoTurno.setHoraFin(LocalTime.of(10, 0));    // 10:00 AM
             // Creamos el nuevo turno
             cut.crear(nuevoTurno);
 
@@ -159,8 +162,8 @@ public class TurnosExamenDAOIT extends AbstractBaseIT {
             turnoTemporal.setNombreTurno("Turno Temporal a Eliminar");
             turnoTemporal.setPruebaAdmision(pruebasAdmision);
             turnoTemporal.setFecha(LocalDate.now());
-            turnoTemporal.setHoraInicio(LocalTime.now());
-            turnoTemporal.setHoraFin(LocalTime.now().plusHours(2));
+            turnoTemporal.setHoraInicio(LocalTime.of(14, 0)); // 02:00 PM
+            turnoTemporal.setHoraFin(LocalTime.of(16, 0));    // 04:00 PM
 
             cut.crear(turnoTemporal);
 
@@ -175,6 +178,247 @@ public class TurnosExamenDAOIT extends AbstractBaseIT {
             assertNull(cut.leer(turnoTemporal.getIdTurnoExamen()), "El turno debería retornar null al haber sido borrado");
 
             System.out.println("Dato eliminado: "+ cut.leer(turnoTemporal.getIdTurnoExamen()));
+            return null;
+        });
+    }
+
+    // ===================== CRUD FALTANTE =====================
+
+    @Test
+    public void testLeerNoExiste() {
+        System.out.println("TurnosExamenDAOIT.leer() - ID inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            TurnosExamenDAO cut = new TurnosExamenDAO();
+            cut.em = em;
+
+            TurnosExamen resultado = cut.leer(UUID.randomUUID());
+            assertNull(resultado, "Debe retornar null si el ID no existe");
+            return null;
+        });
+    }
+
+    // ===================== NAMED QUERIES =====================
+
+    @Test
+    public void testFindByPrueba() {
+        System.out.println("TurnosExamenDAOIT.findByPrueba()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            TurnosExamenDAO cut = new TurnosExamenDAO();
+            cut.em = em;
+
+            // Prueba Nacional UES tiene 2 turnos
+            List<TurnosExamen> resultado = cut.findByPrueba(ID_PRUEBA_NACIONAL);
+            assertNotNull(resultado);
+            assertEquals(2, resultado.size());
+            // Ordenados por fecha + horaInicio: Mañana primero, Tarde después
+            assertEquals("Turno Mañana", resultado.get(0).getNombreTurno());
+            assertEquals("Turno Tarde", resultado.get(1).getNombreTurno());
+
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindByPruebaInexistente() {
+        System.out.println("TurnosExamenDAOIT.findByPrueba() - inexistente");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            TurnosExamenDAO cut = new TurnosExamenDAO();
+            cut.em = em;
+
+            List<TurnosExamen> resultado = cut.findByPrueba(UUID.randomUUID());
+            assertNotNull(resultado);
+            assertTrue(resultado.isEmpty());
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindByPruebaNulo() {
+        System.out.println("TurnosExamenDAOIT.findByPrueba() - null");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            TurnosExamenDAO cut = new TurnosExamenDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.findByPrueba(null));
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindByFecha() {
+        System.out.println("TurnosExamenDAOIT.findByFecha()");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            TurnosExamenDAO cut = new TurnosExamenDAO();
+            cut.em = em;
+
+            // 2026-07-15 tiene 2 turnos, ordenados por horaInicio
+            List<TurnosExamen> resultado = cut.findByFecha(FECHA_TURNOS);
+            assertNotNull(resultado);
+            assertEquals(2, resultado.size());
+            assertEquals(LocalTime.of(8, 0), resultado.get(0).getHoraInicio());
+            assertEquals(LocalTime.of(13, 0), resultado.get(1).getHoraInicio());
+
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindByFechaSinResultados() {
+        System.out.println("TurnosExamenDAOIT.findByFecha() - fecha sin turnos");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            TurnosExamenDAO cut = new TurnosExamenDAO();
+            cut.em = em;
+
+            List<TurnosExamen> resultado = cut.findByFecha(LocalDate.of(2099, 1, 1));
+            assertNotNull(resultado);
+            assertTrue(resultado.isEmpty());
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindByFechaNula() {
+        System.out.println("TurnosExamenDAOIT.findByFecha() - null");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            TurnosExamenDAO cut = new TurnosExamenDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class, () -> cut.findByFecha(null));
+            return null;
+        });
+    }
+
+    @Test
+    public void testExisteTraslape() {
+        System.out.println("TurnosExamenDAOIT.existeTraslape() - hay traslape");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            TurnosExamenDAO cut = new TurnosExamenDAO();
+            cut.em = em;
+
+            // 09:00-10:00 se cruza con Turno Mañana (08:00-11:00)
+            boolean traslape = cut.existeTraslape(
+                    ID_PRUEBA_NACIONAL, FECHA_TURNOS,
+                    LocalTime.of(9, 0), LocalTime.of(10, 0),
+                    null);
+            assertTrue(traslape);
+
+            // 07:00-09:00 se cruza con Turno Mañana (08:00 < 09:00 AND 11:00 > 07:00)
+            boolean traslape2 = cut.existeTraslape(
+                    ID_PRUEBA_NACIONAL, FECHA_TURNOS,
+                    LocalTime.of(7, 0), LocalTime.of(9, 0),
+                    null);
+            assertTrue(traslape2);
+
+            return null;
+        });
+    }
+
+    @Test
+    public void testExisteTraslapeNoHay() {
+        System.out.println("TurnosExamenDAOIT.existeTraslape() - sin traslape");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            TurnosExamenDAO cut = new TurnosExamenDAO();
+            cut.em = em;
+
+            // 17:00-18:00 no se cruza con ningún turno (Mañana 08-11, Tarde 13-16)
+            boolean sinTraslape = cut.existeTraslape(
+                    ID_PRUEBA_NACIONAL, FECHA_TURNOS,
+                    LocalTime.of(17, 0), LocalTime.of(18, 0),
+                    null);
+            assertFalse(sinTraslape);
+
+            // 11:00-13:00 tampoco (gap entre mañana y tarde)
+            boolean sinTraslape2 = cut.existeTraslape(
+                    ID_PRUEBA_NACIONAL, FECHA_TURNOS,
+                    LocalTime.of(11, 0), LocalTime.of(13, 0),
+                    null);
+            assertFalse(sinTraslape2);
+
+            // Fecha diferente → sin traslape
+            boolean otraFecha = cut.existeTraslape(
+                    ID_PRUEBA_NACIONAL, LocalDate.of(2099, 1, 1),
+                    LocalTime.of(9, 0), LocalTime.of(10, 0),
+                    null);
+            assertFalse(otraFecha);
+
+            return null;
+        });
+    }
+
+    @Test
+    public void testExisteTraslapeNulos() {
+        System.out.println("TurnosExamenDAOIT.existeTraslape() - parametros nulos");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            TurnosExamenDAO cut = new TurnosExamenDAO();
+            cut.em = em;
+
+            LocalTime h1 = LocalTime.of(9, 0);
+            LocalTime h2 = LocalTime.of(10, 0);
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.existeTraslape(null, FECHA_TURNOS, h1, h2, null));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.existeTraslape(ID_PRUEBA_NACIONAL, null, h1, h2, null));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.existeTraslape(ID_PRUEBA_NACIONAL, FECHA_TURNOS, null, h2, null));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.existeTraslape(ID_PRUEBA_NACIONAL, FECHA_TURNOS, h1, null, null));
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindTurnoActivoParaAspiranteNulos() {
+        System.out.println("TurnosExamenDAOIT.findTurnoActivoParaAspirante() - nulos");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            TurnosExamenDAO cut = new TurnosExamenDAO();
+            cut.em = em;
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.findTurnoActivoParaAspirante(null, FECHA_TURNOS, LocalTime.of(9, 0)));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.findTurnoActivoParaAspirante(UUID.randomUUID(), null, LocalTime.of(9, 0)));
+            assertThrows(IllegalArgumentException.class,
+                    () -> cut.findTurnoActivoParaAspirante(UUID.randomUUID(), FECHA_TURNOS, null));
+            return null;
+        });
+    }
+
+    @Test
+    public void testFindTurnoActivoParaAspiranteNoExiste() {
+        System.out.println("TurnosExamenDAOIT.findTurnoActivoParaAspirante() - sin turno activo");
+        assertTrue(postgres.isRunning());
+
+        ejecutarEnTransaccion(em -> {
+            TurnosExamenDAO cut = new TurnosExamenDAO();
+            cut.em = em;
+
+            // Aspirante inexistente → null
+            TurnosExamen resultado = cut.findTurnoActivoParaAspirante(
+                    UUID.randomUUID(), FECHA_TURNOS, LocalTime.of(9, 0));
+            assertNull(resultado, "Debe retornar null si el aspirante no tiene turno activo");
             return null;
         });
     }
